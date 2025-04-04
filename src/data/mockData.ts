@@ -22,6 +22,9 @@ export type Professional = {
   distance: string;
   available: boolean;
   portfolio: string[];
+  isVerified?: boolean;
+  responseTime?: string;
+  responseRate?: number;
 };
 
 export type ServiceRequest = {
@@ -50,6 +53,9 @@ export type User = {
   type: 'client' | 'professional';
   rating: number;
   reviews: Review[];
+  isVerified?: boolean;
+  responseTime?: string;
+  responseRate?: number;
 };
 
 export type Review = {
@@ -125,7 +131,10 @@ export const mockProfessionals: Professional[] = [
     },
     distance: '1.2 km',
     available: true,
-    portfolio: ['/placeholder.svg', '/placeholder.svg']
+    portfolio: ['/placeholder.svg', '/placeholder.svg'],
+    isVerified: true,
+    responseTime: '30min',
+    responseRate: 95
   },
   {
     id: '2',
@@ -142,7 +151,10 @@ export const mockProfessionals: Professional[] = [
     },
     distance: '2.5 km',
     available: true,
-    portfolio: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg']
+    portfolio: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg'],
+    isVerified: true,
+    responseTime: '45min',
+    responseRate: 98
   },
   {
     id: '3',
@@ -159,7 +171,10 @@ export const mockProfessionals: Professional[] = [
     },
     distance: '3.1 km',
     available: false,
-    portfolio: ['/placeholder.svg']
+    portfolio: ['/placeholder.svg'],
+    isVerified: false,
+    responseTime: '1h',
+    responseRate: 85
   },
   {
     id: '4',
@@ -176,7 +191,10 @@ export const mockProfessionals: Professional[] = [
     },
     distance: '1.8 km',
     available: true,
-    portfolio: ['/placeholder.svg', '/placeholder.svg']
+    portfolio: ['/placeholder.svg', '/placeholder.svg'],
+    isVerified: true,
+    responseTime: '20min',
+    responseRate: 92
   }
 ];
 
@@ -189,6 +207,7 @@ export const mockUsers: User[] = [
     avatar: '/placeholder.svg',
     type: 'client',
     rating: 4.5,
+    isVerified: true,
     reviews: [
       {
         id: '101',
@@ -208,6 +227,9 @@ export const mockUsers: User[] = [
     avatar: '/placeholder.svg',
     type: 'professional',
     rating: 4.9,
+    isVerified: true,
+    responseTime: '45min',
+    responseRate: 98,
     reviews: [
       {
         id: '102',
