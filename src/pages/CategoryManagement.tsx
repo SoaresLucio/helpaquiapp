@@ -176,8 +176,8 @@ const CategoryManagement = () => {
       description: `A categoria "${category?.name}" foi ${currentState ? "desativada" : "ativada"}.`,
     });
   };
-  
-  // Function to render add category form
+
+  // Render add category form
   const renderAddCategoryForm = (onClose: () => void) => (
     <form onSubmit={(e) => handleAddCategory(e, onClose)}>
       <div className="grid gap-4 py-4">
@@ -240,7 +240,7 @@ const CategoryManagement = () => {
     </form>
   );
 
-  // Function to render edit category form
+  // Render edit category form
   const renderEditCategoryForm = (onClose: () => void) => {
     if (!editCategory) return null;
     
@@ -332,7 +332,7 @@ const CategoryManagement = () => {
                 </DialogDescription>
               </DialogHeader>
               
-              {(onClose: () => void) => renderAddCategoryForm(onClose)}
+              {renderAddCategoryForm}
             </DialogContent>
           </Dialog>
         </div>
@@ -407,7 +407,7 @@ const CategoryManagement = () => {
                                 </DialogDescription>
                               </DialogHeader>
                               
-                              {(onClose: () => void) => renderEditCategoryForm(onClose)}
+                              {renderEditCategoryForm}
                             </DialogContent>
                           </Dialog>
                           
@@ -504,7 +504,7 @@ const CategoryManagement = () => {
                               <DialogTitle>Editar categoria</DialogTitle>
                             </DialogHeader>
                             
-                            {(onClose: () => void) => renderEditCategoryForm(onClose)}
+                            {renderEditCategoryForm}
                           </DialogContent>
                         </Dialog>
                         

@@ -16,9 +16,18 @@ import NotFound from "./pages/NotFound";
 // Create the query client outside of the component
 const queryClient = new QueryClient();
 
-const App = () => {
+// Create a wrapper component for QueryClientProvider to ensure proper React structure
+const QueryProviderWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+};
+
+const App = () => {
+  return (
+    <QueryProviderWrapper>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -38,7 +47,7 @@ const App = () => {
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
-    </QueryClientProvider>
+    </QueryProviderWrapper>
   );
 };
 

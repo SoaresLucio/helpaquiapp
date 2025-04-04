@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { CreditCard, Wallet, PlusCircle, Bank, AlertCircle, CheckCircle, ShieldCheck, Loader2 } from 'lucide-react';
+import { CreditCard, Wallet, PlusCircle, Building, AlertCircle, CheckCircle, ShieldCheck, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import {
   Dialog,
@@ -172,6 +171,85 @@ const PaymentSettings = () => {
     }, 1000);
   };
   
+  // Create a render function for the add card form
+  const renderAddCardForm = (onClose: () => void) => (
+    <form onSubmit={(e) => handleAddCard(e, onClose)}>
+      <div className="grid gap-4 py-4">
+        <div className="space-y-2">
+          <Label htmlFor="card-number">Número do cartão</Label>
+          <Input 
+            id="card-number" 
+            placeholder="0000 0000 0000 0000"
+            value={newCard.cardNumber}
+            onChange={(e) => setNewCard({...newCard, cardNumber: e.target.value})}
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="card-name">Nome no cartão</Label>
+          <Input 
+            id="card-name" 
+            placeholder="Como aparece no cartão"
+            value={newCard.cardName}
+            onChange={(e) => setNewCard({...newCard, cardName: e.target.value})}
+            required
+          />
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="card-expiry">Data de validade</Label>
+            <Input 
+              id="card-expiry" 
+              placeholder="MM/AA"
+              value={newCard.expiry}
+              onChange={(e) => setNewCard({...newCard, expiry: e.target.value})}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="card-cvv">Código de segurança (CVV)</Label>
+            <Input 
+              id="card-cvv" 
+              placeholder="123"
+              type="password"
+              maxLength={4}
+              value={newCard.cvv}
+              onChange={(e) => setNewCard({...newCard, cvv: e.target.value})}
+              required
+            />
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Switch 
+            id="save-card" 
+            checked={newCard.saveCard}
+            onCheckedChange={(checked) => setNewCard({...newCard, saveCard: checked})}
+          />
+          <Label htmlFor="save-card">Salvar este cartão para pagamentos futuros</Label>
+        </div>
+      </div>
+      
+      <DialogFooter>
+        <DialogClose asChild>
+          <Button type="button" variant="outline">Cancelar</Button>
+        </DialogClose>
+        <Button type="submit" disabled={isProcessing}>
+          {isProcessing ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processando...
+            </>
+          ) : (
+            <>Adicionar cartão</>
+          )}
+        </Button>
+      </DialogFooter>
+    </form>
+  );
+  
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <Header />
@@ -208,7 +286,7 @@ const PaymentSettings = () => {
                       value="bank-account"
                       className="w-full justify-start px-4 py-3 border-l-2 border-transparent data-[state=active]:border-helpaqui-blue rounded-none"
                     >
-                      <Bank className="h-4 w-4 mr-2" />
+                      <Building className="h-4 w-4 mr-2" />
                       Dados Bancários
                     </TabsTrigger>
                     <TabsTrigger
@@ -325,83 +403,7 @@ const PaymentSettings = () => {
                         </DialogDescription>
                       </DialogHeader>
                       
-                      {(onClose) => (
-                        <form onSubmit={(e) => handleAddCard(e, onClose)}>
-                          <div className="grid gap-4 py-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="card-number">Número do cartão</Label>
-                              <Input 
-                                id="card-number" 
-                                placeholder="0000 0000 0000 0000"
-                                value={newCard.cardNumber}
-                                onChange={(e) => setNewCard({...newCard, cardNumber: e.target.value})}
-                                required
-                              />
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <Label htmlFor="card-name">Nome no cartão</Label>
-                              <Input 
-                                id="card-name" 
-                                placeholder="Como aparece no cartão"
-                                value={newCard.cardName}
-                                onChange={(e) => setNewCard({...newCard, cardName: e.target.value})}
-                                required
-                              />
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="card-expiry">Data de validade</Label>
-                                <Input 
-                                  id="card-expiry" 
-                                  placeholder="MM/AA"
-                                  value={newCard.expiry}
-                                  onChange={(e) => setNewCard({...newCard, expiry: e.target.value})}
-                                  required
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="card-cvv">Código de segurança (CVV)</Label>
-                                <Input 
-                                  id="card-cvv" 
-                                  placeholder="123"
-                                  type="password"
-                                  maxLength={4}
-                                  value={newCard.cvv}
-                                  onChange={(e) => setNewCard({...newCard, cvv: e.target.value})}
-                                  required
-                                />
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center space-x-2">
-                              <Switch 
-                                id="save-card" 
-                                checked={newCard.saveCard}
-                                onCheckedChange={(checked) => setNewCard({...newCard, saveCard: checked})}
-                              />
-                              <Label htmlFor="save-card">Salvar este cartão para pagamentos futuros</Label>
-                            </div>
-                          </div>
-                          
-                          <DialogFooter>
-                            <DialogClose asChild>
-                              <Button type="button" variant="outline">Cancelar</Button>
-                            </DialogClose>
-                            <Button type="submit" disabled={isProcessing}>
-                              {isProcessing ? (
-                                <>
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Processando...
-                                </>
-                              ) : (
-                                <>Adicionar cartão</>
-                              )}
-                            </Button>
-                          </DialogFooter>
-                        </form>
-                      )}
+                      {renderAddCardForm}
                     </DialogContent>
                   </Dialog>
                 </CardFooter>
@@ -659,7 +661,6 @@ const PaymentSettings = () => {
                 </CardContent>
               </Card>
               
-              {/* Admin section for platform fee management - in a real app this would be protected */}
               <Card className="mt-6">
                 <CardHeader>
                   <CardTitle>Configuração de Taxas (Administrador)</CardTitle>
