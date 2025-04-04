@@ -156,128 +156,136 @@ const Jobs = () => {
     onClose();
   };
 
-  // Render job form
-  const renderJobForm = (onClose: () => void) => (
-    <form onSubmit={(e) => handleSubmitJob(e, onClose)}>
-      <div className="grid gap-4 py-4">
-        <div className="space-y-2">
-          <Label htmlFor="job-title">Título da vaga</Label>
-          <Input 
-            id="job-title" 
-            placeholder="Ex: Desenvolvedor Frontend Senior"
-            value={newJob.title}
-            onChange={(e) => setNewJob({...newJob, title: e.target.value})}
-            required
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="job-company">Empresa</Label>
-          <Input 
-            id="job-company" 
-            placeholder="Ex: Tech Solutions Inc."
-            value={newJob.company}
-            onChange={(e) => setNewJob({...newJob, company: e.target.value})}
-            required
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  // Render job form component
+  const JobForm = () => {
+    return (
+      <form onSubmit={(e) => {
+        // Create a dummy close function for the dialog
+        const closeDialog = () => {
+          document.querySelector<HTMLButtonElement>('[data-id="close-job-dialog"]')?.click();
+        };
+        handleSubmitJob(e, closeDialog);
+      }}>
+        <div className="grid gap-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="job-type">Tipo de contratação</Label>
-            <Select 
-              value={newJob.type}
-              onValueChange={(value) => setNewJob({...newJob, type: value})}
-            >
-              <SelectTrigger id="job-type">
-                <SelectValue placeholder="Selecione o tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Tempo integral">Tempo integral</SelectItem>
-                <SelectItem value="Meio período">Meio período</SelectItem>
-                <SelectItem value="Freelancer">Freelancer</SelectItem>
-                <SelectItem value="Estágio">Estágio</SelectItem>
-                <SelectItem value="Temporário">Temporário</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="job-location">Localização</Label>
+            <Label htmlFor="job-title">Título da vaga</Label>
             <Input 
-              id="job-location" 
-              placeholder="Ex: São Paulo, SP"
-              value={newJob.location}
-              onChange={(e) => setNewJob({...newJob, location: e.target.value})}
+              id="job-title" 
+              placeholder="Ex: Desenvolvedor Frontend Senior"
+              value={newJob.title}
+              onChange={(e) => setNewJob({...newJob, title: e.target.value})}
               required
             />
           </div>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
           <div className="space-y-2">
-            <Label htmlFor="job-category">Categoria</Label>
-            <Select 
-              value={newJob.category}
-              onValueChange={(value) => setNewJob({...newJob, category: value})}
-            >
-              <SelectTrigger id="job-category">
-                <SelectValue placeholder="Selecione a categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Tecnologia">Tecnologia</SelectItem>
-                <SelectItem value="Design">Design</SelectItem>
-                <SelectItem value="Marketing">Marketing</SelectItem>
-                <SelectItem value="Vendas">Vendas</SelectItem>
-                <SelectItem value="Administrativo">Administrativo</SelectItem>
-                <SelectItem value="Outros">Outros</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label htmlFor="job-company">Empresa</Label>
+            <Input 
+              id="job-company" 
+              placeholder="Ex: Tech Solutions Inc."
+              value={newJob.company}
+              onChange={(e) => setNewJob({...newJob, company: e.target.value})}
+              required
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="job-type">Tipo de contratação</Label>
+              <Select 
+                value={newJob.type}
+                onValueChange={(value) => setNewJob({...newJob, type: value})}
+              >
+                <SelectTrigger id="job-type">
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Tempo integral">Tempo integral</SelectItem>
+                  <SelectItem value="Meio período">Meio período</SelectItem>
+                  <SelectItem value="Freelancer">Freelancer</SelectItem>
+                  <SelectItem value="Estágio">Estágio</SelectItem>
+                  <SelectItem value="Temporário">Temporário</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="job-location">Localização</Label>
+              <Input 
+                id="job-location" 
+                placeholder="Ex: São Paulo, SP"
+                value={newJob.location}
+                onChange={(e) => setNewJob({...newJob, location: e.target.value})}
+                required
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="job-category">Categoria</Label>
+              <Select 
+                value={newJob.category}
+                onValueChange={(value) => setNewJob({...newJob, category: value})}
+              >
+                <SelectTrigger id="job-category">
+                  <SelectValue placeholder="Selecione a categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Tecnologia">Tecnologia</SelectItem>
+                  <SelectItem value="Design">Design</SelectItem>
+                  <SelectItem value="Marketing">Marketing</SelectItem>
+                  <SelectItem value="Vendas">Vendas</SelectItem>
+                  <SelectItem value="Administrativo">Administrativo</SelectItem>
+                  <SelectItem value="Outros">Outros</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="job-salary">Faixa salarial</Label>
+              <Input 
+                id="job-salary" 
+                placeholder="Ex: R$ 5.000 - R$ 7.000"
+                value={newJob.salary}
+                onChange={(e) => setNewJob({...newJob, salary: e.target.value})}
+              />
+            </div>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="job-salary">Faixa salarial</Label>
-            <Input 
-              id="job-salary" 
-              placeholder="Ex: R$ 5.000 - R$ 7.000"
-              value={newJob.salary}
-              onChange={(e) => setNewJob({...newJob, salary: e.target.value})}
+            <Label htmlFor="job-description">Descrição da vaga</Label>
+            <Textarea 
+              id="job-description" 
+              rows={5}
+              placeholder="Descreva as responsabilidades, requisitos e benefícios da vaga..."
+              value={newJob.description}
+              onChange={(e) => setNewJob({...newJob, description: e.target.value})}
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="job-requirements">Requisitos</Label>
+            <Textarea 
+              id="job-requirements" 
+              rows={3}
+              placeholder="Liste os requisitos necessários para a vaga..."
+              value={newJob.requirements}
+              onChange={(e) => setNewJob({...newJob, requirements: e.target.value})}
             />
           </div>
         </div>
         
-        <div className="space-y-2">
-          <Label htmlFor="job-description">Descrição da vaga</Label>
-          <Textarea 
-            id="job-description" 
-            rows={5}
-            placeholder="Descreva as responsabilidades, requisitos e benefícios da vaga..."
-            value={newJob.description}
-            onChange={(e) => setNewJob({...newJob, description: e.target.value})}
-            required
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="job-requirements">Requisitos</Label>
-          <Textarea 
-            id="job-requirements" 
-            rows={3}
-            placeholder="Liste os requisitos necessários para a vaga..."
-            value={newJob.requirements}
-            onChange={(e) => setNewJob({...newJob, requirements: e.target.value})}
-          />
-        </div>
-      </div>
-      
-      <DialogFooter>
-        <DialogClose asChild>
-          <Button type="button" variant="outline">Cancelar</Button>
-        </DialogClose>
-        <Button type="submit">Publicar vaga</Button>
-      </DialogFooter>
-    </form>
-  );
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button data-id="close-job-dialog" type="button" variant="outline">Cancelar</Button>
+          </DialogClose>
+          <Button type="submit">Publicar vaga</Button>
+        </DialogFooter>
+      </form>
+    );
+  };
 
   return (
     
@@ -308,7 +316,7 @@ const Jobs = () => {
                 </DialogDescription>
               </DialogHeader>
               
-              {renderJobForm}
+              <JobForm />
             </DialogContent>
           </Dialog>
         </div>

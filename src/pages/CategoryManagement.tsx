@@ -178,74 +178,88 @@ const CategoryManagement = () => {
   };
 
   // Render add category form
-  const renderAddCategoryForm = (onClose: () => void) => (
-    <form onSubmit={(e) => handleAddCategory(e, onClose)}>
-      <div className="grid gap-4 py-4">
-        <div className="space-y-2">
-          <Label htmlFor="category-name">Nome da categoria</Label>
-          <Input 
-            id="category-name" 
-            placeholder="Ex: Limpeza, Reparos, etc."
-            value={newCategory.name}
-            onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
-            required
-          />
+  const AddCategoryForm = () => {
+    return (
+      <form onSubmit={(e) => {
+        // Create a dummy close function for the dialog
+        const closeDialog = () => {
+          document.querySelector<HTMLButtonElement>('[data-id="close-add-dialog"]')?.click();
+        };
+        handleAddCategory(e, closeDialog);
+      }}>
+        <div className="grid gap-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="category-name">Nome da categoria</Label>
+            <Input 
+              id="category-name" 
+              placeholder="Ex: Limpeza, Reparos, etc."
+              value={newCategory.name}
+              onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="category-description">Descrição (opcional)</Label>
+            <Input 
+              id="category-description" 
+              placeholder="Uma breve descrição da categoria"
+              value={newCategory.description}
+              onChange={(e) => setNewCategory({...newCategory, description: e.target.value})}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="category-icon">Ícone (URL)</Label>
+            <Input 
+              id="category-icon" 
+              placeholder="URL do ícone da categoria"
+              value={newCategory.icon}
+              onChange={(e) => setNewCategory({...newCategory, icon: e.target.value})}
+            />
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id="category-active" 
+              checked={newCategory.isActive}
+              onCheckedChange={(checked) => setNewCategory({...newCategory, isActive: checked})}
+            />
+            <Label htmlFor="category-active">Categoria ativa</Label>
+          </div>
         </div>
         
-        <div className="space-y-2">
-          <Label htmlFor="category-description">Descrição (opcional)</Label>
-          <Input 
-            id="category-description" 
-            placeholder="Uma breve descrição da categoria"
-            value={newCategory.description}
-            onChange={(e) => setNewCategory({...newCategory, description: e.target.value})}
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="category-icon">Ícone (URL)</Label>
-          <Input 
-            id="category-icon" 
-            placeholder="URL do ícone da categoria"
-            value={newCategory.icon}
-            onChange={(e) => setNewCategory({...newCategory, icon: e.target.value})}
-          />
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <Switch 
-            id="category-active" 
-            checked={newCategory.isActive}
-            onCheckedChange={(checked) => setNewCategory({...newCategory, isActive: checked})}
-          />
-          <Label htmlFor="category-active">Categoria ativa</Label>
-        </div>
-      </div>
-      
-      <DialogFooter>
-        <DialogClose asChild>
-          <Button type="button" variant="outline">Cancelar</Button>
-        </DialogClose>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Adicionando...
-            </>
-          ) : (
-            <>Adicionar categoria</>
-          )}
-        </Button>
-      </DialogFooter>
-    </form>
-  );
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button data-id="close-add-dialog" type="button" variant="outline">Cancelar</Button>
+          </DialogClose>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Adicionando...
+              </>
+            ) : (
+              <>Adicionar categoria</>
+            )}
+          </Button>
+        </DialogFooter>
+      </form>
+    );
+  };
 
   // Render edit category form
-  const renderEditCategoryForm = (onClose: () => void) => {
+  const EditCategoryForm = () => {
     if (!editCategory) return null;
     
     return (
-      <form onSubmit={(e) => handleUpdateCategory(e, onClose)}>
+      <form onSubmit={(e) => {
+        // Create a dummy close function for the dialog
+        const closeDialog = () => {
+          document.querySelector<HTMLButtonElement>('[data-id="close-edit-dialog"]')?.click();
+        };
+        handleUpdateCategory(e, closeDialog);
+      }}>
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="edit-category-name">Nome da categoria</Label>
@@ -287,7 +301,7 @@ const CategoryManagement = () => {
         
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="outline">Cancelar</Button>
+            <Button data-id="close-edit-dialog" type="button" variant="outline">Cancelar</Button>
           </DialogClose>
           <Button type="submit" disabled={isLoading}>
             {isLoading ? (
@@ -332,7 +346,7 @@ const CategoryManagement = () => {
                 </DialogDescription>
               </DialogHeader>
               
-              {renderAddCategoryForm}
+              <AddCategoryForm />
             </DialogContent>
           </Dialog>
         </div>
@@ -407,7 +421,7 @@ const CategoryManagement = () => {
                                 </DialogDescription>
                               </DialogHeader>
                               
-                              {renderEditCategoryForm}
+                              <EditCategoryForm />
                             </DialogContent>
                           </Dialog>
                           
@@ -504,7 +518,7 @@ const CategoryManagement = () => {
                               <DialogTitle>Editar categoria</DialogTitle>
                             </DialogHeader>
                             
-                            {renderEditCategoryForm}
+                            <EditCategoryForm />
                           </DialogContent>
                         </Dialog>
                         

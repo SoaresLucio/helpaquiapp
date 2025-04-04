@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
@@ -172,84 +171,92 @@ const PaymentSettings = () => {
     }, 1000);
   };
   
-  // Create a render function for the add card form
-  const renderAddCardForm = (onClose: () => void) => (
-    <form onSubmit={(e) => handleAddCard(e, onClose)}>
-      <div className="grid gap-4 py-4">
-        <div className="space-y-2">
-          <Label htmlFor="card-number">Número do cartão</Label>
-          <Input 
-            id="card-number" 
-            placeholder="0000 0000 0000 0000"
-            value={newCard.cardNumber}
-            onChange={(e) => setNewCard({...newCard, cardNumber: e.target.value})}
-            required
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="card-name">Nome no cartão</Label>
-          <Input 
-            id="card-name" 
-            placeholder="Como aparece no cartão"
-            value={newCard.cardName}
-            onChange={(e) => setNewCard({...newCard, cardName: e.target.value})}
-            required
-          />
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4">
+  // Create a component for the add card form
+  const AddCardForm = () => {
+    return (
+      <form onSubmit={(e) => {
+        // Create a dummy close function for the dialog
+        const closeDialog = () => {
+          document.querySelector<HTMLButtonElement>('[data-id="close-add-card-dialog"]')?.click();
+        };
+        handleAddCard(e, closeDialog);
+      }}>
+        <div className="grid gap-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="card-expiry">Data de validade</Label>
+            <Label htmlFor="card-number">Número do cartão</Label>
             <Input 
-              id="card-expiry" 
-              placeholder="MM/AA"
-              value={newCard.expiry}
-              onChange={(e) => setNewCard({...newCard, expiry: e.target.value})}
+              id="card-number" 
+              placeholder="0000 0000 0000 0000"
+              value={newCard.cardNumber}
+              onChange={(e) => setNewCard({...newCard, cardNumber: e.target.value})}
               required
             />
           </div>
+          
           <div className="space-y-2">
-            <Label htmlFor="card-cvv">Código de segurança (CVV)</Label>
+            <Label htmlFor="card-name">Nome no cartão</Label>
             <Input 
-              id="card-cvv" 
-              placeholder="123"
-              type="password"
-              maxLength={4}
-              value={newCard.cvv}
-              onChange={(e) => setNewCard({...newCard, cvv: e.target.value})}
+              id="card-name" 
+              placeholder="Como aparece no cartão"
+              value={newCard.cardName}
+              onChange={(e) => setNewCard({...newCard, cardName: e.target.value})}
               required
             />
           </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="card-expiry">Data de validade</Label>
+              <Input 
+                id="card-expiry" 
+                placeholder="MM/AA"
+                value={newCard.expiry}
+                onChange={(e) => setNewCard({...newCard, expiry: e.target.value})}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="card-cvv">Código de segurança (CVV)</Label>
+              <Input 
+                id="card-cvv" 
+                placeholder="123"
+                type="password"
+                maxLength={4}
+                value={newCard.cvv}
+                onChange={(e) => setNewCard({...newCard, cvv: e.target.value})}
+                required
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id="save-card" 
+              checked={newCard.saveCard}
+              onCheckedChange={(checked) => setNewCard({...newCard, saveCard: checked})}
+            />
+            <Label htmlFor="save-card">Salvar este cartão para pagamentos futuros</Label>
+          </div>
         </div>
         
-        <div className="flex items-center space-x-2">
-          <Switch 
-            id="save-card" 
-            checked={newCard.saveCard}
-            onCheckedChange={(checked) => setNewCard({...newCard, saveCard: checked})}
-          />
-          <Label htmlFor="save-card">Salvar este cartão para pagamentos futuros</Label>
-        </div>
-      </div>
-      
-      <DialogFooter>
-        <DialogClose asChild>
-          <Button type="button" variant="outline">Cancelar</Button>
-        </DialogClose>
-        <Button type="submit" disabled={isProcessing}>
-          {isProcessing ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processando...
-            </>
-          ) : (
-            <>Adicionar cartão</>
-          )}
-        </Button>
-      </DialogFooter>
-    </form>
-  );
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button data-id="close-add-card-dialog" type="button" variant="outline">Cancelar</Button>
+          </DialogClose>
+          <Button type="submit" disabled={isProcessing}>
+            {isProcessing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processando...
+              </>
+            ) : (
+              <>Adicionar cartão</>
+            )}
+          </Button>
+        </DialogFooter>
+      </form>
+    );
+  };
   
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -404,7 +411,7 @@ const PaymentSettings = () => {
                         </DialogDescription>
                       </DialogHeader>
                       
-                      {renderAddCardForm}
+                      <AddCardForm />
                     </DialogContent>
                   </Dialog>
                 </CardFooter>
