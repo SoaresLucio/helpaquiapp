@@ -12,6 +12,8 @@ import Jobs from "./pages/Jobs";
 import PaymentSettings from "./pages/PaymentSettings";
 import CategoryManagement from "./pages/CategoryManagement";
 import NotFound from "./pages/NotFound";
+import ProfileVerification from "./pages/ProfileVerification";
+import ChatbotWidget from "./components/ChatbotWidget";
 
 // Create the query client outside of the component
 const queryClient = new QueryClient();
@@ -42,9 +44,11 @@ const App = () => {
             <Route path="/messages" element={<Index />} />
             <Route path="/notifications" element={<Index />} />
             <Route path="/profile" element={<Index />} />
+            <Route path="/verification" element={<ProfileVerification />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <ChatbotWidget />
         </BrowserRouter>
       </TooltipProvider>
     </QueryProviderWrapper>
