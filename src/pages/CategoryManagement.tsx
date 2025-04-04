@@ -177,6 +177,133 @@ const CategoryManagement = () => {
     });
   };
   
+  // Function to render add category form
+  const renderAddCategoryForm = (onClose: () => void) => (
+    <form onSubmit={(e) => handleAddCategory(e, onClose)}>
+      <div className="grid gap-4 py-4">
+        <div className="space-y-2">
+          <Label htmlFor="category-name">Nome da categoria</Label>
+          <Input 
+            id="category-name" 
+            placeholder="Ex: Limpeza, Reparos, etc."
+            value={newCategory.name}
+            onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="category-description">Descrição (opcional)</Label>
+          <Input 
+            id="category-description" 
+            placeholder="Uma breve descrição da categoria"
+            value={newCategory.description}
+            onChange={(e) => setNewCategory({...newCategory, description: e.target.value})}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="category-icon">Ícone (URL)</Label>
+          <Input 
+            id="category-icon" 
+            placeholder="URL do ícone da categoria"
+            value={newCategory.icon}
+            onChange={(e) => setNewCategory({...newCategory, icon: e.target.value})}
+          />
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Switch 
+            id="category-active" 
+            checked={newCategory.isActive}
+            onCheckedChange={(checked) => setNewCategory({...newCategory, isActive: checked})}
+          />
+          <Label htmlFor="category-active">Categoria ativa</Label>
+        </div>
+      </div>
+      
+      <DialogFooter>
+        <DialogClose asChild>
+          <Button type="button" variant="outline">Cancelar</Button>
+        </DialogClose>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Adicionando...
+            </>
+          ) : (
+            <>Adicionar categoria</>
+          )}
+        </Button>
+      </DialogFooter>
+    </form>
+  );
+
+  // Function to render edit category form
+  const renderEditCategoryForm = (onClose: () => void) => {
+    if (!editCategory) return null;
+    
+    return (
+      <form onSubmit={(e) => handleUpdateCategory(e, onClose)}>
+        <div className="grid gap-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="edit-category-name">Nome da categoria</Label>
+            <Input 
+              id="edit-category-name" 
+              value={editCategory.name}
+              onChange={(e) => setEditCategory({...editCategory, name: e.target.value})}
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="edit-category-description">Descrição (opcional)</Label>
+            <Input 
+              id="edit-category-description" 
+              value={editCategory.description}
+              onChange={(e) => setEditCategory({...editCategory, description: e.target.value})}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="edit-category-icon">Ícone (URL)</Label>
+            <Input 
+              id="edit-category-icon" 
+              value={editCategory.icon}
+              onChange={(e) => setEditCategory({...editCategory, icon: e.target.value})}
+            />
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id="edit-category-active" 
+              checked={editCategory.isActive}
+              onCheckedChange={(checked) => setEditCategory({...editCategory, isActive: checked})}
+            />
+            <Label htmlFor="edit-category-active">Categoria ativa</Label>
+          </div>
+        </div>
+        
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="outline">Cancelar</Button>
+          </DialogClose>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Atualizando...
+              </>
+            ) : (
+              <>Atualizar categoria</>
+            )}
+          </Button>
+        </DialogFooter>
+      </form>
+    );
+  };
+  
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <Header />
@@ -205,67 +332,7 @@ const CategoryManagement = () => {
                 </DialogDescription>
               </DialogHeader>
               
-              {(onClose) => (
-                <form onSubmit={(e) => handleAddCategory(e, onClose)}>
-                  <div className="grid gap-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="category-name">Nome da categoria</Label>
-                      <Input 
-                        id="category-name" 
-                        placeholder="Ex: Limpeza, Reparos, etc."
-                        value={newCategory.name}
-                        onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="category-description">Descrição (opcional)</Label>
-                      <Input 
-                        id="category-description" 
-                        placeholder="Uma breve descrição da categoria"
-                        value={newCategory.description}
-                        onChange={(e) => setNewCategory({...newCategory, description: e.target.value})}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="category-icon">Ícone (URL)</Label>
-                      <Input 
-                        id="category-icon" 
-                        placeholder="URL do ícone da categoria"
-                        value={newCategory.icon}
-                        onChange={(e) => setNewCategory({...newCategory, icon: e.target.value})}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Switch 
-                        id="category-active" 
-                        checked={newCategory.isActive}
-                        onCheckedChange={(checked) => setNewCategory({...newCategory, isActive: checked})}
-                      />
-                      <Label htmlFor="category-active">Categoria ativa</Label>
-                    </div>
-                  </div>
-                  
-                  <DialogFooter>
-                    <DialogClose asChild>
-                      <Button type="button" variant="outline">Cancelar</Button>
-                    </DialogClose>
-                    <Button type="submit" disabled={isLoading}>
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Adicionando...
-                        </>
-                      ) : (
-                        <>Adicionar categoria</>
-                      )}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              )}
+              {(onClose: () => void) => renderAddCategoryForm(onClose)}
             </DialogContent>
           </Dialog>
         </div>
@@ -340,64 +407,7 @@ const CategoryManagement = () => {
                                 </DialogDescription>
                               </DialogHeader>
                               
-                              {editCategory && (onClose) => (
-                                <form onSubmit={(e) => handleUpdateCategory(e, onClose)}>
-                                  <div className="grid gap-4 py-4">
-                                    <div className="space-y-2">
-                                      <Label htmlFor="edit-category-name">Nome da categoria</Label>
-                                      <Input 
-                                        id="edit-category-name" 
-                                        value={editCategory.name}
-                                        onChange={(e) => setEditCategory({...editCategory, name: e.target.value})}
-                                        required
-                                      />
-                                    </div>
-                                    
-                                    <div className="space-y-2">
-                                      <Label htmlFor="edit-category-description">Descrição (opcional)</Label>
-                                      <Input 
-                                        id="edit-category-description" 
-                                        value={editCategory.description}
-                                        onChange={(e) => setEditCategory({...editCategory, description: e.target.value})}
-                                      />
-                                    </div>
-                                    
-                                    <div className="space-y-2">
-                                      <Label htmlFor="edit-category-icon">Ícone (URL)</Label>
-                                      <Input 
-                                        id="edit-category-icon" 
-                                        value={editCategory.icon}
-                                        onChange={(e) => setEditCategory({...editCategory, icon: e.target.value})}
-                                      />
-                                    </div>
-                                    
-                                    <div className="flex items-center space-x-2">
-                                      <Switch 
-                                        id="edit-category-active" 
-                                        checked={editCategory.isActive}
-                                        onCheckedChange={(checked) => setEditCategory({...editCategory, isActive: checked})}
-                                      />
-                                      <Label htmlFor="edit-category-active">Categoria ativa</Label>
-                                    </div>
-                                  </div>
-                                  
-                                  <DialogFooter>
-                                    <DialogClose asChild>
-                                      <Button type="button" variant="outline">Cancelar</Button>
-                                    </DialogClose>
-                                    <Button type="submit" disabled={isLoading}>
-                                      {isLoading ? (
-                                        <>
-                                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                          Atualizando...
-                                        </>
-                                      ) : (
-                                        <>Atualizar categoria</>
-                                      )}
-                                    </Button>
-                                  </DialogFooter>
-                                </form>
-                              )}
+                              {(onClose: () => void) => renderEditCategoryForm(onClose)}
                             </DialogContent>
                           </Dialog>
                           
@@ -494,57 +504,7 @@ const CategoryManagement = () => {
                               <DialogTitle>Editar categoria</DialogTitle>
                             </DialogHeader>
                             
-                            {editCategory && (onClose) => (
-                              <form onSubmit={(e) => handleUpdateCategory(e, onClose)}>
-                                <div className="grid gap-4 py-4">
-                                  <div className="space-y-2">
-                                    <Label htmlFor="edit-category-name-list">Nome da categoria</Label>
-                                    <Input 
-                                      id="edit-category-name-list" 
-                                      value={editCategory.name}
-                                      onChange={(e) => setEditCategory({...editCategory, name: e.target.value})}
-                                      required
-                                    />
-                                  </div>
-                                  
-                                  <div className="space-y-2">
-                                    <Label htmlFor="edit-category-description-list">Descrição (opcional)</Label>
-                                    <Input 
-                                      id="edit-category-description-list" 
-                                      value={editCategory.description}
-                                      onChange={(e) => setEditCategory({...editCategory, description: e.target.value})}
-                                    />
-                                  </div>
-                                  
-                                  <div className="space-y-2">
-                                    <Label htmlFor="edit-category-icon-list">Ícone (URL)</Label>
-                                    <Input 
-                                      id="edit-category-icon-list" 
-                                      value={editCategory.icon}
-                                      onChange={(e) => setEditCategory({...editCategory, icon: e.target.value})}
-                                    />
-                                  </div>
-                                  
-                                  <div className="flex items-center space-x-2">
-                                    <Switch 
-                                      id="edit-category-active-list" 
-                                      checked={editCategory.isActive}
-                                      onCheckedChange={(checked) => setEditCategory({...editCategory, isActive: checked})}
-                                    />
-                                    <Label htmlFor="edit-category-active-list">Categoria ativa</Label>
-                                  </div>
-                                </div>
-                                
-                                <DialogFooter>
-                                  <DialogClose asChild>
-                                    <Button type="button" variant="outline">Cancelar</Button>
-                                  </DialogClose>
-                                  <Button type="submit" disabled={isLoading}>
-                                    {isLoading ? 'Atualizando...' : 'Atualizar categoria'}
-                                  </Button>
-                                </DialogFooter>
-                              </form>
-                            )}
+                            {(onClose: () => void) => renderEditCategoryForm(onClose)}
                           </DialogContent>
                         </Dialog>
                         
