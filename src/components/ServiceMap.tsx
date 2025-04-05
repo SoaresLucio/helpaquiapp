@@ -1,24 +1,46 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Locate } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { mockProfessionals } from '@/data/mockData';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ServiceMapProps {
   selectedCategory: string | null;
 }
 
+interface Location {
+  lat: number;
+  lng: number;
+  address: string;
+}
+
 const ServiceMap: React.FC<ServiceMapProps> = ({ selectedCategory }) => {
   const [radius, setRadius] = useState<number[]>([5]);
   const [mapReady, setMapReady] = useState(false);
-  const [webhookUrl, setWebhookUrl] = useState('');
+  const [userLocation, setUserLocation] = useState<Location>({
+    lat: -23.5505,
+    lng: -46.6333,
+    address: "São Paulo, SP"
+  });
+  const [isLocating, setIsLocating] = useState(false);
+  const { toast } = useToast();
   
   // Simulação do mapa carregado
-  React.useEffect(() => {
+  useEffect(() => {
     setTimeout(() => {
       setMapReady(true);
     }, 1500);
+  }, []);
+
+  // Solicitar localização ao montar o componente
+  useEffect(() => {
+    // Verificamos se o navegador suporta geolocalização
+    if ("geolocation" in navigator) {
+      // Pergunte automaticamente quando o componente montar
+      handleGetCurrentLocation();
+    }
   }, []);
   
   // Filtragem de profissionais por categoria
@@ -26,36 +48,64 @@ const ServiceMap: React.FC<ServiceMapProps> = ({ selectedCategory }) => {
     ? mockProfessionals.filter(pro => pro.categories.includes(selectedCategory))
     : mockProfessionals;
 
-  const handleTriggerMapWebhook = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!webhookUrl) {
-      console.log("Por favor, insira a URL do webhook do Zapier");
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast({
+        title: "Erro",
+        description: "Seu navegador não suporta geolocalização",
+        variant: "destructive"
+      });
       return;
     }
 
-    console.log("Enviando dados do mapa para Zapier:", webhookUrl);
-    try {
-      fetch(webhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        mode: "no-cors",
-        body: JSON.stringify({
-          timestamp: new Date().toISOString(),
-          radius: radius[0],
-          selectedCategory,
-          location: {
-            lat: -23.5505,
-            lng: -46.6333,
-            address: "São Paulo, SP"
-          }
-        }),
-      });
-      console.log("Solicitação enviada ao Zapier");
-    } catch (error) {
-      console.error("Erro ao acionar webhook:", error);
-    }
+    setIsLocating(true);
+    console.info("Buscando localização atual...");
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        // Atualiza a localização do usuário
+        setUserLocation({
+          lat: latitude,
+          lng: longitude,
+          address: "Localização atual" // Idealmente, usaríamos um serviço de geocodificação reversa aqui
+        });
+
+        toast({
+          title: "Localização obtida",
+          description: "Sua localização atual foi encontrada com sucesso!",
+        });
+        setIsLocating(false);
+      },
+      (error) => {
+        let errorMessage = "Erro ao obter sua localização";
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Permissão de localização negada pelo usuário";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Informações de localização indisponíveis";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Tempo esgotado ao buscar localização";
+            break;
+        }
+        
+        toast({
+          title: "Erro de localização",
+          description: errorMessage,
+          variant: "destructive"
+        });
+        setIsLocating(false);
+      },
+      { 
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
   };
 
   return (
@@ -66,7 +116,7 @@ const ServiceMap: React.FC<ServiceMapProps> = ({ selectedCategory }) => {
           <h3 className="text-lg font-semibold">Profissionais próximos</h3>
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <MapPin className="h-4 w-4 text-helpaqui-blue" />
-            <span>São Paulo, SP</span>
+            <span>{userLocation.address}</span>
           </div>
         </div>
         
@@ -77,10 +127,11 @@ const ServiceMap: React.FC<ServiceMapProps> = ({ selectedCategory }) => {
               variant="outline"
               size="sm"
               className="text-xs flex items-center gap-1"
-              onClick={() => console.log("Buscando localização atual...")}
+              onClick={handleGetCurrentLocation}
+              disabled={isLocating}
             >
-              <Locate className="h-3 w-3" />
-              Atual
+              <Locate className={`h-3 w-3 ${isLocating ? "animate-spin" : ""}`} />
+              {isLocating ? "Localizando..." : "Localização atual"}
             </Button>
           </div>
           <Slider
@@ -91,32 +142,6 @@ const ServiceMap: React.FC<ServiceMapProps> = ({ selectedCategory }) => {
             className="my-4"
             onValueChange={setRadius}
           />
-        </div>
-        
-        {/* Zapier Webhook Input para integração com Google Maps */}
-        <div className="mb-3">
-          <label htmlFor="webhook-url" className="block text-sm font-medium text-gray-700 mb-1">
-            URL Webhook Zapier (Google Maps)
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              id="webhook-url"
-              className="helpaqui-input flex-1 text-sm"
-              placeholder="Cole a URL do webhook Zapier"
-              value={webhookUrl}
-              onChange={(e) => setWebhookUrl(e.target.value)}
-            />
-            <Button 
-              className="helpaqui-button-secondary text-sm"
-              onClick={handleTriggerMapWebhook}
-            >
-              Conectar
-            </Button>
-          </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Conecte ao Zapier para usar a localização em tempo real
-          </p>
         </div>
       </div>
       
@@ -134,7 +159,7 @@ const ServiceMap: React.FC<ServiceMapProps> = ({ selectedCategory }) => {
                 Mapa simulado: {filteredProfessionals.length} profissionais encontrados em um raio de {radius[0]}km
                 <br />
                 <span className="text-xs text-gray-500">
-                  (Integração real com Google Maps via Zapier)
+                  (Coordenadas: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)})
                 </span>
               </p>
             </div>
