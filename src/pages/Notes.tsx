@@ -67,7 +67,8 @@ const Notes = () => {
     setLoading(true);
     
     try {
-      await addNote(title, content, user.id);
+      // Fix: Remove the third argument (user.id) as it's now handled in the service
+      await addNote(title, content);
       
       toast({
         title: "Nota adicionada",
