@@ -6,11 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { BriefcaseBusiness, UserRound, ArrowLeft, Upload } from 'lucide-react';
+import { BriefcaseBusiness, UserRound, ArrowLeft, Upload, FileText, ScrollText, Facebook, Instagram } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { serviceCategories } from '@/data/mockData';
+import { GoogleLogin } from '@react-oauth/google';
+import { Separator } from '@/components/ui/separator';
+import PrivacyPolicyDialog from '@/components/PrivacyPolicyDialog';
+import TermsOfUseDialog from '@/components/TermsOfUseDialog';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -24,7 +28,12 @@ const Register = () => {
     password: '',
     confirmPassword: '',
     phone: '',
-    acceptTerms: false
+    birthdate: '',
+    acceptTerms: false,
+    termsRead: {
+      privacy: false,
+      terms: false
+    }
   });
   
   const [freelancerData, setFreelancerData] = useState({
@@ -33,13 +42,21 @@ const Register = () => {
     password: '',
     confirmPassword: '',
     phone: '',
+    birthdate: '',
     document: '',
     categories: [] as string[],
     description: '',
-    acceptTerms: false
+    acceptTerms: false,
+    termsRead: {
+      privacy: false,
+      terms: false
+    }
   });
   
   const [isLoading, setIsLoading] = useState(false);
+  const [privacyDialogOpen, setPrivacyDialogOpen] = useState(false);
+  const [termsDialogOpen, setTermsDialogOpen] = useState(false);
+  const [currentUserType, setCurrentUserType] = useState<'client' | 'freelancer'>('client');
 
   const handleClientSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +74,15 @@ const Register = () => {
       toast({
         title: "Erro",
         description: "Você precisa aceitar os termos e condições",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!clientData.termsRead.privacy || !clientData.termsRead.terms) {
+      toast({
+        title: "Erro",
+        description: "Você precisa ler e aceitar os termos de uso e política de privacidade",
         variant: "destructive",
       });
       return;
@@ -94,6 +120,15 @@ const Register = () => {
       toast({
         title: "Erro",
         description: "Você precisa aceitar os termos e condições",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!freelancerData.termsRead.privacy || !freelancerData.termsRead.terms) {
+      toast({
+        title: "Erro",
+        description: "Você precisa ler e aceitar os termos de uso e política de privacidade",
         variant: "destructive",
       });
       return;
@@ -142,6 +177,90 @@ const Register = () => {
     });
   };
 
+  const handleSocialSignup = (provider: string, userType: 'client' | 'freelancer', userData?: any) => {
+    setIsLoading(true);
+    
+    // Data that would typically come from social login provider
+    const mockSocialData = {
+      name: userData?.name || `Usuário ${provider}`,
+      email: userData?.email || `user@${provider.toLowerCase()}.com`,
+    };
+    
+    if (userType === 'client') {
+      setClientData(prev => ({
+        ...prev,
+        name: mockSocialData.name,
+        email: mockSocialData.email,
+      }));
+    } else {
+      setFreelancerData(prev => ({
+        ...prev,
+        name: mockSocialData.name,
+        email: mockSocialData.email,
+      }));
+    }
+    
+    toast({
+      title: `Autenticação com ${provider} bem-sucedida`,
+      description: "Complete seu cadastro com os dados adicionais",
+    });
+    
+    setIsLoading(false);
+  };
+
+  const handleGoogleSignup = (credentialResponse: any) => {
+    // In a real app, you would decode the credential and extract user info
+    const userType = document.querySelector('[aria-selected="true"]')?.getAttribute('value') as 'client' | 'freelancer' || 'client';
+    
+    // Mock data - in a real scenario, you'd decode the credential response
+    const userData = {
+      name: "Usuário Google",
+      email: "user@gmail.com"
+    };
+    
+    handleSocialSignup('Google', userType, userData);
+  };
+
+  const openPrivacyPolicy = (userType: 'client' | 'freelancer') => {
+    setCurrentUserType(userType);
+    setPrivacyDialogOpen(true);
+  };
+
+  const openTermsOfUse = (userType: 'client' | 'freelancer') => {
+    setCurrentUserType(userType);
+    setTermsDialogOpen(true);
+  };
+
+  const handlePrivacyPolicyAccept = () => {
+    if (currentUserType === 'client') {
+      setClientData(prev => ({
+        ...prev,
+        termsRead: { ...prev.termsRead, privacy: true }
+      }));
+    } else {
+      setFreelancerData(prev => ({
+        ...prev,
+        termsRead: { ...prev.termsRead, privacy: true }
+      }));
+    }
+    setPrivacyDialogOpen(false);
+  };
+
+  const handleTermsOfUseAccept = () => {
+    if (currentUserType === 'client') {
+      setClientData(prev => ({
+        ...prev,
+        termsRead: { ...prev.termsRead, terms: true }
+      }));
+    } else {
+      setFreelancerData(prev => ({
+        ...prev,
+        termsRead: { ...prev.termsRead, terms: true }
+      }));
+    }
+    setTermsDialogOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col p-4">
       <div className="container mx-auto max-w-4xl">
@@ -182,6 +301,62 @@ const Register = () => {
                   Crie uma conta para encontrar profissionais qualificados
                 </CardDescription>
               </CardHeader>
+              
+              <div className="px-6 pb-2">
+                <div className="relative w-full mb-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-card px-2 text-xs text-muted-foreground">cadastre-se com</span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="flex justify-center">
+                    <GoogleLogin
+                      onSuccess={handleGoogleSignup}
+                      onError={() => {
+                        console.log('Signup Failed');
+                        toast({
+                          title: "Erro no cadastro",
+                          description: "Falha ao cadastrar com Google",
+                          variant: "destructive",
+                        });
+                      }}
+                      useOneTap
+                    />
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center justify-center gap-2" 
+                    onClick={() => handleSocialSignup('Facebook', 'client')}
+                    disabled={isLoading}
+                  >
+                    <Facebook className="h-4 w-4 text-blue-600" />
+                    Facebook
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center justify-center gap-2" 
+                    onClick={() => handleSocialSignup('Instagram', 'client')}
+                    disabled={isLoading}
+                  >
+                    <Instagram className="h-4 w-4 text-pink-600" />
+                    Instagram
+                  </Button>
+                </div>
+                
+                <div className="relative w-full mb-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-card px-2 text-xs text-muted-foreground">ou preencha o formulário</span>
+                  </div>
+                </div>
+              </div>
+              
               <form onSubmit={handleClientSubmit}>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -219,6 +394,17 @@ const Register = () => {
                     />
                   </div>
                   
+                  <div className="space-y-2">
+                    <Label htmlFor="client-birthdate">Data de nascimento</Label>
+                    <Input 
+                      id="client-birthdate" 
+                      type="date" 
+                      value={clientData.birthdate}
+                      onChange={(e) => handleClientChange('birthdate', e.target.value)}
+                      required
+                    />
+                  </div>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="client-password">Senha</Label>
@@ -242,6 +428,36 @@ const Register = () => {
                     </div>
                   </div>
                   
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openPrivacyPolicy('client')}
+                        className="text-xs flex items-center"
+                      >
+                        <ScrollText className="mr-2 h-4 w-4" />
+                        Ler política de privacidade
+                      </Button>
+                      {clientData.termsRead.privacy && <span className="text-xs text-green-600">✓ Lido</span>}
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openTermsOfUse('client')}
+                        className="text-xs flex items-center"
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        Ler termos de uso
+                      </Button>
+                      {clientData.termsRead.terms && <span className="text-xs text-green-600">✓ Lido</span>}
+                    </div>
+                  </div>
+                  
                   <div className="flex items-center space-x-2">
                     <Checkbox 
                       id="client-terms" 
@@ -262,7 +478,7 @@ const Register = () => {
                   <Button 
                     type="submit" 
                     className="w-full bg-helpaqui-blue"
-                    disabled={isLoading}
+                    disabled={isLoading || !clientData.termsRead.privacy || !clientData.termsRead.terms || !clientData.acceptTerms}
                   >
                     {isLoading ? "Criando conta..." : "Criar conta de cliente"}
                   </Button>
@@ -279,6 +495,62 @@ const Register = () => {
                   Crie uma conta para oferecer seus serviços na plataforma
                 </CardDescription>
               </CardHeader>
+              
+              <div className="px-6 pb-2">
+                <div className="relative w-full mb-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-card px-2 text-xs text-muted-foreground">cadastre-se com</span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="flex justify-center">
+                    <GoogleLogin
+                      onSuccess={handleGoogleSignup}
+                      onError={() => {
+                        console.log('Signup Failed');
+                        toast({
+                          title: "Erro no cadastro",
+                          description: "Falha ao cadastrar com Google",
+                          variant: "destructive",
+                        });
+                      }}
+                      useOneTap
+                    />
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center justify-center gap-2" 
+                    onClick={() => handleSocialSignup('Facebook', 'freelancer')}
+                    disabled={isLoading}
+                  >
+                    <Facebook className="h-4 w-4 text-blue-600" />
+                    Facebook
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center justify-center gap-2" 
+                    onClick={() => handleSocialSignup('Instagram', 'freelancer')}
+                    disabled={isLoading}
+                  >
+                    <Instagram className="h-4 w-4 text-pink-600" />
+                    Instagram
+                  </Button>
+                </div>
+                
+                <div className="relative w-full mb-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-card px-2 text-xs text-muted-foreground">ou preencha o formulário</span>
+                  </div>
+                </div>
+              </div>
+              
               <form onSubmit={handleFreelancerSubmit}>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -316,15 +588,27 @@ const Register = () => {
                     />
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="freelancer-document">CPF ou CNPJ</Label>
-                    <Input 
-                      id="freelancer-document" 
-                      placeholder="000.000.000-00"
-                      value={freelancerData.document}
-                      onChange={(e) => handleFreelancerChange('document', e.target.value)}
-                      required
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="freelancer-birthdate">Data de nascimento</Label>
+                      <Input 
+                        id="freelancer-birthdate" 
+                        type="date" 
+                        value={freelancerData.birthdate}
+                        onChange={(e) => handleFreelancerChange('birthdate', e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="freelancer-document">CPF ou CNPJ</Label>
+                      <Input 
+                        id="freelancer-document" 
+                        placeholder="000.000.000-00"
+                        value={freelancerData.document}
+                        onChange={(e) => handleFreelancerChange('document', e.target.value)}
+                        required
+                      />
+                    </div>
                   </div>
                   
                   <div className="space-y-2">
@@ -397,6 +681,36 @@ const Register = () => {
                     </div>
                   </div>
                   
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openPrivacyPolicy('freelancer')}
+                        className="text-xs flex items-center"
+                      >
+                        <ScrollText className="mr-2 h-4 w-4" />
+                        Ler política de privacidade
+                      </Button>
+                      {freelancerData.termsRead.privacy && <span className="text-xs text-green-600">✓ Lido</span>}
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openTermsOfUse('freelancer')}
+                        className="text-xs flex items-center"
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        Ler termos de uso
+                      </Button>
+                      {freelancerData.termsRead.terms && <span className="text-xs text-green-600">✓ Lido</span>}
+                    </div>
+                  </div>
+                  
                   <div className="flex items-center space-x-2">
                     <Checkbox 
                       id="freelancer-terms" 
@@ -417,7 +731,7 @@ const Register = () => {
                   <Button 
                     type="submit" 
                     className="w-full bg-helpaqui-green"
-                    disabled={isLoading}
+                    disabled={isLoading || !freelancerData.termsRead.privacy || !freelancerData.termsRead.terms || !freelancerData.acceptTerms}
                   >
                     {isLoading ? "Criando conta..." : "Criar conta de profissional"}
                   </Button>
@@ -427,6 +741,18 @@ const Register = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <PrivacyPolicyDialog 
+        open={privacyDialogOpen} 
+        onOpenChange={setPrivacyDialogOpen}
+        onAccept={handlePrivacyPolicyAccept}
+      />
+      
+      <TermsOfUseDialog 
+        open={termsDialogOpen} 
+        onOpenChange={setTermsDialogOpen}
+        onAccept={handleTermsOfUseAccept}
+      />
     </div>
   );
 };
