@@ -59,8 +59,9 @@ const Notes = () => {
   // Buscar notas do usuário
   const fetchNotes = async () => {
     try {
-      const { data, error } = await supabase
-        .from('notes')
+      // Use type assertion to work around TypeScript issues
+      const { data, error } = await (supabase
+        .from('notes') as any)
         .select('*')
         .order('updated_at', { ascending: false });
       
@@ -82,8 +83,8 @@ const Notes = () => {
     setLoading(true);
     
     try {
-      const { data, error } = await supabase
-        .from('notes')
+      const { data, error } = await (supabase
+        .from('notes') as any)
         .insert([
           { title, content, user_id: user.id }
         ])
@@ -119,8 +120,8 @@ const Notes = () => {
     setLoading(true);
     
     try {
-      const { data, error } = await supabase
-        .from('notes')
+      const { data, error } = await (supabase
+        .from('notes') as any)
         .update({ title, content, updated_at: new Date().toISOString() })
         .eq('id', editingNote.id)
         .select()
@@ -154,8 +155,8 @@ const Notes = () => {
     if (!confirm("Tem certeza que deseja excluir esta nota?")) return;
     
     try {
-      const { error } = await supabase
-        .from('notes')
+      const { error } = await (supabase
+        .from('notes') as any)
         .delete()
         .eq('id', id);
       
