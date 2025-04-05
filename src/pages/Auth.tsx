@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { BriefcaseBusiness, UserRound } from 'lucide-react';
+import { BriefcaseBusiness, UserRound, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { signIn, signUp } from '@/services/authService';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from "@/integrations/supabase/client";
 
 const Auth = () => {
@@ -18,6 +20,7 @@ const Auth = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('login');
 
   useEffect(() => {
@@ -34,14 +37,10 @@ const Auth = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      
-      if (error) throw error;
+      await signIn(email, password);
       
       toast({
         title: "Login bem-sucedido",
@@ -50,9 +49,11 @@ const Auth = () => {
       
       navigate('/notes');
     } catch (error: any) {
+      console.error("Erro de login:", error);
+      setError("Email ou senha incorretos. Por favor, tente novamente.");
       toast({
         title: "Erro no login",
-        description: error.message,
+        description: "Email ou senha incorretos.",
         variant: "destructive"
       });
     } finally {
@@ -62,35 +63,42 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!firstName || !lastName) {
+      setError("Nome e sobrenome são obrigatórios");
+      return;
+    }
+    
+    if (password.length < 6) {
+      setError("A senha deve ter pelo menos 6 caracteres");
+      return;
+    }
+    
     setLoading(true);
+    setError(null);
     
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName
-          }
-        }
-      });
-      
-      if (error) throw error;
+      const { session } = await signUp(email, password, firstName, lastName);
       
       toast({
         title: "Cadastro realizado",
-        description: "Verifique seu e-mail para confirmar seu cadastro."
+        description: session 
+          ? "Conta criada com sucesso!" 
+          : "Verifique seu e-mail para confirmar seu cadastro."
       });
       
       // Se não for necessário confirmar o e-mail
-      if (data.session) {
+      if (session) {
         navigate('/notes');
+      } else {
+        setActiveTab('login');
       }
     } catch (error: any) {
+      console.error("Erro de cadastro:", error);
+      setError(error.message || "Erro ao criar conta. Verifique os dados e tente novamente.");
       toast({
         title: "Erro no cadastro",
-        description: error.message,
+        description: error.message || "Ocorreu um erro no cadastro",
         variant: "destructive"
       });
     } finally {
@@ -118,6 +126,13 @@ const Auth = () => {
             Cadastro
           </TabsTrigger>
         </TabsList>
+
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
         <TabsContent value="login">
           <Card>
@@ -211,7 +226,9 @@ const Auth = () => {
                     value={password} 
                     onChange={e => setPassword(e.target.value)} 
                     required 
+                    minLength={6}
                   />
+                  <p className="text-xs text-gray-500">A senha deve ter pelo menos 6 caracteres</p>
                 </div>
               </CardContent>
               <CardFooter>

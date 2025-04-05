@@ -10,7 +10,10 @@ export interface Note {
 }
 
 export const fetchUserNotes = async () => {
-  // Use type assertion to work around TypeScript issues
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) throw new Error("Usuário não autenticado");
+  
   const { data, error } = await (supabase
     .from('notes') as any)
     .select('*')
@@ -20,11 +23,15 @@ export const fetchUserNotes = async () => {
   return data || [];
 };
 
-export const addNote = async (title: string, content: string, userId: string) => {
+export const addNote = async (title: string, content: string) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) throw new Error("Usuário não autenticado");
+  
   const { data, error } = await (supabase
     .from('notes') as any)
     .insert([
-      { title, content, user_id: userId }
+      { title, content, user_id: user.id }
     ])
     .select()
     .single();
@@ -34,6 +41,10 @@ export const addNote = async (title: string, content: string, userId: string) =>
 };
 
 export const updateNote = async (id: string, title: string, content: string) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) throw new Error("Usuário não autenticado");
+  
   const { data, error } = await (supabase
     .from('notes') as any)
     .update({ title, content, updated_at: new Date().toISOString() })
@@ -46,6 +57,10 @@ export const updateNote = async (id: string, title: string, content: string) => 
 };
 
 export const deleteNote = async (id: string) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) throw new Error("Usuário não autenticado");
+  
   const { error } = await (supabase
     .from('notes') as any)
     .delete()
