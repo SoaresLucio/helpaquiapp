@@ -53,8 +53,12 @@ export const signUp = async (email: string, password: string, firstName: string,
   }
   
   // Enforce password strength
-  if (password.length < 6) {
-    throw new Error("A senha deve ter pelo menos 6 caracteres");
+  if (password.length < 8) {
+    throw new Error("A senha deve ter pelo menos 8 caracteres");
+  }
+  
+  if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+    throw new Error("A senha deve conter letras maiúsculas, minúsculas e números");
   }
   
   const { data, error } = await supabase.auth.signUp({
@@ -72,13 +76,62 @@ export const signUp = async (email: string, password: string, firstName: string,
     console.error("Erro de registro:", error);
     
     if (error.message.includes("User already registered")) {
-      throw new Error("Este email já está registrado. Por favor, faça login.");
+      throw new Error("Este email já foi cadastrado. Por favor, faça login.");
     } else {
       throw new Error(error.message || "Erro ao criar conta. Tente novamente mais tarde.");
     }
   }
   
   return data;
+};
+
+export const resetPassword = async (email: string) => {
+  if (!email) {
+    throw new Error("Email é obrigatório");
+  }
+  
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    throw new Error("Formato de e-mail inválido");
+  }
+  
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/reset-password',
+  });
+  
+  if (error) {
+    console.error("Erro ao enviar email de redefinição de senha:", error);
+    throw new Error(error.message || "Erro ao enviar email de redefinição. Tente novamente mais tarde.");
+  }
+  
+  return true;
+};
+
+export const updatePassword = async (newPassword: string) => {
+  if (!newPassword) {
+    throw new Error("Nova senha é obrigatória");
+  }
+  
+  // Enforce password strength
+  if (newPassword.length < 8) {
+    throw new Error("A senha deve ter pelo menos 8 caracteres");
+  }
+  
+  if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
+    throw new Error("A senha deve conter letras maiúsculas, minúsculas e números");
+  }
+  
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword
+  });
+  
+  if (error) {
+    console.error("Erro ao atualizar senha:", error);
+    throw new Error(error.message || "Erro ao atualizar senha. Tente novamente mais tarde.");
+  }
+  
+  return true;
 };
 
 export const signOut = async () => {

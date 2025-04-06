@@ -6,12 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { BriefcaseBusiness, UserRound, ArrowRight, Facebook, Instagram, ListChecks, FileText, WalletCards, Building } from 'lucide-react';
+import { BriefcaseBusiness, UserRound, ArrowRight, FileText, Building, WalletCards, ListChecks } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { GoogleLogin } from '@react-oauth/google';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
-import { signIn } from '@/services/authService';
+import { signIn, resetPassword } from '@/services/authService';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -23,6 +26,11 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isClientOptionsOpen, setIsClientOptionsOpen] = useState(false);
   const [isFreelancerOptionsOpen, setIsFreelancerOptionsOpen] = useState(false);
+  
+  // Password reset
+  const [resetPasswordEmail, setResetPasswordEmail] = useState('');
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   const handleClientLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,22 +90,6 @@ const Login = () => {
     }
   };
 
-  const handleSocialLogin = (provider: string, userType: string) => {
-    setIsLoading(true);
-    
-    // Simulate social login process
-    setTimeout(() => {
-      localStorage.setItem('userType', userType);
-      localStorage.setItem('userEmail', `user@${provider.toLowerCase()}.com`);
-      toast({
-        title: "Login social bem-sucedido",
-        description: `Bem-vindo ao HelpAqui via ${provider}!`
-      });
-      navigate('/');
-      setIsLoading(false);
-    }, 1000);
-  };
-
   const handleGoogleLogin = (credentialResponse: any) => {
     // In a real app, you would verify the credential with your backend
     console.log("Google login successful:", credentialResponse);
@@ -114,6 +106,42 @@ const Login = () => {
     });
     
     navigate('/');
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!resetPasswordEmail || !resetPasswordEmail.includes('@')) {
+      toast({
+        title: "Erro",
+        description: "Por favor, insira um endereço de e-mail válido",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsResettingPassword(true);
+    
+    try {
+      await resetPassword(resetPasswordEmail);
+      
+      toast({
+        title: "E-mail enviado",
+        description: "Verifique seu e-mail para redefinir sua senha"
+      });
+      
+      setIsResetDialogOpen(false);
+      setResetPasswordEmail('');
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Falha ao enviar e-mail de redefinição de senha",
+        variant: "destructive"
+      });
+    } finally {
+      setIsResettingPassword(false);
+    }
   };
 
   const handleServiceRequest = () => {
@@ -168,6 +196,11 @@ const Login = () => {
                 <div className="space-y-2">
                   <Label htmlFor="client-password">Senha</Label>
                   <Input id="client-password" type="password" value={clientPassword} onChange={e => setClientPassword(e.target.value)} required />
+                  <div className="flex justify-end">
+                    <Button variant="link" size="sm" className="text-xs p-0" onClick={() => setIsResetDialogOpen(true)}>
+                      Esqueci minha senha
+                    </Button>
+                  </div>
                 </div>
 
                 <Collapsible 
@@ -222,37 +255,19 @@ const Login = () => {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="flex justify-center">
-                    <GoogleLogin
-                      onSuccess={handleGoogleLogin}
-                      onError={() => {
-                        console.log('Login Failed');
-                        toast({
-                          title: "Erro no login",
-                          description: "Falha ao entrar com Google",
-                          variant: "destructive",
-                        });
-                      }}
-                      useOneTap
-                    />
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    className="flex items-center justify-center gap-2" 
-                    onClick={() => handleSocialLogin('Facebook', 'client')}
-                    disabled={isLoading}
-                  >
-                    <Facebook className="h-4 w-4 text-blue-600" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="flex items-center justify-center gap-2" 
-                    onClick={() => handleSocialLogin('Instagram', 'client')}
-                    disabled={isLoading}
-                  >
-                    <Instagram className="h-4 w-4 text-pink-600" />
-                  </Button>
+                <div className="flex justify-center">
+                  <GoogleLogin
+                    onSuccess={handleGoogleLogin}
+                    onError={() => {
+                      console.log('Login Failed');
+                      toast({
+                        title: "Erro no login",
+                        description: "Falha ao entrar com Google",
+                        variant: "destructive",
+                      });
+                    }}
+                    useOneTap
+                  />
                 </div>
                 
                 <div className="text-sm text-center">
@@ -283,6 +298,11 @@ const Login = () => {
                 <div className="space-y-2">
                   <Label htmlFor="freelancer-password">Senha</Label>
                   <Input id="freelancer-password" type="password" value={freelancerPassword} onChange={e => setFreelancerPassword(e.target.value)} required />
+                  <div className="flex justify-end">
+                    <Button variant="link" size="sm" className="text-xs p-0" onClick={() => setIsResetDialogOpen(true)}>
+                      Esqueci minha senha
+                    </Button>
+                  </div>
                 </div>
 
                 <Collapsible 
@@ -340,37 +360,19 @@ const Login = () => {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="flex justify-center">
-                    <GoogleLogin
-                      onSuccess={handleGoogleLogin}
-                      onError={() => {
-                        console.log('Login Failed');
-                        toast({
-                          title: "Erro no login",
-                          description: "Falha ao entrar com Google",
-                          variant: "destructive",
-                        });
-                      }}
-                      useOneTap
-                    />
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    className="flex items-center justify-center gap-2" 
-                    onClick={() => handleSocialLogin('Facebook', 'freelancer')}
-                    disabled={isLoading}
-                  >
-                    <Facebook className="h-4 w-4 text-blue-600" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="flex items-center justify-center gap-2" 
-                    onClick={() => handleSocialLogin('Instagram', 'freelancer')}
-                    disabled={isLoading}
-                  >
-                    <Instagram className="h-4 w-4 text-pink-600" />
-                  </Button>
+                <div className="flex justify-center">
+                  <GoogleLogin
+                    onSuccess={handleGoogleLogin}
+                    onError={() => {
+                      console.log('Login Failed');
+                      toast({
+                        title: "Erro no login",
+                        description: "Falha ao entrar com Google",
+                        variant: "destructive",
+                      });
+                    }}
+                    useOneTap
+                  />
                 </div>
                 
                 <div className="text-sm text-center">
@@ -384,6 +386,55 @@ const Login = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Password Reset Dialog */}
+      <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Resetar senha</DialogTitle>
+            <DialogDescription>
+              Insira seu e-mail para receber um link de redefinição de senha.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handlePasswordReset}>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">E-mail</Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={resetPasswordEmail}
+                  onChange={(e) => setResetPasswordEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <Alert variant="info" className="bg-blue-50 text-blue-800 border-blue-200">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Um link para redefinição de senha será enviado para seu e-mail cadastrado.
+                </AlertDescription>
+              </Alert>
+            </div>
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsResetDialogOpen(false)}
+                disabled={isResettingPassword}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit"
+                disabled={isResettingPassword}
+              >
+                {isResettingPassword ? "Enviando..." : "Enviar link de redefinição"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

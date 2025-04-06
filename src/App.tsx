@@ -13,7 +13,6 @@ import CategoryManagement from "./pages/CategoryManagement";
 import NotFound from "./pages/NotFound";
 import ProfileVerification from "./pages/ProfileVerification";
 import ChatbotWidget from "./components/ChatbotWidget";
-import Auth from "./pages/Auth";
 import Notes from "./pages/Notes";
 import AIChat from "./pages/AIChat";
 import { AuthProvider, RequireAuth, useAuth } from "./hooks/useAuth";
@@ -25,9 +24,8 @@ const AppRoutes = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Don't redirect if user is already on auth page or loading
+    // Don't redirect if user is already on login or register page or loading
     if (!loading && !isAuthenticated && 
-        location.pathname !== '/auth' && 
         location.pathname !== '/login' && 
         location.pathname !== '/register') {
       navigate('/login');
@@ -36,7 +34,6 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      <Route path="/auth" element={<Auth />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       

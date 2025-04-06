@@ -6,15 +6,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { BriefcaseBusiness, UserRound, ArrowLeft, Upload, FileText, ScrollText, Facebook, Instagram } from 'lucide-react';
+import { BriefcaseBusiness, UserRound, ArrowLeft, Upload, FileText, ScrollText, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { serviceCategories } from '@/data/mockData';
 import { GoogleLogin } from '@react-oauth/google';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import PrivacyPolicyDialog from '@/components/PrivacyPolicyDialog';
 import TermsOfUseDialog from '@/components/TermsOfUseDialog';
+import { signUp } from '@/services/authService';
+import { differenceInYears, parse } from 'date-fns';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -43,9 +45,7 @@ const Register = () => {
     confirmPassword: '',
     phone: '',
     birthdate: '',
-    document: '',
     categories: [] as string[],
-    description: '',
     acceptTerms: false,
     termsRead: {
       privacy: false,
@@ -58,9 +58,44 @@ const Register = () => {
   const [termsDialogOpen, setTermsDialogOpen] = useState(false);
   const [currentUserType, setCurrentUserType] = useState<'client' | 'freelancer'>('client');
 
-  const handleClientSubmit = (e: React.FormEvent) => {
+  const validateAge = (birthdate: string): boolean => {
+    if (!birthdate) return false;
+    
+    try {
+      const parsedDate = parse(birthdate, 'yyyy-MM-dd', new Date());
+      const age = differenceInYears(new Date(), parsedDate);
+      return age >= 18;
+    } catch {
+      return false;
+    }
+  };
+  
+  const validatePassword = (password: string): boolean => {
+    // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
+  };
+
+  const handleClientSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!validateAge(clientData.birthdate)) {
+      toast({
+        title: "Erro",
+        description: "Você deve ter pelo menos 18 anos para se cadastrar",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!validatePassword(clientData.password)) {
+      toast({
+        title: "Erro",
+        description: "A senha deve conter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas e números",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (clientData.password !== clientData.confirmPassword) {
       toast({
         title: "Erro",
@@ -70,16 +105,7 @@ const Register = () => {
       return;
     }
     
-    if (!clientData.acceptTerms) {
-      toast({
-        title: "Erro",
-        description: "Você precisa aceitar os termos e condições",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!clientData.termsRead.privacy || !clientData.termsRead.terms) {
+    if (!clientData.acceptTerms || !clientData.termsRead.privacy || !clientData.termsRead.terms) {
       toast({
         title: "Erro",
         description: "Você precisa ler e aceitar os termos de uso e política de privacidade",
@@ -90,22 +116,57 @@ const Register = () => {
     
     setIsLoading(true);
     
-    // Simulate registration process
-    setTimeout(() => {
-      // In a real app, this would be an API call
-      localStorage.setItem('userType', 'client');
-      localStorage.setItem('userEmail', clientData.email);
+    const [firstName, ...lastNameParts] = clientData.name.split(' ');
+    const lastName = lastNameParts.join(' ');
+    
+    try {
+      await signUp(clientData.email, clientData.password, firstName, lastName);
+      
       toast({
         title: "Registro bem-sucedido",
-        description: "Bem-vindo ao HelpAqui!",
+        description: "Bem-vindo ao HelpAqui! Verifique seu email para confirmar sua conta.",
       });
-      navigate('/');
+      
+      navigate('/login');
+    } catch (error: any) {
+      let errorMessage = "Erro ao criar sua conta.";
+      
+      if (error.message.includes("já está registrado")) {
+        errorMessage = "Este email já foi cadastrado.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast({
+        title: "Erro no registro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
-  const handleFreelancerSubmit = (e: React.FormEvent) => {
+  const handleFreelancerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateAge(freelancerData.birthdate)) {
+      toast({
+        title: "Erro",
+        description: "Você deve ter pelo menos 18 anos para se cadastrar",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!validatePassword(freelancerData.password)) {
+      toast({
+        title: "Erro",
+        description: "A senha deve conter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas e números",
+        variant: "destructive",
+      });
+      return;
+    }
     
     if (freelancerData.password !== freelancerData.confirmPassword) {
       toast({
@@ -116,16 +177,7 @@ const Register = () => {
       return;
     }
     
-    if (!freelancerData.acceptTerms) {
-      toast({
-        title: "Erro",
-        description: "Você precisa aceitar os termos e condições",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!freelancerData.termsRead.privacy || !freelancerData.termsRead.terms) {
+    if (!freelancerData.acceptTerms || !freelancerData.termsRead.privacy || !freelancerData.termsRead.terms) {
       toast({
         title: "Erro",
         description: "Você precisa ler e aceitar os termos de uso e política de privacidade",
@@ -145,18 +197,35 @@ const Register = () => {
     
     setIsLoading(true);
     
-    // Simulate registration process
-    setTimeout(() => {
-      // In a real app, this would be an API call
-      localStorage.setItem('userType', 'freelancer');
-      localStorage.setItem('userEmail', freelancerData.email);
+    const [firstName, ...lastNameParts] = freelancerData.name.split(' ');
+    const lastName = lastNameParts.join(' ');
+    
+    try {
+      await signUp(freelancerData.email, freelancerData.password, firstName, lastName);
+      
       toast({
         title: "Registro bem-sucedido",
-        description: "Bem-vindo ao HelpAqui! Seu perfil será verificado em breve.",
+        description: "Bem-vindo ao HelpAqui! Após confirmar seu email, você poderá completar sua verificação profissional.",
       });
-      navigate('/');
+      
+      navigate('/login');
+    } catch (error: any) {
+      let errorMessage = "Erro ao criar sua conta.";
+      
+      if (error.message.includes("já está registrado")) {
+        errorMessage = "Este email já foi cadastrado.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast({
+        title: "Erro no registro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleClientChange = (field: string, value: any) => {
@@ -177,40 +246,9 @@ const Register = () => {
     });
   };
 
-  const handleSocialSignup = (provider: string, userType: 'client' | 'freelancer', userData?: any) => {
-    setIsLoading(true);
-    
-    // Data that would typically come from social login provider
-    const mockSocialData = {
-      name: userData?.name || `Usuário ${provider}`,
-      email: userData?.email || `user@${provider.toLowerCase()}.com`,
-    };
-    
-    if (userType === 'client') {
-      setClientData(prev => ({
-        ...prev,
-        name: mockSocialData.name,
-        email: mockSocialData.email,
-      }));
-    } else {
-      setFreelancerData(prev => ({
-        ...prev,
-        name: mockSocialData.name,
-        email: mockSocialData.email,
-      }));
-    }
-    
-    toast({
-      title: `Autenticação com ${provider} bem-sucedida`,
-      description: "Complete seu cadastro com os dados adicionais",
-    });
-    
-    setIsLoading(false);
-  };
-
-  const handleGoogleSignup = (credentialResponse: any) => {
+  const handleGoogleSignup = (credentialResponse: any, userType: 'client' | 'freelancer') => {
     // In a real app, you would decode the credential and extract user info
-    const userType = document.querySelector('[aria-selected="true"]')?.getAttribute('value') as 'client' | 'freelancer' || 'client';
+    console.log("Google signup response:", credentialResponse);
     
     // Mock data - in a real scenario, you'd decode the credential response
     const userData = {
@@ -218,7 +256,29 @@ const Register = () => {
       email: "user@gmail.com"
     };
     
-    handleSocialSignup('Google', userType, userData);
+    if (userType === 'client') {
+      setClientData(prev => ({
+        ...prev,
+        name: userData.name,
+        email: userData.email,
+      }));
+      
+      toast({
+        title: "Autenticação com Google bem-sucedida",
+        description: "Complete seu cadastro com os dados adicionais",
+      });
+    } else {
+      setFreelancerData(prev => ({
+        ...prev,
+        name: userData.name,
+        email: userData.email,
+      }));
+      
+      toast({
+        title: "Autenticação com Google bem-sucedida",
+        description: "Complete seu cadastro com os dados profissionais",
+      });
+    }
   };
 
   const openPrivacyPolicy = (userType: 'client' | 'freelancer') => {
@@ -312,39 +372,19 @@ const Register = () => {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  <div className="flex justify-center">
-                    <GoogleLogin
-                      onSuccess={handleGoogleSignup}
-                      onError={() => {
-                        console.log('Signup Failed');
-                        toast({
-                          title: "Erro no cadastro",
-                          description: "Falha ao cadastrar com Google",
-                          variant: "destructive",
-                        });
-                      }}
-                      useOneTap
-                    />
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    className="flex items-center justify-center gap-2" 
-                    onClick={() => handleSocialSignup('Facebook', 'client')}
-                    disabled={isLoading}
-                  >
-                    <Facebook className="h-4 w-4 text-blue-600" />
-                    Facebook
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="flex items-center justify-center gap-2" 
-                    onClick={() => handleSocialSignup('Instagram', 'client')}
-                    disabled={isLoading}
-                  >
-                    <Instagram className="h-4 w-4 text-pink-600" />
-                    Instagram
-                  </Button>
+                <div className="flex justify-center mb-4">
+                  <GoogleLogin
+                    onSuccess={(credentialResponse) => handleGoogleSignup(credentialResponse, 'client')}
+                    onError={() => {
+                      console.log('Signup Failed');
+                      toast({
+                        title: "Erro no cadastro",
+                        description: "Falha ao cadastrar com Google",
+                        variant: "destructive",
+                      });
+                    }}
+                    useOneTap
+                  />
                 </div>
                 
                 <div className="relative w-full mb-4">
@@ -359,27 +399,14 @@ const Register = () => {
               
               <form onSubmit={handleClientSubmit}>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="client-name">Nome completo</Label>
-                      <Input 
-                        id="client-name" 
-                        value={clientData.name}
-                        onChange={(e) => handleClientChange('name', e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="client-phone">Telefone</Label>
-                      <Input 
-                        id="client-phone" 
-                        type="tel" 
-                        placeholder="(00) 00000-0000"
-                        value={clientData.phone}
-                        onChange={(e) => handleClientChange('phone', e.target.value)}
-                        required
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="client-name">Nome completo</Label>
+                    <Input 
+                      id="client-name" 
+                      value={clientData.name}
+                      onChange={(e) => handleClientChange('name', e.target.value)}
+                      required
+                    />
                   </div>
                   
                   <div className="space-y-2">
@@ -395,6 +422,18 @@ const Register = () => {
                   </div>
                   
                   <div className="space-y-2">
+                    <Label htmlFor="client-phone">Telefone</Label>
+                    <Input 
+                      id="client-phone" 
+                      type="tel" 
+                      placeholder="(00) 00000-0000"
+                      value={clientData.phone}
+                      onChange={(e) => handleClientChange('phone', e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
                     <Label htmlFor="client-birthdate">Data de nascimento</Label>
                     <Input 
                       id="client-birthdate" 
@@ -403,6 +442,7 @@ const Register = () => {
                       onChange={(e) => handleClientChange('birthdate', e.target.value)}
                       required
                     />
+                    <p className="text-xs text-gray-500">Você deve ter pelo menos 18 anos</p>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -415,6 +455,7 @@ const Register = () => {
                         onChange={(e) => handleClientChange('password', e.target.value)}
                         required
                       />
+                      <p className="text-xs text-gray-500">Mínimo de 8 caracteres, com letras maiúsculas, minúsculas e números</p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="client-confirm-password">Confirmar senha</Label>
@@ -427,6 +468,13 @@ const Register = () => {
                       />
                     </div>
                   </div>
+                  
+                  <Alert className="bg-blue-50 border-blue-200">
+                    <AlertCircle className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-blue-700">
+                      Após criar sua conta, você receberá um email de confirmação. É necessário verificá-lo para ativar sua conta.
+                    </AlertDescription>
+                  </Alert>
                   
                   <div className="space-y-4">
                     <div className="flex items-center space-x-2">
@@ -478,7 +526,7 @@ const Register = () => {
                   <Button 
                     type="submit" 
                     className="w-full bg-helpaqui-blue"
-                    disabled={isLoading || !clientData.termsRead.privacy || !clientData.termsRead.terms || !clientData.acceptTerms}
+                    disabled={isLoading}
                   >
                     {isLoading ? "Criando conta..." : "Criar conta de cliente"}
                   </Button>
@@ -506,39 +554,19 @@ const Register = () => {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  <div className="flex justify-center">
-                    <GoogleLogin
-                      onSuccess={handleGoogleSignup}
-                      onError={() => {
-                        console.log('Signup Failed');
-                        toast({
-                          title: "Erro no cadastro",
-                          description: "Falha ao cadastrar com Google",
-                          variant: "destructive",
-                        });
-                      }}
-                      useOneTap
-                    />
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    className="flex items-center justify-center gap-2" 
-                    onClick={() => handleSocialSignup('Facebook', 'freelancer')}
-                    disabled={isLoading}
-                  >
-                    <Facebook className="h-4 w-4 text-blue-600" />
-                    Facebook
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="flex items-center justify-center gap-2" 
-                    onClick={() => handleSocialSignup('Instagram', 'freelancer')}
-                    disabled={isLoading}
-                  >
-                    <Instagram className="h-4 w-4 text-pink-600" />
-                    Instagram
-                  </Button>
+                <div className="flex justify-center mb-4">
+                  <GoogleLogin
+                    onSuccess={(credentialResponse) => handleGoogleSignup(credentialResponse, 'freelancer')}
+                    onError={() => {
+                      console.log('Signup Failed');
+                      toast({
+                        title: "Erro no cadastro",
+                        description: "Falha ao cadastrar com Google",
+                        variant: "destructive",
+                      });
+                    }}
+                    useOneTap
+                  />
                 </div>
                 
                 <div className="relative w-full mb-4">
@@ -553,27 +581,14 @@ const Register = () => {
               
               <form onSubmit={handleFreelancerSubmit}>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="freelancer-name">Nome completo</Label>
-                      <Input 
-                        id="freelancer-name" 
-                        value={freelancerData.name}
-                        onChange={(e) => handleFreelancerChange('name', e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="freelancer-phone">Telefone</Label>
-                      <Input 
-                        id="freelancer-phone" 
-                        type="tel" 
-                        placeholder="(00) 00000-0000"
-                        value={freelancerData.phone}
-                        onChange={(e) => handleFreelancerChange('phone', e.target.value)}
-                        required
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="freelancer-name">Nome completo</Label>
+                    <Input 
+                      id="freelancer-name" 
+                      value={freelancerData.name}
+                      onChange={(e) => handleFreelancerChange('name', e.target.value)}
+                      required
+                    />
                   </div>
                   
                   <div className="space-y-2">
@@ -588,27 +603,28 @@ const Register = () => {
                     />
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="freelancer-birthdate">Data de nascimento</Label>
-                      <Input 
-                        id="freelancer-birthdate" 
-                        type="date" 
-                        value={freelancerData.birthdate}
-                        onChange={(e) => handleFreelancerChange('birthdate', e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="freelancer-document">CPF ou CNPJ</Label>
-                      <Input 
-                        id="freelancer-document" 
-                        placeholder="000.000.000-00"
-                        value={freelancerData.document}
-                        onChange={(e) => handleFreelancerChange('document', e.target.value)}
-                        required
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="freelancer-phone">Telefone</Label>
+                    <Input 
+                      id="freelancer-phone" 
+                      type="tel" 
+                      placeholder="(00) 00000-0000"
+                      value={freelancerData.phone}
+                      onChange={(e) => handleFreelancerChange('phone', e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="freelancer-birthdate">Data de nascimento</Label>
+                    <Input 
+                      id="freelancer-birthdate" 
+                      type="date" 
+                      value={freelancerData.birthdate}
+                      onChange={(e) => handleFreelancerChange('birthdate', e.target.value)}
+                      required
+                    />
+                    <p className="text-xs text-gray-500">Você deve ter pelo menos 18 anos</p>
                   </div>
                   
                   <div className="space-y-2">
@@ -632,32 +648,6 @@ const Register = () => {
                     </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="freelancer-description">Descrição do seu trabalho</Label>
-                    <textarea 
-                      id="freelancer-description" 
-                      className="flex h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      placeholder="Descreva brevemente sua experiência e os serviços que oferece"
-                      value={freelancerData.description}
-                      onChange={(e) => handleFreelancerChange('description', e.target.value)}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="p-4 border rounded bg-gray-50">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Upload className="h-4 w-4 text-helpaqui-blue" />
-                      <Label>Upload de documentos</Label>
-                    </div>
-                    <p className="text-sm text-gray-500 mb-3">
-                      Envie documentos para verificação (RG/CNH, comprovante de residência, certificados)
-                    </p>
-                    <Input 
-                      type="file" 
-                      className="cursor-pointer"
-                    />
-                  </div>
-                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="freelancer-password">Senha</Label>
@@ -668,6 +658,7 @@ const Register = () => {
                         onChange={(e) => handleFreelancerChange('password', e.target.value)}
                         required
                       />
+                      <p className="text-xs text-gray-500">Mínimo de 8 caracteres, com letras maiúsculas, minúsculas e números</p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="freelancer-confirm-password">Confirmar senha</Label>
@@ -680,6 +671,14 @@ const Register = () => {
                       />
                     </div>
                   </div>
+                  
+                  <Alert className="bg-blue-50 border-blue-200">
+                    <AlertCircle className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-blue-700">
+                      Após criar sua conta, você receberá um email de confirmação. Em seguida, você deverá completar sua
+                      verificação profissional enviando seus documentos na área de verificação de perfil.
+                    </AlertDescription>
+                  </Alert>
                   
                   <div className="space-y-4">
                     <div className="flex items-center space-x-2">
@@ -731,7 +730,7 @@ const Register = () => {
                   <Button 
                     type="submit" 
                     className="w-full bg-helpaqui-green"
-                    disabled={isLoading || !freelancerData.termsRead.privacy || !freelancerData.termsRead.terms || !freelancerData.acceptTerms}
+                    disabled={isLoading}
                   >
                     {isLoading ? "Criando conta..." : "Criar conta de profissional"}
                   </Button>
