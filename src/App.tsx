@@ -30,7 +30,7 @@ const AppRoutes = () => {
         location.pathname !== '/auth' && 
         location.pathname !== '/login' && 
         location.pathname !== '/register') {
-      navigate('/auth');
+      navigate('/login');
     }
   }, [isAuthenticated, loading, location.pathname, navigate]);
 

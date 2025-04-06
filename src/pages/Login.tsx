@@ -6,11 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { BriefcaseBusiness, UserRound, ArrowRight, Facebook, Instagram, ListChecks, FileText, WalletCards, BankIcon } from 'lucide-react';
+import { BriefcaseBusiness, UserRound, ArrowRight, Facebook, Instagram, ListChecks, FileText, WalletCards, Building } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { GoogleLogin } from '@react-oauth/google';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
+import { signIn } from '@/services/authService';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -23,40 +24,62 @@ const Login = () => {
   const [isClientOptionsOpen, setIsClientOptionsOpen] = useState(false);
   const [isFreelancerOptionsOpen, setIsFreelancerOptionsOpen] = useState(false);
 
-  const handleClientLogin = (e: React.FormEvent) => {
+  const handleClientLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate login process
-    setTimeout(() => {
-      // In a real app, this would be an API call
-      localStorage.setItem('userType', 'client');
-      localStorage.setItem('userEmail', clientEmail);
+    try {
+      const data = await signIn(clientEmail, clientPassword);
+      
       toast({
         title: "Login bem-sucedido",
         description: "Bem-vindo de volta ao HelpAqui!"
       });
+      
       navigate('/');
+    } catch (error) {
+      let errorMessage = "Erro ao fazer login. Tente novamente.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      toast({
+        title: "Erro no login",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
-  const handleFreelancerLogin = (e: React.FormEvent) => {
+  const handleFreelancerLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate login process
-    setTimeout(() => {
-      // In a real app, this would be an API call
-      localStorage.setItem('userType', 'freelancer');
-      localStorage.setItem('userEmail', freelancerEmail);
+    try {
+      const data = await signIn(freelancerEmail, freelancerPassword);
+      
       toast({
         title: "Login bem-sucedido",
         description: "Bem-vindo de volta ao HelpAqui!"
       });
+      
       navigate('/');
+    } catch (error) {
+      let errorMessage = "Erro ao fazer login. Tente novamente.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      toast({
+        title: "Erro no login",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleSocialLogin = (provider: string, userType: string) => {
@@ -293,7 +316,7 @@ const Login = () => {
                         className="w-full flex items-center justify-start gap-2" 
                         onClick={() => navigate('/payments')}
                       >
-                        <BankIcon className="h-4 w-4 text-helpaqui-green" />
+                        <Building className="h-4 w-4 text-helpaqui-green" />
                         Dados bancários
                       </Button>
                       <p className="text-xs text-gray-500 mt-1 ml-1">
