@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { BriefcaseBusiness, UserRound, AlertCircle } from 'lucide-react';
+import { BriefcaseBusiness, UserRound, AlertCircle, LockIcon, Check } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { signIn, signUp } from '@/services/authService';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -22,20 +22,48 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('login');
+  const [validations, setValidations] = useState({
+    length: false,
+    hasNumber: false,
+    hasLetter: false
+  });
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   useEffect(() => {
     // Verificar se o usuário já está autenticado
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate('/notes');
+        navigate('/');
       }
     };
     checkUser();
   }, [navigate]);
 
+  // Password validation
+  useEffect(() => {
+    setValidations({
+      length: password.length >= 6,
+      hasNumber: /\d/.test(password),
+      hasLetter: /[a-zA-Z]/.test(password)
+    });
+  }, [password]);
+
+  // Email validation
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isValid = emailRegex.test(email);
+    setEmailError(isValid ? null : "Email inválido");
+    return isValid;
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateEmail(email)) {
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     
@@ -47,13 +75,13 @@ const Auth = () => {
         description: "Bem-vindo de volta!"
       });
       
-      navigate('/notes');
+      navigate('/');
     } catch (error: any) {
       console.error("Erro de login:", error);
-      setError("Email ou senha incorretos. Por favor, tente novamente.");
+      setError(error.message || "Email ou senha incorretos.");
       toast({
         title: "Erro no login",
-        description: "Email ou senha incorretos.",
+        description: error.message || "Credenciais inválidas.",
         variant: "destructive"
       });
     } finally {
@@ -64,13 +92,17 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!validateEmail(email)) {
+      return;
+    }
+    
     if (!firstName || !lastName) {
       setError("Nome e sobrenome são obrigatórios");
       return;
     }
     
-    if (password.length < 6) {
-      setError("A senha deve ter pelo menos 6 caracteres");
+    if (!validations.length || !validations.hasNumber || !validations.hasLetter) {
+      setError("A senha não atende aos requisitos mínimos");
       return;
     }
     
@@ -89,9 +121,13 @@ const Auth = () => {
       
       // Se não for necessário confirmar o e-mail
       if (session) {
-        navigate('/notes');
+        navigate('/');
       } else {
         setActiveTab('login');
+        toast({
+          title: "Confirmação necessária",
+          description: "Enviamos um email de confirmação. Por favor, verifique sua caixa de entrada."
+        });
       }
     } catch (error: any) {
       console.error("Erro de cadastro:", error);
@@ -112,7 +148,7 @@ const Auth = () => {
         <h1 className="text-3xl font-bold text-helpaqui-blue">
           Help<span className="text-helpaqui-green">Aqui</span>
         </h1>
-        <p className="text-gray-600 mt-2">Sistema de Notas Pessoais</p>
+        <p className="text-gray-600 mt-2">Freelancers profissionais perto de você</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md">
@@ -139,7 +175,7 @@ const Auth = () => {
             <CardHeader>
               <CardTitle>Entrar</CardTitle>
               <CardDescription>
-                Acesse suas notas pessoais
+                Acesse sua conta HelpAqui
               </CardDescription>
             </CardHeader>
             <form onSubmit={handleLogin}>
@@ -151,19 +187,27 @@ const Auth = () => {
                     type="email" 
                     placeholder="seu@email.com" 
                     value={email} 
-                    onChange={e => setEmail(e.target.value)} 
+                    onChange={e => {
+                      setEmail(e.target.value);
+                      if (e.target.value) validateEmail(e.target.value);
+                    }} 
+                    className={emailError ? "border-red-500" : ""}
                     required 
                   />
+                  {emailError && <p className="text-xs text-red-500">{emailError}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Senha</Label>
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    value={password} 
-                    onChange={e => setPassword(e.target.value)} 
-                    required 
-                  />
+                  <div className="relative">
+                    <Input 
+                      id="password" 
+                      type="password" 
+                      value={password} 
+                      onChange={e => setPassword(e.target.value)} 
+                      required 
+                    />
+                    <LockIcon className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+                  </div>
                 </div>
               </CardContent>
               <CardFooter>
@@ -180,7 +224,7 @@ const Auth = () => {
             <CardHeader>
               <CardTitle>Cadastro</CardTitle>
               <CardDescription>
-                Crie sua conta para gerenciar suas notas
+                Crie sua conta para usar o HelpAqui
               </CardDescription>
             </CardHeader>
             <form onSubmit={handleSignUp}>
@@ -192,9 +236,14 @@ const Auth = () => {
                     type="email" 
                     placeholder="seu@email.com" 
                     value={email} 
-                    onChange={e => setEmail(e.target.value)} 
+                    onChange={e => {
+                      setEmail(e.target.value);
+                      if (e.target.value) validateEmail(e.target.value);
+                    }}
+                    className={emailError ? "border-red-500" : ""}
                     required 
                   />
+                  {emailError && <p className="text-xs text-red-500">{emailError}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="first-name">Nome</Label>
@@ -226,13 +275,36 @@ const Auth = () => {
                     value={password} 
                     onChange={e => setPassword(e.target.value)} 
                     required 
-                    minLength={6}
+                    className={!validations.length ? "border-red-300" : ""}
                   />
-                  <p className="text-xs text-gray-500">A senha deve ter pelo menos 6 caracteres</p>
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center">
+                      <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${validations.length ? 'bg-green-500' : 'bg-gray-300'}`}>
+                        {validations.length && <Check className="h-3 w-3 text-white" />}
+                      </div>
+                      <span className="text-xs text-gray-600">Pelo menos 6 caracteres</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${validations.hasNumber ? 'bg-green-500' : 'bg-gray-300'}`}>
+                        {validations.hasNumber && <Check className="h-3 w-3 text-white" />}
+                      </div>
+                      <span className="text-xs text-gray-600">Pelo menos um número</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${validations.hasLetter ? 'bg-green-500' : 'bg-gray-300'}`}>
+                        {validations.hasLetter && <Check className="h-3 w-3 text-white" />}
+                      </div>
+                      <span className="text-xs text-gray-600">Pelo menos uma letra</span>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
               <CardFooter>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={loading || !validations.length || !validations.hasNumber || !validations.hasLetter || !firstName || !lastName || !email || !!emailError}
+                >
                   {loading ? "Cadastrando..." : "Cadastrar"}
                 </Button>
               </CardFooter>

@@ -6,10 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { BriefcaseBusiness, UserRound, ArrowRight, Facebook, Instagram } from 'lucide-react';
+import { BriefcaseBusiness, UserRound, ArrowRight, Facebook, Instagram, ListChecks, FileText, WalletCards, BankIcon } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { GoogleLogin } from '@react-oauth/google';
 import { Separator } from '@/components/ui/separator';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ const Login = () => {
   const [freelancerEmail, setFreelancerEmail] = useState('');
   const [freelancerPassword, setFreelancerPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isClientOptionsOpen, setIsClientOptionsOpen] = useState(false);
+  const [isFreelancerOptionsOpen, setIsFreelancerOptionsOpen] = useState(false);
 
   const handleClientLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +93,20 @@ const Login = () => {
     navigate('/');
   };
 
+  const handleServiceRequest = () => {
+    toast({
+      title: "Solicitação de serviço",
+      description: "Funcionalidade de solicitação de serviço em desenvolvimento"
+    });
+  };
+
+  const handlePublishService = () => {
+    toast({
+      title: "Publicação de serviço",
+      description: "Funcionalidade de publicação de serviço em desenvolvimento"
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
       <div className="mb-8 text-center">
@@ -129,6 +146,44 @@ const Login = () => {
                   <Label htmlFor="client-password">Senha</Label>
                   <Input id="client-password" type="password" value={clientPassword} onChange={e => setClientPassword(e.target.value)} required />
                 </div>
+
+                <Collapsible 
+                  open={isClientOptionsOpen} 
+                  onOpenChange={setIsClientOptionsOpen}
+                  className="border rounded-md p-2"
+                >
+                  <CollapsibleTrigger className="flex items-center justify-between w-full text-sm font-medium">
+                    <div className="flex items-center gap-2">
+                      <ListChecks className="h-4 w-4 text-helpaqui-blue" />
+                      Opções para Clientes
+                    </div>
+                    <ArrowRight className={`h-4 w-4 transition-transform ${isClientOptionsOpen ? 'rotate-90' : ''}`} />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-3 space-y-2">
+                    <div className="border-l-2 border-helpaqui-blue pl-3">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full flex items-center justify-start gap-2" 
+                        onClick={handleServiceRequest}
+                      >
+                        <FileText className="h-4 w-4 text-helpaqui-blue" />
+                        Solicitar Freelancer para serviço
+                      </Button>
+                    </div>
+                    <div className="border-l-2 border-helpaqui-green pl-3">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full flex items-center justify-start gap-2" 
+                        onClick={() => navigate('/payments')}
+                      >
+                        <WalletCards className="h-4 w-4 text-helpaqui-green" />
+                        Métodos de Pagamento
+                      </Button>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </CardContent>
               <CardFooter className="flex-col space-y-4">
                 <Button type="submit" className="w-full bg-helpaqui-blue" disabled={isLoading}>
@@ -206,6 +261,47 @@ const Login = () => {
                   <Label htmlFor="freelancer-password">Senha</Label>
                   <Input id="freelancer-password" type="password" value={freelancerPassword} onChange={e => setFreelancerPassword(e.target.value)} required />
                 </div>
+
+                <Collapsible 
+                  open={isFreelancerOptionsOpen} 
+                  onOpenChange={setIsFreelancerOptionsOpen}
+                  className="border rounded-md p-2"
+                >
+                  <CollapsibleTrigger className="flex items-center justify-between w-full text-sm font-medium">
+                    <div className="flex items-center gap-2">
+                      <ListChecks className="h-4 w-4 text-helpaqui-green" />
+                      Opções para Profissionais
+                    </div>
+                    <ArrowRight className={`h-4 w-4 transition-transform ${isFreelancerOptionsOpen ? 'rotate-90' : ''}`} />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-3 space-y-2">
+                    <div className="border-l-2 border-helpaqui-blue pl-3">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full flex items-center justify-start gap-2" 
+                        onClick={handlePublishService}
+                      >
+                        <FileText className="h-4 w-4 text-helpaqui-blue" />
+                        Publicar prestação de serviço
+                      </Button>
+                    </div>
+                    <div className="border-l-2 border-helpaqui-green pl-3">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full flex items-center justify-start gap-2" 
+                        onClick={() => navigate('/payments')}
+                      >
+                        <BankIcon className="h-4 w-4 text-helpaqui-green" />
+                        Dados bancários
+                      </Button>
+                      <p className="text-xs text-gray-500 mt-1 ml-1">
+                        Saque mínimo: R$10,00 • Taxa de serviço: 10%
+                      </p>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </CardContent>
               <CardFooter className="flex-col space-y-4">
                 <Button type="submit" className="w-full bg-helpaqui-green" disabled={isLoading}>

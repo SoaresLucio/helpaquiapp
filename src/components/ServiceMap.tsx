@@ -5,6 +5,7 @@ import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { mockProfessionals } from '@/data/mockData';
 import { useToast } from '@/components/ui/use-toast';
+import { Bike, Car, Wrench, Home, Computer, Pen, Camera, Music, Palette, ShoppingBag } from 'lucide-react';
 
 interface ServiceMapProps {
   selectedCategory: string | null;
@@ -108,6 +109,39 @@ const ServiceMap: React.FC<ServiceMapProps> = ({ selectedCategory }) => {
     );
   };
 
+  // Função para obter ícone com base na categoria
+  const getCategoryIcon = (categories: string[]) => {
+    // Priorizamos a categoria selecionada se estiver presente
+    const primaryCategory = selectedCategory && categories.includes(selectedCategory) 
+      ? selectedCategory 
+      : categories[0];
+      
+    switch (primaryCategory) {
+      case 'delivery':
+        return <Bike className="text-red-500" />;
+      case 'transporte':
+        return <Car className="text-blue-500" />;
+      case 'reparos':
+        return <Wrench className="text-yellow-500" />;
+      case 'domesticos':
+        return <Home className="text-green-500" />;
+      case 'tecnologia':
+        return <Computer className="text-purple-500" />;
+      case 'escrita':
+        return <Pen className="text-indigo-500" />;
+      case 'fotografia':
+        return <Camera className="text-pink-500" />;
+      case 'musica':
+        return <Music className="text-teal-500" />;
+      case 'design':
+        return <Palette className="text-orange-500" />;
+      case 'compras':
+        return <ShoppingBag className="text-amber-500" />;
+      default:
+        return <MapPin className="text-helpaqui-blue" />;
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl overflow-hidden shadow-md">
       {/* Configuração do mapa */}
@@ -164,24 +198,47 @@ const ServiceMap: React.FC<ServiceMapProps> = ({ selectedCategory }) => {
               </p>
             </div>
             
-            {/* Pontos simulados de profissionais no mapa */}
+            {/* Pontos simulados de profissionais no mapa com animação e ícones por categoria */}
             {filteredProfessionals.map((pro, index) => (
               <div 
                 key={pro.id}
-                className="absolute w-4 h-4 bg-helpaqui-blue rounded-full animate-pulse-light"
+                className="absolute w-8 h-8 rounded-full bg-white border-2 border-helpaqui-blue shadow-lg flex items-center justify-center animate-pulse-light z-10 transform hover:scale-110 transition-transform cursor-pointer"
                 style={{
                   left: `${Math.random() * 80 + 10}%`,
                   top: `${Math.random() * 80 + 10}%`,
+                  animationDelay: `${index * 0.2}s`,
                 }}
-                title={`${pro.name} - ${pro.distance}`}
-              />
+                title={`${pro.name} - ${pro.distance} - ${pro.categories.join(", ")}`}
+              >
+                {getCategoryIcon(pro.categories)}
+                
+                {/* Popup ao passar o mouse */}
+                <div className="absolute opacity-0 hover:opacity-100 bottom-full mb-2 w-48 bg-white p-2 rounded shadow-lg text-xs pointer-events-none z-20 transition-opacity">
+                  <p className="font-bold">{pro.name}</p>
+                  <p>{pro.categories.join(", ")}</p>
+                  <p className="text-green-600">Distância: {pro.distance}</p>
+                  <div className="flex items-center mt-1">
+                    <div className="text-yellow-500 flex">
+                      {"★".repeat(Math.floor(pro.rating))}
+                      {"☆".repeat(5 - Math.floor(pro.rating))}
+                    </div>
+                    <span className="ml-1 text-gray-600">({pro.reviews})</span>
+                  </div>
+                </div>
+              </div>
             ))}
             
-            {/* Centro do mapa (usuário) */}
+            {/* Centro do mapa (usuário) com animação de pulso */}
             <div 
-              className="absolute w-6 h-6 bg-helpaqui-green rounded-full border-2 border-white"
+              className="absolute w-8 h-8 bg-helpaqui-green rounded-full border-2 border-white shadow-lg z-20 animate-pulse flex items-center justify-center"
               style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
-            />
+            >
+              <MapPin className="h-4 w-4 text-white" />
+              
+              {/* Ondas de pulso */}
+              <div className="absolute w-12 h-12 rounded-full border-2 border-helpaqui-green opacity-70 animate-ping"></div>
+              <div className="absolute w-16 h-16 rounded-full border-2 border-helpaqui-green opacity-30 animate-ping" style={{ animationDelay: '0.5s' }}></div>
+            </div>
           </div>
         )}
       </div>
