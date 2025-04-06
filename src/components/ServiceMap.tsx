@@ -222,7 +222,7 @@ const ServiceMap: React.FC<ServiceMapProps> = ({ selectedCategory }) => {
                       {"★".repeat(Math.floor(pro.rating))}
                       {"☆".repeat(5 - Math.floor(pro.rating))}
                     </div>
-                    <span className="ml-1 text-gray-600">({pro.reviews})</span>
+                    <span className="ml-1 text-gray-600">({pro.ratingCount})</span>
                   </div>
                 </div>
               </div>
