@@ -4,22 +4,17 @@ import { Sun, Moon, BadgeCheck, FileText, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import { Switch } from '@/components/ui/switch';
+import { useTheme } from '@/hooks/useTheme';
 
 const SettingsTab: React.FC = () => {
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
   
   const [cpf, setCpf] = useState('');
   const [document, setDocument] = useState<File | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<'none' | 'pending' | 'verified'>('none');
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    window.document.documentElement.classList.toggle('dark', newTheme === 'dark');
-  };
 
   const handleDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -72,9 +67,11 @@ const SettingsTab: React.FC = () => {
             )}
             <span>{theme === 'light' ? 'Modo Claro' : 'Modo Escuro'}</span>
           </div>
-          <Button onClick={toggleTheme} variant="outline" size="sm">
-            Mudar para {theme === 'light' ? 'Escuro' : 'Claro'}
-          </Button>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-500 dark:text-gray-400">Claro</span>
+            <Switch checked={theme === 'dark'} onCheckedChange={toggleTheme} />
+            <span className="text-sm text-gray-500 dark:text-gray-400">Escuro</span>
+          </div>
         </div>
       </div>
       
@@ -92,7 +89,7 @@ const SettingsTab: React.FC = () => {
                 <FileText className="h-5 w-5 mr-2" />
                 <span>Verificação em andamento</span>
               </div>
-              <p className="text-sm text-gray-500">Estamos analisando seus documentos. Isso pode levar até 48 horas.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Estamos analisando seus documentos. Isso pode levar até 48 horas.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -142,11 +139,11 @@ const SettingsTab: React.FC = () => {
         <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg space-y-2">
           <div className="flex items-center justify-between">
             <span>Notificações por Email</span>
-            <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+            <Switch defaultChecked />
           </div>
           <div className="flex items-center justify-between">
             <span>Notificações por Push</span>
-            <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+            <Switch defaultChecked />
           </div>
         </div>
       </div>

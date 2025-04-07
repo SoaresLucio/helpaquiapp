@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Bell, 
@@ -14,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { currentUser } from '@/data/mockData';
+import { useTheme } from '@/hooks/useTheme';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -27,24 +29,10 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [theme, setTheme] = useState('light');
-  const [userType, setUserType] = useState('solicitante');
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    setTheme(savedTheme);
-    document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-    
-    const savedUserType = localStorage.getItem('userType') || 'solicitante';
-    setUserType(savedUserType);
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
-  };
+  const [userType, setUserType] = useState(() => {
+    return localStorage.getItem('userType') || 'solicitante';
+  });
+  const { theme, toggleTheme } = useTheme();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);

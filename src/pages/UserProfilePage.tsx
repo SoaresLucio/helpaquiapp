@@ -17,14 +17,14 @@ const UserProfilePage: React.FC = () => {
         <Button 
           variant="ghost" 
           onClick={() => navigate(-1)} 
-          className="flex items-center mb-4"
+          className="flex items-center mb-4 text-gray-700 dark:text-gray-300"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Button>
         
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold mb-6">Meu Perfil</h1>
+          <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Meu Perfil</h1>
           <UserProfile user={currentUser} />
         </div>
       </div>
