@@ -5,7 +5,8 @@ import {
   MapPin, 
   Calendar, 
   DollarSign,
-  Plus
+  Plus,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { serviceCategories } from '@/data/mockData';
 import { useToast } from '@/components/ui/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const ServiceRequest: React.FC = () => {
   const { toast } = useToast();
@@ -29,9 +31,30 @@ const ServiceRequest: React.FC = () => {
   const [budget, setBudget] = useState('');
   const [date, setDate] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
+  const [isVerified, setIsVerified] = useState(false);
+  const [hasPaymentMethod, setHasPaymentMethod] = useState(false);
+  
+  // For the demo, we'll simulate verification check
+  React.useEffect(() => {
+    // This would be a real API call in production
+    setTimeout(() => {
+      setIsVerified(Math.random() > 0.5);
+      setHasPaymentMethod(Math.random() > 0.5);
+    }, 1000);
+  }, []);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Verificação de documentos e pagamentos
+    if (!isVerified || !hasPaymentMethod) {
+      toast({
+        title: "Verificação necessária",
+        description: "Você precisa verificar seu cadastro e adicionar um método de pagamento antes de solicitar serviços.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     // Validação básica
     if (!title || !description || !category || !location) {
@@ -56,7 +79,7 @@ const ServiceRequest: React.FC = () => {
     
     toast({
       title: "Solicitação enviada",
-      description: "Sua solicitação de serviço foi publicada com sucesso!",
+      description: "Seu pedido de HELP foi publicado com sucesso!",
     });
     
     // Resetar o formulário
@@ -83,7 +106,32 @@ const ServiceRequest: React.FC = () => {
 
   return (
     <div className="helpaqui-card p-5">
-      <h2 className="text-xl font-semibold mb-4 text-helpaqui-blue">Publicar Nova Solicitação</h2>
+      <h2 className="text-xl font-semibold mb-4 text-helpaqui-blue">Pedir um HELP</h2>
+      
+      {(!isVerified || !hasPaymentMethod) && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {!isVerified && !hasPaymentMethod ? (
+              "É necessário verificar seu cadastro e adicionar um método de pagamento."
+            ) : !isVerified ? (
+              "É necessário verificar seu cadastro antes de solicitar serviços."
+            ) : (
+              "É necessário adicionar um método de pagamento antes de solicitar serviços."
+            )}
+            <div className="mt-2">
+              <Button variant="outline" size="sm" onClick={() => navigate("/verification")}>
+                Verificar cadastro
+              </Button>
+              {!hasPaymentMethod && (
+                <Button variant="outline" size="sm" className="ml-2" onClick={() => navigate("/payments")}>
+                  Adicionar pagamento
+                </Button>
+              )}
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
       
       <form onSubmit={handleSubmit}>
         <div className="space-y-4">
@@ -221,12 +269,12 @@ const ServiceRequest: React.FC = () => {
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Adicione até 5 fotos para ajudar os profissionais a entenderem melhor sua necessidade
+              Adicione até 5 fotos para ajudar os freelancers a entenderem melhor sua necessidade
             </p>
           </div>
           
           <Button type="submit" className="helpaqui-button-primary w-full">
-            Publicar Solicitação
+            Pedir um HELP
           </Button>
         </div>
       </form>

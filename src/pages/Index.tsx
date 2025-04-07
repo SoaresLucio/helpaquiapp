@@ -5,6 +5,7 @@ import CategorySelector from '@/components/CategorySelector';
 import ServiceMap from '@/components/ServiceMap';
 import ProfessionalCard from '@/components/ProfessionalCard';
 import ServiceRequest from '@/components/ServiceRequest';
+import OfferHelp from '@/components/OfferHelp';
 import ChatInterface from '@/components/ChatInterface';
 import UserProfile from '@/components/UserProfile';
 import { 
@@ -30,6 +31,16 @@ const Index = () => {
   const [showServiceRequest, setShowServiceRequest] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [userType, setUserType] = useState("solicitante"); // default to solicitante
+
+  // In a real app, this would come from authentication
+  // Temporarily hard-coded for demonstration
+  // This should be obtained from your auth system
+  React.useEffect(() => {
+    // For demonstration, get from localStorage
+    const storedType = localStorage.getItem('userType') || "solicitante";
+    setUserType(storedType);
+  }, []);
 
   // Filtrar profissionais por categoria
   const filteredProfessionals = selectedCategory
@@ -60,13 +71,13 @@ const Index = () => {
               <ServiceMap selectedCategory={selectedCategory} />
             </section>
             
-            {/* Lista de Profissionais */}
+            {/* Lista de Freelancers */}
             <section>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">
                   {selectedCategoryName 
-                    ? `Profissionais de ${selectedCategoryName}` 
-                    : 'Profissionais Recomendados'}
+                    ? `Freelancers de ${selectedCategoryName}` 
+                    : 'Freelancers Recomendados'}
                 </h2>
                 
                 <div className="flex items-center space-x-2">
@@ -93,7 +104,7 @@ const Index = () => {
               ) : (
                 <div className="text-center py-8 bg-white rounded-lg">
                   <p className="text-gray-500">
-                    Nenhum profissional encontrado nesta categoria.
+                    Nenhum freelancer encontrado nesta categoria.
                   </p>
                   <Button 
                     variant="link" 
@@ -110,13 +121,19 @@ const Index = () => {
           <div className="w-full md:w-[350px] lg:w-[400px] space-y-4">
             <Tabs defaultValue="request">
               <TabsList className="grid grid-cols-3 mb-4">
-                <TabsTrigger value="request">Solicitar</TabsTrigger>
+                <TabsTrigger value="request">
+                  {userType === "freelancer" ? "Oferecer" : "Solicitar"}
+                </TabsTrigger>
                 <TabsTrigger value="chat">Chat</TabsTrigger>
                 <TabsTrigger value="profile">Perfil</TabsTrigger>
               </TabsList>
               
               <TabsContent value="request">
-                <ServiceRequest />
+                {userType === "freelancer" ? (
+                  <OfferHelp />
+                ) : (
+                  <ServiceRequest />
+                )}
               </TabsContent>
               
               <TabsContent value="chat">
@@ -146,7 +163,9 @@ const Index = () => {
           }}
         >
           <MapPin className="h-6 w-6 text-helpaqui-blue" />
-          <span className="text-xs mt-1">Solicitar</span>
+          <span className="text-xs mt-1">
+            {userType === "freelancer" ? "Oferecer" : "Solicitar"}
+          </span>
         </button>
         
         <button 
