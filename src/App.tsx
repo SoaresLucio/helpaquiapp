@@ -15,6 +15,7 @@ import ProfileVerification from "./pages/ProfileVerification";
 import ChatbotWidget from "./components/ChatbotWidget";
 import Notes from "./pages/Notes";
 import AIChat from "./pages/AIChat";
+import UserProfilePage from "./pages/UserProfilePage";
 import { AuthProvider, RequireAuth, useAuth } from "./hooks/useAuth";
 
 // Root component that handles initial redirect
@@ -70,7 +71,7 @@ const AppRoutes = () => {
       } />
       <Route path="/profile" element={
         <RequireAuth>
-          <Index />
+          <UserProfilePage />
         </RequireAuth>
       } />
       <Route path="/verification" element={
