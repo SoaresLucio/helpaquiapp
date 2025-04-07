@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Bell, 
   MessageSquare, 
@@ -25,18 +24,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const Header: React.FC = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [theme, setTheme] = useState('light');
   const [userType, setUserType] = useState('solicitante');
 
   useEffect(() => {
-    // Check user preferences or local storage for theme
     const savedTheme = localStorage.getItem('theme') || 'light';
     setTheme(savedTheme);
     document.documentElement.classList.toggle('dark', savedTheme === 'dark');
     
-    // Check user type from auth (mocked here)
     const savedUserType = localStorage.getItem('userType') || 'solicitante';
     setUserType(savedUserType);
   }, []);
@@ -55,19 +53,21 @@ const Header: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Searching for:', searchQuery);
-    // Implementação de busca futura
+  };
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+    setIsOpen(false);
   };
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50">
       <div className="helpaqui-container py-2">
         <div className="flex items-center justify-between">
-          {/* Logo */}
           <Link to="/" className="flex items-center">
             <span className="text-2xl font-bold text-helpaqui-blue dark:text-helpaqui-blue">Help<span className="text-helpaqui-green dark:text-helpaqui-green">Aqui</span></span>
           </Link>
 
-          {/* Desktop Search Bar */}
           <div className="hidden md:block flex-1 max-w-md mx-4">
             <form onSubmit={handleSearch} className="relative">
               <Input
@@ -88,7 +88,6 @@ const Header: React.FC = () => {
             </form>
           </div>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-4">
             <Link to="/notifications" className="relative">
               <Bell className="h-6 w-6 text-helpaqui-darkGray dark:text-gray-300" />
@@ -115,11 +114,9 @@ const Header: React.FC = () => {
               <DropdownMenuContent className="w-56">
                 <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/profile" className="w-full flex items-center cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Perfil</span>
-                  </Link>
+                <DropdownMenuItem onClick={handleProfileClick} className="w-full flex items-center cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Perfil</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/verification" className="w-full flex items-center cursor-pointer">
@@ -154,7 +151,6 @@ const Header: React.FC = () => {
             )}
           </nav>
 
-          {/* Mobile Menu Button */}
           <div className="md:hidden">
             <Button variant="ghost" onClick={toggleMenu} aria-label="Menu">
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -162,7 +158,6 @@ const Header: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {isOpen && (
           <div className="md:hidden mt-2 pb-2">
             <form onSubmit={handleSearch} className="mb-4">
@@ -196,10 +191,13 @@ const Header: React.FC = () => {
                 <MessageSquare className="h-5 w-5 mr-2 text-helpaqui-darkGray dark:text-gray-300" />
                 <span>Mensagens</span>
               </Link>
-              <Link to="/profile" className="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+              <button 
+                onClick={handleProfileClick}
+                className="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              >
                 <User className="h-5 w-5 mr-2 text-helpaqui-darkGray dark:text-gray-300" />
                 <span>Meu Perfil</span>
-              </Link>
+              </button>
               <Link to="/verification" className="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                 <Settings className="h-5 w-5 mr-2 text-helpaqui-darkGray dark:text-gray-300" />
                 <span>Verificação de Cadastro</span>
