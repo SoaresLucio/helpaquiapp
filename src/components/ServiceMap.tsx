@@ -1,11 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Locate } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { mockProfessionals } from '@/data/mockData';
 import { useToast } from '@/components/ui/use-toast';
 import { Bike, Car, Wrench, Home, Computer, Pen, Camera, Music, Palette, ShoppingBag } from 'lucide-react';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+
+// Mapbox token - em produção, isso deve ser armazenado em variáveis de ambiente
+mapboxgl.accessToken = 'pk.eyJ1IjoibG92YWJsZWFwaSIsImEiOiJjbDg2aDR4dGUweGFhM3BudmNnamk3bGN5In0.9Qt3MyJRRGlWvpOhfPX-YA';
 
 interface ServiceMapProps {
   selectedCategory: string | null;
@@ -27,14 +32,126 @@ const ServiceMap: React.FC<ServiceMapProps> = ({ selectedCategory }) => {
   });
   const [isLocating, setIsLocating] = useState(false);
   const { toast } = useToast();
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
   
-  // Simulação do mapa carregado
+  // Inicializar o mapa quando o componente montar
   useEffect(() => {
-    setTimeout(() => {
-      setMapReady(true);
-    }, 1500);
+    if (mapContainer.current) {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [userLocation.lng, userLocation.lat],
+        zoom: 12
+      });
+      
+      // Adicionar controles de navegação
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      
+      // Marcar quando o mapa estiver pronto
+      map.current.on('load', () => {
+        setMapReady(true);
+      });
+      
+      // Adicionar marcador do usuário
+      const userMarker = new mapboxgl.Marker({ color: '#10B981' })
+        .setLngLat([userLocation.lng, userLocation.lat])
+        .addTo(map.current);
+      
+      return () => {
+        map.current?.remove();
+        markersRef.current.forEach(marker => marker.remove());
+      };
+    }
   }, []);
-
+  
+  // Atualizar o mapa quando a localização do usuário mudar
+  useEffect(() => {
+    if (map.current && mapReady) {
+      map.current.setCenter([userLocation.lng, userLocation.lat]);
+      
+      // Remover marcadores antigos
+      markersRef.current.forEach(marker => marker.remove());
+      markersRef.current = [];
+      
+      // Adicionar marcador do usuário
+      const userMarker = new mapboxgl.Marker({ color: '#10B981' })
+        .setLngLat([userLocation.lng, userLocation.lat])
+        .addTo(map.current);
+      
+      // Adicionar marcadores de profissionais
+      const filteredPros = selectedCategory 
+        ? mockProfessionals.filter(pro => pro.categories.includes(selectedCategory))
+        : mockProfessionals;
+        
+      // Gerar posições aleatórias dentro do raio para os profissionais
+      filteredPros.forEach((pro, index) => {
+        // Gerar uma posição aleatória dentro do raio
+        const randomDistance = Math.random() * radius[0];
+        const randomAngle = Math.random() * 2 * Math.PI;
+        
+        // Converter para coordenadas (aproximação para distâncias curtas)
+        const latRad = userLocation.lat * (Math.PI / 180);
+        const kmPerDegLat = 111.32; // km por grau de latitude (aproximadamente constante)
+        const kmPerDegLng = 111.32 * Math.cos(latRad); // km por grau de longitude (varia com a latitude)
+        
+        const latOffset = (randomDistance * Math.sin(randomAngle)) / kmPerDegLat;
+        const lngOffset = (randomDistance * Math.cos(randomAngle)) / kmPerDegLng;
+        
+        const proLat = userLocation.lat + latOffset;
+        const proLng = userLocation.lng + lngOffset;
+        
+        // Criar elemento personalizado para o marcador
+        const el = document.createElement('div');
+        el.className = 'bg-white rounded-full border-2 border-helpaqui-blue shadow-lg flex items-center justify-center w-8 h-8 transform hover:scale-110 transition-transform cursor-pointer';
+        el.style.width = '32px';
+        el.style.height = '32px';
+        el.style.borderRadius = '50%';
+        el.style.display = 'flex';
+        el.style.justifyContent = 'center';
+        el.style.alignItems = 'center';
+        el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+        
+        // Adicionar ícone baseado na categoria
+        const icon = getCategoryIcon([pro.categories[0]]);
+        const iconElement = document.createElement('div');
+        iconElement.style.display = 'flex';
+        iconElement.style.justifyContent = 'center';
+        iconElement.style.alignItems = 'center';
+        
+        // Converter o componente React para HTML
+        iconElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-${pro.categories[0]}"><circle cx="12" cy="12" r="10"/></svg>`;
+        el.appendChild(iconElement);
+        
+        // Criar popup com informações do profissional
+        const popup = new mapboxgl.Popup({ offset: 25 })
+          .setHTML(`
+            <div class="p-2 max-w-[200px]">
+              <p class="font-bold text-sm">${pro.name}</p>
+              <p class="text-xs">${pro.categories.join(", ")}</p>
+              <p class="text-green-600 text-xs">Distância: ${pro.distance}</p>
+              <div class="flex items-center mt-1">
+                <div class="text-yellow-500 flex text-xs">
+                  ${"★".repeat(Math.floor(pro.rating))}
+                  ${"☆".repeat(5 - Math.floor(pro.rating))}
+                </div>
+                <span class="ml-1 text-gray-600 text-xs">(${pro.ratingCount})</span>
+              </div>
+            </div>
+          `);
+        
+        // Adicionar marcador ao mapa
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat([proLng, proLat])
+          .setPopup(popup)
+          .addTo(map.current!);
+        
+        markersRef.current.push(marker);
+      });
+    }
+  }, [userLocation, radius, selectedCategory, mapReady]);
+  
   // Solicitar localização ao montar o componente
   useEffect(() => {
     // Verificamos se o navegador suporta geolocalização
@@ -180,67 +297,14 @@ const ServiceMap: React.FC<ServiceMapProps> = ({ selectedCategory }) => {
       </div>
       
       {/* Área do mapa */}
-      <div className="relative bg-gray-200 h-[300px] w-full flex items-center justify-center">
+      <div className="relative bg-gray-200 h-[300px] w-full">
         {!mapReady ? (
-          <div className="text-center">
+          <div className="absolute inset-0 flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-helpaqui-blue mx-auto mb-2"></div>
             <p className="text-gray-600">Carregando mapa...</p>
           </div>
-        ) : (
-          <div className="w-full h-full bg-gray-200 relative">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <p className="bg-white p-3 rounded-lg shadow-md text-sm text-center">
-                Mapa simulado: {filteredProfessionals.length} profissionais encontrados em um raio de {radius[0]}km
-                <br />
-                <span className="text-xs text-gray-500">
-                  (Coordenadas: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)})
-                </span>
-              </p>
-            </div>
-            
-            {/* Pontos simulados de profissionais no mapa com animação e ícones por categoria */}
-            {filteredProfessionals.map((pro, index) => (
-              <div 
-                key={pro.id}
-                className="absolute w-8 h-8 rounded-full bg-white border-2 border-helpaqui-blue shadow-lg flex items-center justify-center animate-pulse-light z-10 transform hover:scale-110 transition-transform cursor-pointer"
-                style={{
-                  left: `${Math.random() * 80 + 10}%`,
-                  top: `${Math.random() * 80 + 10}%`,
-                  animationDelay: `${index * 0.2}s`,
-                }}
-                title={`${pro.name} - ${pro.distance} - ${pro.categories.join(", ")}`}
-              >
-                {getCategoryIcon(pro.categories)}
-                
-                {/* Popup ao passar o mouse */}
-                <div className="absolute opacity-0 hover:opacity-100 bottom-full mb-2 w-48 bg-white p-2 rounded shadow-lg text-xs pointer-events-none z-20 transition-opacity">
-                  <p className="font-bold">{pro.name}</p>
-                  <p>{pro.categories.join(", ")}</p>
-                  <p className="text-green-600">Distância: {pro.distance}</p>
-                  <div className="flex items-center mt-1">
-                    <div className="text-yellow-500 flex">
-                      {"★".repeat(Math.floor(pro.rating))}
-                      {"☆".repeat(5 - Math.floor(pro.rating))}
-                    </div>
-                    <span className="ml-1 text-gray-600">({pro.ratingCount})</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-            
-            {/* Centro do mapa (usuário) com animação de pulso */}
-            <div 
-              className="absolute w-8 h-8 bg-helpaqui-green rounded-full border-2 border-white shadow-lg z-20 animate-pulse flex items-center justify-center"
-              style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
-            >
-              <MapPin className="h-4 w-4 text-white" />
-              
-              {/* Ondas de pulso */}
-              <div className="absolute w-12 h-12 rounded-full border-2 border-helpaqui-green opacity-70 animate-ping"></div>
-              <div className="absolute w-16 h-16 rounded-full border-2 border-helpaqui-green opacity-30 animate-ping" style={{ animationDelay: '0.5s' }}></div>
-            </div>
-          </div>
-        )}
+        ) : null}
+        <div ref={mapContainer} className="absolute inset-0" />
       </div>
     </div>
   );
