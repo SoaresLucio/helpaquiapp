@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Star, MapPin, Calendar, Phone, Mail, Edit, BadgeCheck, Clock, Shield, Facebook, Instagram, Twitter, Sun, Moon, Upload, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,12 +12,11 @@ interface UserProfileProps {
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
-  const isFreelancer = user.type === 'freelancer';
+  const isFreelancer = user.type === 'professional';
   const isVerified = user.isVerified || false;
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const { toast } = useToast();
 
-  // Document verification
   const [cpf, setCpf] = useState('');
   const [document, setDocument] = useState<File | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -28,8 +26,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
-    // Fixed: Using document.documentElement instead of document from File
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+    window.document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
   const handleDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,7 +36,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
   };
 
   const handleVerificationSubmit = () => {
-    // Validate CPF (simplified version)
     if (!cpf || cpf.length !== 11) {
       toast({
         title: "Erro de validação",
@@ -60,7 +56,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
 
     setIsVerifying(true);
     
-    // Simulate verification process
     setTimeout(() => {
       setIsVerifying(false);
       setVerificationStatus('pending');
@@ -72,7 +67,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     }, 2000);
   };
 
-  // Rating functionality
   const [rating, setRating] = useState<number | null>(null);
   const [feedback, setFeedback] = useState('');
 
@@ -97,7 +91,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
 
   return (
     <div className="helpaqui-card overflow-hidden dark:bg-gray-800 dark:text-white">
-      {/* Cabeçalho do perfil */}
       <div className="relative h-32 bg-gradient-to-r from-helpaqui-blue to-helpaqui-green">
         <Button 
           variant="ghost" 
@@ -118,7 +111,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
         </TabsList>
         
         <TabsContent value="profile">
-          {/* Foto e informações principais */}
           <div className="px-4 pb-4 relative">
             <div className="flex flex-col sm:flex-row">
               <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white bg-white shadow-md -mt-12 mb-3 sm:mr-4">
@@ -181,7 +173,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
             </div>
           </div>
           
-          {/* Garantia (para freelancers) */}
           {isFreelancer && (
             <div className="px-4 py-2 border-t border-b bg-green-50 dark:bg-green-900 flex items-center gap-2">
               <Shield className="h-4 w-4 text-green-600 dark:text-green-300" />
@@ -190,7 +181,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
             </div>
           )}
           
-          {/* Avaliações */}
           <div className="border-t px-4 py-4">
             <h3 className="font-semibold mb-3">Avaliações Recebidas</h3>
             
@@ -223,7 +213,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
             )}
           </div>
           
-          {/* Redes sociais */}
           <div className="border-t px-4 py-3 bg-gray-50 dark:bg-gray-700">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Redes sociais</h3>
