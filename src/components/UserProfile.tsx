@@ -28,6 +28,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
+    // Fixed: Using document.documentElement instead of document from File
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 

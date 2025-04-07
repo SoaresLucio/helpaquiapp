@@ -21,9 +21,11 @@ import {
 import { serviceCategories } from '@/data/mockData';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useNavigate } from 'react-router-dom';
 
 const ServiceRequest: React.FC = () => {
   const { toast } = useToast();
+  const navigate = useNavigate(); // Added this for navigation
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
