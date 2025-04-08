@@ -1,8 +1,18 @@
 
 import React, { useState } from 'react';
 import { Camera, BadgeCheck } from 'lucide-react';
-import { User } from '@/data/mockData';
 import { useToast } from '@/components/ui/use-toast';
+
+// Define the User interface that matches what we're using
+interface User {
+  id?: string;
+  name: string;
+  avatar: string; 
+  type?: 'professional' | 'client';
+  isVerified?: boolean;
+  // Add coverPhoto property to the User type
+  coverPhoto?: string;
+}
 
 interface ProfileHeaderProps {
   user: User;

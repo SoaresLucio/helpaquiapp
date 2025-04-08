@@ -1,7 +1,4 @@
 
-// Arquivo preparado para integração com Stripe
-// Este é um exemplo de como a integração com Stripe pode ser implementada
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface PaymentRequest {
@@ -74,11 +71,20 @@ export interface BankDetails {
 
 export const saveBankDetails = async (bankDetails: BankDetails): Promise<boolean> => {
   try {
+    // Get current user
+    const { data: userData } = await supabase.auth.getUser();
+    
+    if (!userData || !userData.user) {
+      throw new Error('Usuário não autenticado');
+    }
+    
+    const userId = userData.user.id;
+
     // Aqui salvaria os dados bancários no banco de dados Supabase
     const { error } = await supabase
       .from('bank_details')
       .upsert({
-        user_id: supabase.auth.getUser()?.data?.user?.id,
+        user_id: userId,
         bank_name: bankDetails.bankName,
         account_type: bankDetails.accountType,
         account_number: bankDetails.accountNumber,
