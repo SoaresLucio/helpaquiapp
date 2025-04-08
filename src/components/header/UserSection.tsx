@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LogOut, User, Settings, HelpCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,28 +13,21 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from '@/hooks/useAuth';
-import NotificationBadge from './NotificationBadge';
+import { LogOut, Settings, User } from "lucide-react";
+import useAuth from '@/hooks/useAuth';
 
 interface UserSectionProps {
-  notifications: number;
+  isAuthenticated: boolean;
 }
 
-const UserSection: React.FC<UserSectionProps> = ({ notifications }) => {
+const UserSection: React.FC<UserSectionProps> = ({ isAuthenticated }) => {
   const { user, logout } = useAuth();
-  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
-
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    await logout();
-    setIsLoggingOut(false);
-  };
-
-  if (!user) {
+  
+  if (!isAuthenticated) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
         <Link to="/login">
-          <Button variant="ghost">Entrar</Button>
+          <Button variant="ghost">Login</Button>
         </Link>
         <Link to="/register">
           <Button>Cadastrar</Button>
@@ -45,48 +37,46 @@ const UserSection: React.FC<UserSectionProps> = ({ notifications }) => {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <NotificationBadge notifications={notifications} />
-      
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-            <Avatar className="h-9 w-9">
-              <AvatarImage src={user.avatar || ""} alt={user.name} />
-              <AvatarFallback>{user.name?.charAt(0) || "U"}</AvatarFallback>
-            </Avatar>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
-          <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={user?.photoURL || ""} alt={user?.displayName || "Usuário"} />
+            <AvatarFallback>{user?.displayName?.charAt(0) || "U"}</AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">{user?.displayName || "Usuário"}</p>
+            <p className="text-xs leading-none text-muted-foreground">{user?.email || ""}</p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
             <Link to="/profile">
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                <span>Perfil</span>
-                <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-              </DropdownMenuItem>
+              <User className="mr-2 h-4 w-4" />
+              <span>Perfil</span>
             </Link>
-            <DropdownMenuItem>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/settings">
               <Settings className="mr-2 h-4 w-4" />
               <span>Configurações</span>
               <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <HelpCircle className="mr-2 h-4 w-4" />
-              <span>Ajuda</span>
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>{isLoggingOut ? "Saindo..." : "Sair"}</span>
-            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+            </Link>
           </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={logout}>
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Sair</span>
+          <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

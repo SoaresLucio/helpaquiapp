@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ServiceNotification } from '@/components/ServiceNotification';
+import ServiceNotification from '@/components/ServiceNotification';
 
 interface NotificationBadgeProps {
   notifications: number;
