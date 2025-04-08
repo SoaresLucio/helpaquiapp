@@ -81,7 +81,7 @@ export const saveBankDetails = async (bankDetails: BankDetails): Promise<boolean
     const userId = userData.user.id;
 
     // Use the RPC function we created to handle bank details
-    const { error } = await supabase.rpc('insert_bank_details', {
+    const { error } = await supabase.rpc('insert_bank_details' as any, {
       p_user_id: userId,
       p_bank_name: bankDetails.bankName,
       p_account_type: bankDetails.accountType,
