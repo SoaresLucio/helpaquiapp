@@ -80,10 +80,8 @@ export const saveBankDetails = async (bankDetails: BankDetails): Promise<boolean
     
     const userId = userData.user.id;
 
-    // Use a more robust approach to bypass TypeScript checking
-    // We're explicitly casting to any since the bank_details table exists in the database
-    // but not in the TypeScript definitions
-    const response = await supabase.rpc('insert_bank_details', {
+    // Use the RPC function we created to handle bank details
+    const { error } = await supabase.rpc('insert_bank_details', {
       p_user_id: userId,
       p_bank_name: bankDetails.bankName,
       p_account_type: bankDetails.accountType,
@@ -92,8 +90,8 @@ export const saveBankDetails = async (bankDetails: BankDetails): Promise<boolean
       p_document: bankDetails.document
     });
 
-    if (response.error) {
-      throw response.error;
+    if (error) {
+      throw error;
     }
     
     return true;
