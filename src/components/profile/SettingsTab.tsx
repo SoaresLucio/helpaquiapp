@@ -1,15 +1,13 @@
 
 import React, { useState } from 'react';
-import { Sun, Moon, BadgeCheck, FileText, Shield } from 'lucide-react';
+import { BadgeCheck, FileText, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Switch } from '@/components/ui/switch';
-import { useTheme } from '@/hooks/useTheme';
 
 const SettingsTab: React.FC = () => {
   const { toast } = useToast();
-  const { theme, toggleTheme } = useTheme();
   
   const [cpf, setCpf] = useState('');
   const [document, setDocument] = useState<File | null>(null);
@@ -56,25 +54,6 @@ const SettingsTab: React.FC = () => {
 
   return (
     <div className="p-4 space-y-4">
-      <div className="space-y-2">
-        <h3 className="text-lg font-semibold">Aparência</h3>
-        <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-          <div className="flex items-center">
-            {theme === 'light' ? (
-              <Sun className="h-5 w-5 mr-2 text-orange-400" />
-            ) : (
-              <Moon className="h-5 w-5 mr-2 text-blue-400" />
-            )}
-            <span>{theme === 'light' ? 'Modo Claro' : 'Modo Escuro'}</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-500 dark:text-gray-400">Claro</span>
-            <Switch checked={theme === 'dark'} onCheckedChange={toggleTheme} />
-            <span className="text-sm text-gray-500 dark:text-gray-400">Escuro</span>
-          </div>
-        </div>
-      </div>
-      
       <div className="space-y-2">
         <h3 className="text-lg font-semibold">Verificação de Conta</h3>
         <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">

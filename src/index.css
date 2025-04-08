@@ -1,79 +1,120 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
-    --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-    --primary: 262.1 83.3% 57.8%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220.9 39.3% 11%;
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220.9 39.3% 11%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 262.1 83.3% 57.8%;
-    --radius: 0.75rem;
-    --helpaqui-blue: #0077cc;
-    --helpaqui-green: #10B981;
-  }
- 
-  .dark {
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 20% 98%;
-    --card: 224 71.4% 4.1%;
-    --card-foreground: 210 20% 98%;
-    --popover: 224 71.4% 4.1%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 263.4 70% 50.4%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 263.4 70% 50.4%;
-  }
+
+:root {
+  --helpaqui-blue: #0057FF;
+  --helpaqui-green: #4CAF50;
+  --helpaqui-yellow: #FFC107;
+  --helpaqui-red: #F44336;
 }
- 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
+
+body {
+  font-family: 'Inter', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  touch-action: manipulation;
+  overflow-x: hidden;
+}
+
+/* Container para mobile-first */
+.helpaqui-container {
+  width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 640px) {
+  .helpaqui-container {
+    max-width: 640px;
   }
 }
 
-/* Estilos para mapbox */
-.mapboxgl-popup-content {
-  @apply p-2 rounded-lg shadow-lg;
+@media (min-width: 768px) {
+  .helpaqui-container {
+    max-width: 768px;
+  }
 }
 
-.mapboxgl-ctrl-attrib-inner {
-  @apply text-xs;
+@media (min-width: 1024px) {
+  .helpaqui-container {
+    max-width: 1024px;
+  }
 }
 
-.mapboxgl-popup-close-button {
-  @apply text-gray-500 hover:text-gray-700;
+@media (min-width: 1280px) {
+  .helpaqui-container {
+    max-width: 1280px;
+  }
 }
 
-.mapboxgl-marker {
-  cursor: pointer;
+/* Cards adaptados para mobile */
+.helpaqui-card {
+  @apply bg-white rounded-xl shadow-md overflow-hidden w-full;
+}
+
+/* Botões adaptados */
+.helpaqui-button-primary {
+  @apply bg-helpaqui-blue text-white font-medium py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors;
+}
+
+.helpaqui-button-secondary {
+  @apply bg-gray-100 text-gray-800 font-medium py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors;
+}
+
+.helpaqui-input {
+  @apply w-full rounded-lg border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-helpaqui-blue;
+}
+
+/* Ajustes para UI responsiva em dispositivos móveis */
+@media (max-width: 640px) {
+  .helpaqui-card {
+    @apply rounded-lg;
+  }
+  
+  .helpaqui-button-primary,
+  .helpaqui-button-secondary {
+    @apply py-2 text-sm;
+  }
+  
+  .helpaqui-input {
+    @apply text-sm;
+  }
+}
+
+/* Fix iOS Safari 100vh issue */
+.min-h-screen {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+html {
+  height: -webkit-fill-available;
+}
+
+/* Improve tap targets on mobile */
+button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* Improve text readability */
+.text-caption {
+  @apply text-sm text-gray-600;
+}
+
+/* Fix for iOS input zoom */
+input, select, textarea {
+  font-size: 16px;
+}
+
+@supports (-webkit-touch-callout: none) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }

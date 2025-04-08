@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Camera, BadgeCheck } from 'lucide-react';
 import { User } from '@/data/mockData';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ProfileHeaderProps {
   user: User;
@@ -14,27 +15,75 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   onProfilePhotoUpload,
   onCoverPhotoUpload
 }) => {
+  const { toast } = useToast();
   const isVerified = user.isVerified || false;
+  const [previewProfile, setPreviewProfile] = useState<string | null>(null);
+  const [previewCover, setPreviewCover] = useState<string | null>(null);
+  
+  // Enhanced profile photo handler with preview
+  const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // Create a preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewProfile(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      // Call the parent handler
+      onProfilePhotoUpload(e);
+    }
+  };
+  
+  // Enhanced cover photo handler with preview
+  const handleCoverPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // Create a preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewCover(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      // Call the parent handler
+      onCoverPhotoUpload(e);
+    }
+  };
+  
+  // Function to handle background style for cover
+  const getCoverStyle = () => {
+    if (previewCover) {
+      return { backgroundImage: `url(${previewCover})`, backgroundSize: 'cover', backgroundPosition: 'center' };
+    } else if (user.coverPhoto) {
+      return { backgroundImage: `url(${user.coverPhoto})`, backgroundSize: 'cover', backgroundPosition: 'center' };
+    } else {
+      return { background: 'linear-gradient(to right, var(--helpaqui-blue), var(--helpaqui-green))' };
+    }
+  };
   
   return (
     <>
-      <div className="relative h-48 bg-gradient-to-r from-helpaqui-blue to-helpaqui-green">
+      <div className="relative h-48" style={getCoverStyle()}>
         <label htmlFor="cover-upload" className="absolute bottom-2 right-2 bg-black/20 p-2 rounded-full cursor-pointer hover:bg-black/30 transition-colors">
           <Camera className="h-5 w-5 text-white" />
-          <input id="cover-upload" type="file" accept="image/*" className="sr-only" onChange={onCoverPhotoUpload} />
+          <input id="cover-upload" type="file" accept="image/*" className="sr-only" onChange={handleCoverPhotoChange} />
         </label>
       </div>
       
       <div className="px-4 relative">
         <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white bg-white shadow-md -mt-12 mx-auto">
           <img 
-            src={user.avatar} 
+            src={previewProfile || user.avatar} 
             alt={user.name}
             className="w-full h-full object-cover" 
           />
           <label htmlFor="profile-upload" className="absolute bottom-0 right-0 bg-helpaqui-blue p-1 rounded-full cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="m16 5-4-4-4 4"/><path d="M12 1v12"/><path d="M22 16v6"/><path d="M2 16v6"/><path d="M22 16H2"/><path d="M20 16v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6"/></svg>
-            <input id="profile-upload" type="file" accept="image/*" className="sr-only" onChange={onProfilePhotoUpload} />
+            <input id="profile-upload" type="file" accept="image/*" className="sr-only" onChange={handleProfilePhotoChange} />
           </label>
         </div>
         

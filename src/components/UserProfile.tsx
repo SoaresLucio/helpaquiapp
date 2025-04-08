@@ -20,8 +20,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
 
   const handleProfilePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setProfilePhoto(e.target.files[0]);
+      const file = e.target.files[0];
+      setProfilePhoto(file);
       
+      // In a real app, you would upload this to your server or storage
+      // Here we just show a success message
       toast({
         title: "Foto de perfil carregada",
         description: "Sua foto de perfil foi atualizada com sucesso."
@@ -31,8 +34,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
   
   const handleCoverPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setCoverPhoto(e.target.files[0]);
+      const file = e.target.files[0];
+      setCoverPhoto(file);
       
+      // In a real app, you would upload this to your server or storage
+      // Here we just show a success message
       toast({
         title: "Foto de capa carregada",
         description: "Sua foto de capa foi atualizada com sucesso."
