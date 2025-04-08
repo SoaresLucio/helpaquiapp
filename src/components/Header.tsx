@@ -8,6 +8,7 @@ import { useTheme } from '@/hooks/useTheme';
 import MobileMenu from './header/MobileMenu';
 import NavLinks from './header/NavLinks';
 import UserSection from './header/UserSection';
+import NotificationBadge from './header/NotificationBadge';
 
 const Header = () => {
   const location = useLocation();
@@ -15,7 +16,7 @@ const Header = () => {
   const [scrolling, setScrolling] = useState(false);
   const [searchFocus, setSearchFocus] = useState(false);
   const { theme } = useTheme();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   
   // Simulating notification count
   const notificationCount = 3;
@@ -73,7 +74,8 @@ const Header = () => {
             />
           </div>
 
-          <UserSection notifications={notificationCount} />
+          <NotificationBadge notifications={notificationCount} />
+          <UserSection isAuthenticated={isAuthenticated} />
         </div>
       </div>
     </header>
