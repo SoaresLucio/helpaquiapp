@@ -80,20 +80,20 @@ export const saveBankDetails = async (bankDetails: BankDetails): Promise<boolean
     
     const userId = userData.user.id;
 
-    // Use a typed approach to avoid TypeScript errors with unknown tables
-    // Here we're using the any type as a workaround since the Supabase client
-    // doesn't have bank_details in its TypeScript types yet
-    const { error } = await (supabase.from('bank_details') as any).upsert({
-      user_id: userId,
-      bank_name: bankDetails.bankName,
-      account_type: bankDetails.accountType,
-      account_number: bankDetails.accountNumber,
-      branch: bankDetails.branch,
-      document: bankDetails.document
+    // Use a more robust approach to bypass TypeScript checking
+    // We're explicitly casting to any since the bank_details table exists in the database
+    // but not in the TypeScript definitions
+    const response = await supabase.rpc('insert_bank_details', {
+      p_user_id: userId,
+      p_bank_name: bankDetails.bankName,
+      p_account_type: bankDetails.accountType,
+      p_account_number: bankDetails.accountNumber,
+      p_branch: bankDetails.branch,
+      p_document: bankDetails.document
     });
 
-    if (error) {
-      throw error;
+    if (response.error) {
+      throw response.error;
     }
     
     return true;
