@@ -80,17 +80,17 @@ export const saveBankDetails = async (bankDetails: BankDetails): Promise<boolean
     
     const userId = userData.user.id;
 
-    // Aqui salvaria os dados bancários no banco de dados Supabase
-    const { error } = await supabase
-      .from('bank_details')
-      .upsert({
-        user_id: userId,
-        bank_name: bankDetails.bankName,
-        account_type: bankDetails.accountType,
-        account_number: bankDetails.accountNumber,
-        branch: bankDetails.branch,
-        document: bankDetails.document
-      });
+    // Use a typed approach to avoid TypeScript errors with unknown tables
+    // Here we're using the any type as a workaround since the Supabase client
+    // doesn't have bank_details in its TypeScript types yet
+    const { error } = await (supabase.from('bank_details') as any).upsert({
+      user_id: userId,
+      bank_name: bankDetails.bankName,
+      account_type: bankDetails.accountType,
+      account_number: bankDetails.accountNumber,
+      branch: bankDetails.branch,
+      document: bankDetails.document
+    });
 
     if (error) {
       throw error;
