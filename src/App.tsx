@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ResetPassword from "./pages/ResetPassword";
 import Jobs from "./pages/Jobs";
 import PaymentSettings from "./pages/PaymentSettings";
 import CategoryManagement from "./pages/CategoryManagement";
@@ -25,10 +26,11 @@ const AppRoutes = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Don't redirect if user is already on login or register page or loading
+    // Don't redirect if user is already on login, register, or reset-password page or loading
     if (!loading && !isAuthenticated && 
         location.pathname !== '/login' && 
-        location.pathname !== '/register') {
+        location.pathname !== '/register' &&
+        location.pathname !== '/reset-password') {
       navigate('/login');
     }
   }, [isAuthenticated, loading, location.pathname, navigate]);
@@ -37,6 +39,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       
       {/* Protected routes */}
       <Route path="/" element={

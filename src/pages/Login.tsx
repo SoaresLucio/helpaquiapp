@@ -10,103 +10,7 @@ import { BriefcaseBusiness, UserRound, ArrowRight } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { GoogleLogin } from '@react-oauth/google';
 import { Separator } from '@/components/ui/separator';
-import { signIn, resetPassword } from '@/services/authService';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-
-const PasswordResetDialog = () => {
-  const [resetPasswordEmail, setResetPasswordEmail] = useState('');
-  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
-  const [isResettingPassword, setIsResettingPassword] = useState(false);
-  const { toast } = useToast();
-
-  const handlePasswordReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!resetPasswordEmail || !resetPasswordEmail.includes('@')) {
-      toast({
-        title: "Erro",
-        description: "Por favor, insira um endereço de e-mail válido",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsResettingPassword(true);
-    
-    try {
-      await resetPassword(resetPasswordEmail);
-      
-      toast({
-        title: "E-mail enviado",
-        description: "Verifique seu e-mail para redefinir sua senha"
-      });
-      
-      setIsResetDialogOpen(false);
-      setResetPasswordEmail('');
-    } catch (error) {
-      console.error("Error resetting password:", error);
-      toast({
-        title: "Erro",
-        description: error instanceof Error ? error.message : "Falha ao enviar e-mail de redefinição de senha",
-        variant: "destructive"
-      });
-    } finally {
-      setIsResettingPassword(false);
-    }
-  };
-
-  return (
-    <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Resetar senha</DialogTitle>
-          <DialogDescription>
-            Insira seu e-mail para receber um link de redefinição de senha.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handlePasswordReset}>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="reset-email">E-mail</Label>
-              <Input
-                id="reset-email"
-                type="email"
-                placeholder="seu@email.com"
-                value={resetPasswordEmail}
-                onChange={(e) => setResetPasswordEmail(e.target.value)}
-                required
-              />
-            </div>
-            <Alert variant="default" className="bg-blue-50 text-blue-800 border-blue-200">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Um link para redefinição de senha será enviado para seu e-mail cadastrado.
-              </AlertDescription>
-            </Alert>
-          </div>
-          <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setIsResetDialogOpen(false)}
-              disabled={isResettingPassword}
-            >
-              Cancelar
-            </Button>
-            <Button 
-              type="submit"
-              disabled={isResettingPassword}
-            >
-              {isResettingPassword ? "Enviando..." : "Enviar link de redefinição"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-};
+import { signIn } from '@/services/authService';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -116,7 +20,6 @@ const Login = () => {
   const [freelancerEmail, setFreelancerEmail] = useState('');
   const [freelancerPassword, setFreelancerPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   
   const handleSolicitanteLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -233,7 +136,7 @@ const Login = () => {
                   <Label htmlFor="solicitante-password">Senha</Label>
                   <Input id="solicitante-password" type="password" value={solicitantePassword} onChange={e => setSolicitantePassword(e.target.value)} required />
                   <div className="flex justify-end">
-                    <Button variant="link" size="sm" className="text-xs p-0" onClick={() => setIsResetDialogOpen(true)}>
+                    <Button variant="link" size="sm" className="text-xs p-0" onClick={() => navigate('/reset-password')}>
                       Esqueci minha senha
                     </Button>
                   </div>
@@ -297,7 +200,7 @@ const Login = () => {
                   <Label htmlFor="freelancer-password">Senha</Label>
                   <Input id="freelancer-password" type="password" value={freelancerPassword} onChange={e => setFreelancerPassword(e.target.value)} required />
                   <div className="flex justify-end">
-                    <Button variant="link" size="sm" className="text-xs p-0" onClick={() => setIsResetDialogOpen(true)}>
+                    <Button variant="link" size="sm" className="text-xs p-0" onClick={() => navigate('/reset-password')}>
                       Esqueci minha senha
                     </Button>
                   </div>
@@ -343,8 +246,6 @@ const Login = () => {
           </Card>
         </TabsContent>
       </Tabs>
-
-      <PasswordResetDialog />
     </div>
   );
 };
