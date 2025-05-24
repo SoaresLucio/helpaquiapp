@@ -1,62 +1,75 @@
 
-// Este é um exemplo de como uma edge function do Supabase pode ser implementada
-// para processar pagamentos com Stripe
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-// import Stripe from "https://esm.sh/stripe@14.21.0";
+import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-// Configurar headers CORS
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
-  // Lidar com requisições de preflight CORS
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Este código será implementado quando você estiver pronto para integrar com o Stripe
-  // Por enquanto, este é apenas um esqueleto
-
   try {
-    // Conectar ao Supabase para verificar o usuário
+    // Initialize Supabase client with service role for secure operations
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
     );
 
-    // Obter token de autorização e verificar usuário
+    // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      throw new Error("Autorização necessária");
+      throw new Error("Authorization required");
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     
-    if (userError || !user) {
-      throw new Error("Usuário não autenticado");
+    if (userError || !userData.user) {
+      throw new Error("User not authenticated");
     }
 
-    // Obter dados da requisição
-    const requestData = await req.json();
-    const { amount, serviceId, freelancerId, description } = requestData;
+    // Get request data
+    const { amount, serviceId, freelancerId, description, platformFee, freelancerAmount } = await req.json();
 
-    // Quando você tiver a chave do Stripe configurada, este código será ativado:
-    /*
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    // Validate Stripe key exists
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) {
+      throw new Error("Stripe configuration missing");
+    }
+
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
 
-    // Calcular taxa (10% do valor)
-    const fee = Math.round(amount * 0.1);
-    const freelancerAmount = amount - fee;
+    // Check if customer exists
+    const customers = await stripe.customers.list({ 
+      email: userData.user.email,
+      limit: 1 
+    });
     
-    // Criar sessão de pagamento
+    let customerId;
+    if (customers.data.length > 0) {
+      customerId = customers.data[0].id;
+    } else {
+      // Create new customer
+      const customer = await stripe.customers.create({
+        email: userData.user.email,
+        metadata: {
+          user_id: userData.user.id,
+        },
+      });
+      customerId = customer.id;
+    }
+
+    // Create checkout session for escrow payment
     const session = await stripe.checkout.sessions.create({
+      customer: customerId,
       payment_method_types: ["card"],
       line_items: [
         {
@@ -66,7 +79,7 @@ serve(async (req) => {
               name: "Serviço HelpAqui",
               description: description,
             },
-            unit_amount: amount,
+            unit_amount: amount, // Total amount in cents
           },
           quantity: 1,
         },
@@ -77,23 +90,28 @@ serve(async (req) => {
       metadata: {
         serviceId,
         freelancerId,
-        clientId: user.id,
-        fee,
-        freelancerAmount,
+        clientId: userData.user.id,
+        platformFee: platformFee.toString(),
+        freelancerAmount: freelancerAmount.toString(),
       },
     });
 
-    // Registrar o pagamento no banco de dados
-    await supabaseClient.from("payments").insert({
-      session_id: session.id,
+    // Store payment record in escrow status
+    const { error: insertError } = await supabaseClient.from("payments").insert({
+      stripe_session_id: session.id,
       service_id: serviceId,
       freelancer_id: freelancerId,
-      client_id: user.id,
+      client_id: userData.user.id,
       amount: amount,
-      fee: fee,
+      platform_fee: platformFee,
       freelancer_amount: freelancerAmount,
-      status: "pending",
+      status: "pending", // Escrow status
+      created_at: new Date().toISOString(),
     });
+
+    if (insertError) {
+      console.error("Database insert error:", insertError);
+    }
 
     return new Response(
       JSON.stringify({ 
@@ -106,25 +124,14 @@ serve(async (req) => {
         status: 200 
       }
     );
-    */
-
-    // Resposta simulada por enquanto
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        url: "https://exemplo-stripe.com/checkout", 
-        sessionId: "cs_test_" + Math.random().toString(36).substring(2, 15)
-      }),
-      { 
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200 
-      }
-    );
 
   } catch (error) {
-    console.error("Erro:", error.message);
+    console.error("Payment creation error:", error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ 
+        success: false, 
+        error: error.message || "Payment processing failed"
+      }),
       { 
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400 
