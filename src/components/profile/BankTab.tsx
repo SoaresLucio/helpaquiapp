@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { saveBankDetails } from '@/services/paymentService';
 
 const BankTab: React.FC = () => {
   const { toast } = useToast();
@@ -12,9 +13,11 @@ const BankTab: React.FC = () => {
   const [accountType, setAccountType] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [branch, setBranch] = useState('');
+  const [document, setDocument] = useState('');
+  const [loading, setLoading] = useState(false);
   
-  const handleBankDetailsSubmit = () => {
-    if (!bankName || !accountType || !accountNumber || !branch) {
+  const handleBankDetailsSubmit = async () => {
+    if (!bankName || !accountType || !accountNumber || !branch || !document) {
       toast({
         title: "Campos obrigatórios",
         description: "Por favor, preencha todos os campos bancários.",
@@ -23,10 +26,41 @@ const BankTab: React.FC = () => {
       return;
     }
     
-    toast({
-      title: "Detalhes bancários salvos",
-      description: "Seus dados bancários foram atualizados com sucesso."
-    });
+    setLoading(true);
+    
+    try {
+      const success = await saveBankDetails({
+        bankName,
+        accountType,
+        accountNumber,
+        branch,
+        document
+      });
+      
+      if (success) {
+        toast({
+          title: "Detalhes bancários salvos",
+          description: "Seus dados bancários foram atualizados com sucesso."
+        });
+        
+        // Clear form
+        setBankName('');
+        setAccountType('');
+        setAccountNumber('');
+        setBranch('');
+        setDocument('');
+      } else {
+        throw new Error('Failed to save bank details');
+      }
+    } catch (error) {
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar os dados bancários.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -82,8 +116,23 @@ const BankTab: React.FC = () => {
             </div>
           </div>
           
-          <Button onClick={handleBankDetailsSubmit} className="w-full">
-            Salvar Dados Bancários
+          <div className="space-y-2">
+            <label htmlFor="document" className="block text-sm font-medium">CPF/CNPJ</label>
+            <Input
+              id="document"
+              placeholder="Ex: 123.456.789-00"
+              value={document}
+              onChange={(e) => setDocument(e.target.value)}
+              className="dark:bg-gray-800"
+            />
+          </div>
+          
+          <Button 
+            onClick={handleBankDetailsSubmit} 
+            className="w-full"
+            disabled={loading}
+          >
+            {loading ? 'Salvando...' : 'Salvar Dados Bancários'}
           </Button>
         </CardContent>
       </Card>

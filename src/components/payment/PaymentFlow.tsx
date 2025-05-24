@@ -5,24 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Clock, DollarSign, User, Briefcase } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { releaseFunds, getPaymentHistory } from '@/services/paymentService';
-import PaymentButton from './PaymentButton';
-
-interface PaymentFlowItem {
-  id: string;
-  contractorId: string;
-  freelancerId: string;
-  amount: number;
-  platformFee: number;
-  freelancerAmount: number;
-  status: 'pending' | 'processing' | 'completed' | 'cancelled';
-  serviceId: string;
-  serviceTitle: string;
-  createdAt: string;
-}
+import { releaseFunds, getPaymentHistory, PaymentFlow as PaymentFlowType } from '@/services/paymentService';
 
 const PaymentFlow: React.FC = () => {
-  const [payments, setPayments] = useState<PaymentFlowItem[]>([]);
+  const [payments, setPayments] = useState<PaymentFlowType[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -121,7 +107,7 @@ const PaymentFlow: React.FC = () => {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <Briefcase className="h-4 w-4" />
-                          <span className="font-medium">{payment.serviceTitle}</span>
+                          <span className="font-medium">{payment.service_title || 'Serviço'}</span>
                           <Badge className={getStatusColor(payment.status)}>
                             {getStatusIcon(payment.status)}
                             {payment.status}
@@ -135,15 +121,15 @@ const PaymentFlow: React.FC = () => {
                           </div>
                           <div>
                             <span className="text-gray-500">Taxa plataforma:</span>
-                            <p className="font-medium text-orange-600">R$ {(payment.platformFee / 100).toFixed(2)}</p>
+                            <p className="font-medium text-orange-600">R$ {(payment.platform_fee / 100).toFixed(2)}</p>
                           </div>
                           <div>
                             <span className="text-gray-500">Para freelancer:</span>
-                            <p className="font-medium text-green-600">R$ {(payment.freelancerAmount / 100).toFixed(2)}</p>
+                            <p className="font-medium text-green-600">R$ {(payment.freelancer_amount / 100).toFixed(2)}</p>
                           </div>
                           <div>
                             <span className="text-gray-500">Data:</span>
-                            <p className="font-medium">{new Date(payment.createdAt).toLocaleDateString('pt-BR')}</p>
+                            <p className="font-medium">{new Date(payment.created_at).toLocaleDateString('pt-BR')}</p>
                           </div>
                         </div>
                       </div>

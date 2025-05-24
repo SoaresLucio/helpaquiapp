@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      bank_details: {
+        Row: {
+          account_number: string
+          account_type: string
+          bank_name: string
+          branch: string
+          created_at: string
+          document: string
+          id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          account_number: string
+          account_type: string
+          bank_name: string
+          branch: string
+          created_at?: string
+          document: string
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          account_number?: string
+          account_type?: string
+          bank_name?: string
+          branch?: string
+          created_at?: string
+          document?: string
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       notes: {
         Row: {
           content: string | null
@@ -33,6 +69,83 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      payment_logs: {
+        Row: {
+          action: string
+          amount: number | null
+          created_at: string
+          id: string
+          payment_id: string | null
+        }
+        Insert: {
+          action: string
+          amount?: number | null
+          created_at?: string
+          id?: string
+          payment_id?: string | null
+        }
+        Update: {
+          action?: string
+          amount?: number | null
+          created_at?: string
+          id?: string
+          payment_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_logs_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          client_id: string | null
+          created_at: string
+          freelancer_amount: number
+          freelancer_id: string | null
+          id: string
+          platform_fee: number
+          service_id: string
+          service_title: string | null
+          status: string
+          stripe_session_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          client_id?: string | null
+          created_at?: string
+          freelancer_amount: number
+          freelancer_id?: string | null
+          id?: string
+          platform_fee: number
+          service_id: string
+          service_title?: string | null
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string | null
+          created_at?: string
+          freelancer_amount?: number
+          freelancer_id?: string | null
+          id?: string
+          platform_fee?: number
+          service_id?: string
+          service_title?: string | null
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

@@ -25,14 +25,17 @@ export interface BankDetails {
 
 export interface PaymentFlow {
   id: string;
-  contractorId: string;
-  freelancerId: string;
+  client_id: string;
+  freelancer_id: string;
   amount: number;
-  platformFee: number;
-  freelancerAmount: number;
+  platform_fee: number;
+  freelancer_amount: number;
   status: 'pending' | 'processing' | 'completed' | 'cancelled';
-  serviceId: string;
-  stripeSessionId?: string;
+  service_id: string;
+  service_title: string | null;
+  stripe_session_id: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // Platform fee calculation (10%)
