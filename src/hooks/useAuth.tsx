@@ -1,7 +1,7 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { setupAuthListener, getCurrentSession, getCurrentUser, signOut } from '@/services/authService';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -25,12 +25,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     // Configurar listener de autenticação
     const subscription = setupAuthListener((session) => {
+      console.log('Auth state change:', session);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const checkSession = async () => {
       try {
         const currentSession = await getCurrentSession();
+        console.log('Current session:', currentSession);
         if (currentSession) {
           const currentUser = await getCurrentUser();
           setSession(currentSession);
@@ -64,7 +65,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await signOut();
       setSession(null);
       setUser(null);
-      navigate('/auth');
       toast({
         title: "Desconectado com sucesso",
         description: "Você foi desconectado do sistema."
@@ -98,12 +98,14 @@ export const useAuth = () => useContext(AuthContext);
 export const RequireAuth = ({ children }: { children: ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      navigate('/auth');
+    // Não redirecionar se estiver na página de reset de senha ou se ainda estiver carregando
+    if (!loading && !isAuthenticated && location.pathname !== '/reset-password') {
+      navigate('/login');
     }
-  }, [isAuthenticated, loading, navigate]);
+  }, [isAuthenticated, loading, navigate, location.pathname]);
 
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Carregando...</div>;

@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
+import NewPassword from "./pages/NewPassword";
 import Jobs from "./pages/Jobs";
 import PaymentSettings from "./pages/PaymentSettings";
 import CategoryManagement from "./pages/CategoryManagement";
@@ -26,12 +27,21 @@ const AppRoutes = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Don't redirect if user is already on login, register, or reset-password page or loading
-    if (!loading && !isAuthenticated && 
-        location.pathname !== '/login' && 
-        location.pathname !== '/register' &&
-        location.pathname !== '/reset-password') {
-      navigate('/login');
+    // Só redirecionar se não estiver carregando e não estiver autenticado
+    // E não estiver já nas páginas de auth ou reset
+    if (!loading && !isAuthenticated) {
+      const publicPaths = ['/login', '/register', '/reset-password', '/new-password'];
+      if (!publicPaths.includes(location.pathname)) {
+        navigate('/login');
+      }
+    }
+    
+    // Se estiver autenticado e nas páginas de auth, redirecionar para home
+    if (!loading && isAuthenticated) {
+      const authPaths = ['/login', '/register'];
+      if (authPaths.includes(location.pathname)) {
+        navigate('/');
+      }
     }
   }, [isAuthenticated, loading, location.pathname, navigate]);
 
@@ -40,6 +50,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/new-password" element={<NewPassword />} />
       
       {/* Protected routes */}
       <Route path="/" element={

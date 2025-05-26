@@ -34,7 +34,7 @@ export const signIn = async (email: string, password: string) => {
     } else if (error.message.includes("Email not confirmed")) {
       throw new Error("Por favor, confirme seu email antes de fazer login.");
     } else {
-      throw new Error(error.message || "Erro ao fazer login. Verifique seu email e senha.");
+      throw new Error("Email ou senha incorretos. Por favor, tente novamente.");
     }
   }
   
@@ -97,7 +97,7 @@ export const resetPassword = async (email: string) => {
   }
   
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + '/reset-password',
+    redirectTo: `${window.location.origin}/new-password`,
   });
   
   if (error) {
@@ -164,4 +164,21 @@ export const setupAuthListener = (callback: (session: Session | null) => void) =
   });
   
   return subscription;
+};
+
+// Função para login com Google
+export const signInWithGoogle = async () => {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/`
+    }
+  });
+  
+  if (error) {
+    console.error("Erro no login Google:", error);
+    throw new Error(error.message || "Erro ao fazer login com Google");
+  }
+  
+  return data;
 };

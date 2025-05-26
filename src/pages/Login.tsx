@@ -6,11 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { BriefcaseBusiness, UserRound, ArrowRight } from 'lucide-react';
+import { BriefcaseBusiness, UserRound } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { GoogleLogin } from '@react-oauth/google';
 import { Separator } from '@/components/ui/separator';
-import { signIn } from '@/services/authService';
+import { signIn, signInWithGoogle } from '@/services/authService';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -20,13 +19,14 @@ const Login = () => {
   const [freelancerEmail, setFreelancerEmail] = useState('');
   const [freelancerPassword, setFreelancerPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   
   const handleSolicitanteLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const data = await signIn(solicitanteEmail, solicitantePassword);
+      await signIn(solicitanteEmail, solicitantePassword);
       
       toast({
         title: "Login bem-sucedido",
@@ -35,7 +35,8 @@ const Login = () => {
       
       navigate('/');
     } catch (error) {
-      let errorMessage = "Erro ao fazer login. Tente novamente.";
+      console.error("Login error:", error);
+      let errorMessage = "Email ou senha incorretos. Por favor, tente novamente.";
       if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -55,7 +56,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const data = await signIn(freelancerEmail, freelancerPassword);
+      await signIn(freelancerEmail, freelancerPassword);
       
       toast({
         title: "Login bem-sucedido",
@@ -64,7 +65,8 @@ const Login = () => {
       
       navigate('/');
     } catch (error) {
-      let errorMessage = "Erro ao fazer login. Tente novamente.";
+      console.error("Login error:", error);
+      let errorMessage = "Email ou senha incorretos. Por favor, tente novamente.";
       if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -79,22 +81,21 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = (credentialResponse: any) => {
-    // In a real app, you would verify the credential with your backend
-    console.log("Google login successful:", credentialResponse);
-    
-    // For demonstration, we're using the active tab to determine user type
-    const userType = document.querySelector('[aria-selected="true"]')?.getAttribute('value') || 'solicitante';
-    
-    localStorage.setItem('userType', userType);
-    localStorage.setItem('userEmail', 'user@google.com');
-    
-    toast({
-      title: "Login Google bem-sucedido",
-      description: "Bem-vindo ao HelpAqui!"
-    });
-    
-    navigate('/');
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    try {
+      await signInWithGoogle();
+      // O redirecionamento será tratado automaticamente pelo Supabase
+    } catch (error) {
+      console.error("Google login error:", error);
+      toast({
+        title: "Erro no login",
+        description: error instanceof Error ? error.message : "Falha ao entrar com Google",
+        variant: "destructive",
+      });
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   return (
@@ -130,11 +131,25 @@ const Login = () => {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="solicitante-email">Email</Label>
-                  <Input id="solicitante-email" type="email" placeholder="seu@email.com" value={solicitanteEmail} onChange={e => setSolicitanteEmail(e.target.value)} required />
+                  <Input 
+                    id="solicitante-email" 
+                    type="email" 
+                    placeholder="seu@email.com" 
+                    value={solicitanteEmail} 
+                    onChange={e => setSolicitanteEmail(e.target.value)} 
+                    required 
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="solicitante-password">Senha</Label>
-                  <Input id="solicitante-password" type="password" value={solicitantePassword} onChange={e => setSolicitantePassword(e.target.value)} required />
+                  <Input 
+                    id="solicitante-password" 
+                    type="password" 
+                    placeholder="Digite sua senha"
+                    value={solicitantePassword} 
+                    onChange={e => setSolicitantePassword(e.target.value)} 
+                    required 
+                  />
                   <div className="flex justify-end">
                     <Button variant="link" size="sm" className="text-xs p-0" onClick={() => navigate('/reset-password')}>
                       Esqueci minha senha
@@ -156,20 +171,15 @@ const Login = () => {
                   </div>
                 </div>
                 
-                <div className="flex justify-center">
-                  <GoogleLogin
-                    onSuccess={handleGoogleLogin}
-                    onError={() => {
-                      console.log('Login Failed');
-                      toast({
-                        title: "Erro no login",
-                        description: "Falha ao entrar com Google",
-                        variant: "destructive",
-                      });
-                    }}
-                    useOneTap
-                  />
-                </div>
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  className="w-full"
+                  onClick={handleGoogleLogin}
+                  disabled={googleLoading}
+                >
+                  {googleLoading ? "Entrando..." : "Entrar com Google"}
+                </Button>
                 
                 <div className="text-sm text-center">
                   <span className="text-gray-600">Novo por aqui? </span>
@@ -194,11 +204,25 @@ const Login = () => {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="freelancer-email">Email</Label>
-                  <Input id="freelancer-email" type="email" placeholder="seu@email.com" value={freelancerEmail} onChange={e => setFreelancerEmail(e.target.value)} required />
+                  <Input 
+                    id="freelancer-email" 
+                    type="email" 
+                    placeholder="seu@email.com" 
+                    value={freelancerEmail} 
+                    onChange={e => setFreelancerEmail(e.target.value)} 
+                    required 
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="freelancer-password">Senha</Label>
-                  <Input id="freelancer-password" type="password" value={freelancerPassword} onChange={e => setFreelancerPassword(e.target.value)} required />
+                  <Input 
+                    id="freelancer-password" 
+                    type="password" 
+                    placeholder="Digite sua senha"
+                    value={freelancerPassword} 
+                    onChange={e => setFreelancerPassword(e.target.value)} 
+                    required 
+                  />
                   <div className="flex justify-end">
                     <Button variant="link" size="sm" className="text-xs p-0" onClick={() => navigate('/reset-password')}>
                       Esqueci minha senha
@@ -220,20 +244,15 @@ const Login = () => {
                   </div>
                 </div>
                 
-                <div className="flex justify-center">
-                  <GoogleLogin
-                    onSuccess={handleGoogleLogin}
-                    onError={() => {
-                      console.log('Login Failed');
-                      toast({
-                        title: "Erro no login",
-                        description: "Falha ao entrar com Google",
-                        variant: "destructive",
-                      });
-                    }}
-                    useOneTap
-                  />
-                </div>
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  className="w-full"
+                  onClick={handleGoogleLogin}
+                  disabled={googleLoading}
+                >
+                  {googleLoading ? "Entrando..." : "Entrar com Google"}
+                </Button>
                 
                 <div className="text-sm text-center">
                   <span className="text-gray-600">Quer trabalhar conosco? </span>
