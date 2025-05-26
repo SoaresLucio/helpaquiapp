@@ -139,7 +139,12 @@ export const getPaymentHistory = async (): Promise<PaymentFlow[]> => {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    // Type assertion to ensure status conforms to the expected union type
+    return (data || []).map(payment => ({
+      ...payment,
+      status: payment.status as 'pending' | 'processing' | 'completed' | 'cancelled'
+    }));
   } catch (error) {
     console.error('Payment history error:', error);
     return [];
