@@ -2,7 +2,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { setupAuthListener, getCurrentSession, getCurrentUser, signOut } from '@/services/authService';
+import { setupAuthListener, getCurrentSession, getCurrentUser, signOut, getUserType } from '@/services/authService';
 import { useToast } from '@/components/ui/use-toast';
 
 interface AuthContextType {
@@ -29,10 +29,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // Configurar listener de autenticação
-    const subscription = setupAuthListener((session) => {
+    const subscription = setupAuthListener(async (session) => {
       console.log('Auth state change:', session);
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // Se usuário logou via Google e não tem user_type definido, redirecionar para seleção
+      if (session?.user && !session.user.user_metadata?.user_type) {
+        const storedType = localStorage.getItem('userType');
+        if (!storedType) {
+          // Redirecionar para seleção de tipo de usuário somente se não estiver já na página
+          if (window.location.pathname !== '/user-type-selection') {
+            window.location.href = '/user-type-selection';
+          }
+        }
+      }
+      
       setLoading(false);
     });
 
@@ -45,6 +57,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const currentUser = await getCurrentUser();
           setSession(currentSession);
           setUser(currentUser);
+          
+          // Verificar se usuário tem tipo definido
+          if (currentUser && !currentUser.user_metadata?.user_type) {
+            const storedType = localStorage.getItem('userType');
+            if (!storedType && window.location.pathname !== '/user-type-selection') {
+              window.location.href = '/user-type-selection';
+            }
+          }
         }
       } catch (error) {
         console.error("Erro ao verificar sessão:", error);
@@ -65,6 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await signOut();
       setSession(null);
       setUser(null);
+      localStorage.removeItem('userType');
       toast({
         title: "Desconectado com sucesso",
         description: "Você foi desconectado do sistema."
@@ -101,8 +122,8 @@ export const RequireAuth = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
 
   useEffect(() => {
-    // Não redirecionar se estiver na página de reset de senha ou se ainda estiver carregando
-    if (!loading && !isAuthenticated && location.pathname !== '/reset-password') {
+    // Não redirecionar se estiver na página de reset de senha, seleção de tipo de usuário ou se ainda estiver carregando
+    if (!loading && !isAuthenticated && !['/reset-password', '/new-password', '/user-type-selection'].includes(location.pathname)) {
       navigate('/login');
     }
   }, [isAuthenticated, loading, navigate, location.pathname]);

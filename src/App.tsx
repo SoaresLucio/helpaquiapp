@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import NewPassword from "./pages/NewPassword";
+import UserTypeSelection from "./pages/UserTypeSelection";
 import Jobs from "./pages/Jobs";
 import Chat from "./pages/Chat";
 import FreelancerProfile from "./pages/FreelancerProfile";
@@ -32,7 +33,7 @@ const AppRoutes = () => {
     // Só redirecionar se não estiver carregando e não estiver autenticado
     // E não estiver já nas páginas de auth ou reset
     if (!loading && !isAuthenticated) {
-      const publicPaths = ['/login', '/register', '/reset-password', '/new-password'];
+      const publicPaths = ['/login', '/register', '/reset-password', '/new-password', '/user-type-selection'];
       if (!publicPaths.includes(location.pathname)) {
         navigate('/login');
       }
@@ -49,10 +50,12 @@ const AppRoutes = () => {
 
   return (
     <Routes>
+      {/* Public routes - accessible without authentication */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/new-password" element={<NewPassword />} />
+      <Route path="/user-type-selection" element={<UserTypeSelection />} />
       
       {/* Protected routes */}
       <Route path="/" element={
