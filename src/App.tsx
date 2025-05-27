@@ -10,6 +10,8 @@ import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import NewPassword from "./pages/NewPassword";
 import Jobs from "./pages/Jobs";
+import Chat from "./pages/Chat";
+import FreelancerProfile from "./pages/FreelancerProfile";
 import PaymentSettings from "./pages/PaymentSettings";
 import CategoryManagement from "./pages/CategoryManagement";
 import NotFound from "./pages/NotFound";
@@ -63,6 +65,16 @@ const AppRoutes = () => {
           <Jobs />
         </RequireAuth>
       } />
+      <Route path="/chat" element={
+        <RequireAuth>
+          <Chat />
+        </RequireAuth>
+      } />
+      <Route path="/freelancer/:id" element={
+        <RequireAuth>
+          <FreelancerProfile />
+        </RequireAuth>
+      } />
       <Route path="/payments" element={
         <RequireAuth>
           <PaymentSettings />
@@ -75,7 +87,7 @@ const AppRoutes = () => {
       } />
       <Route path="/messages" element={
         <RequireAuth>
-          <Index />
+          <Chat />
         </RequireAuth>
       } />
       <Route path="/notifications" element={

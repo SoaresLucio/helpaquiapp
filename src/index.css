@@ -152,22 +152,6 @@ body {
   border-top-color: white !important;
 }
 
-/* Ensure mapbox controls are visible */
-.mapboxgl-ctrl-group {
-  background: white !important;
-  border-radius: 4px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-}
-
-.mapboxgl-ctrl-group button {
-  background: white !important;
-  border: none !important;
-}
-
-.mapboxgl-ctrl-group button:hover {
-  background: #f3f4f6 !important;
-}
-
 /* Loading spinner improvements */
 @keyframes spin {
   to { transform: rotate(360deg); }
@@ -202,4 +186,13 @@ body {
     width: calc(100vw - 2rem) !important;
     max-width: calc(100vw - 2rem) !important;
   }
+}
+
+/* Help button styles */
+.helpaqui-button-primary {
+  @apply bg-helpaqui-blue hover:bg-blue-700 text-white;
+}
+
+.helpaqui-card {
+  @apply bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow;
 }

@@ -5,12 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Professional, serviceCategories } from '@/data/mockData';
 import ResponseTimeIndicator from './ResponseTimeIndicator';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { useNavigate } from 'react-router-dom';
 
 interface ProfessionalCardProps {
   professional: Professional;
 }
 
 const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional }) => {
+  const navigate = useNavigate();
+  
   const categoryNames = professional.categories.map(
     catId => serviceCategories.find(cat => cat.id === catId)?.name || ''
   ).join(', ');
@@ -19,6 +22,14 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional }) => 
   const isVerified = professional.isVerified || false;
   const responseTime = professional.responseTime || "1h";
   const responseRate = professional.responseRate || 95;
+
+  const handleViewProfile = () => {
+    navigate(`/freelancer/${professional.id}`);
+  };
+
+  const handleContact = () => {
+    navigate('/chat');
+  };
 
   return (
     <div className="helpaqui-card p-4 mb-4">
@@ -107,8 +118,12 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional }) => 
           <div className="flex items-center justify-between">
             <span className="font-medium text-helpaqui-blue">{professional.price}</span>
             <div className="flex space-x-2">
-              <Button variant="outline" size="sm">Ver perfil</Button>
-              <Button size="sm" className="helpaqui-button-primary">Contatar</Button>
+              <Button variant="outline" size="sm" onClick={handleViewProfile}>
+                Ver perfil
+              </Button>
+              <Button size="sm" className="helpaqui-button-primary" onClick={handleContact}>
+                Contatar
+              </Button>
             </div>
           </div>
         </div>
