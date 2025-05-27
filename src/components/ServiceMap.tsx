@@ -7,6 +7,13 @@ import { mockProfessionals } from '@/data/mockData';
 import { useToast } from '@/components/ui/use-toast';
 import { Wrapper, Status } from '@googlemaps/react-wrapper';
 
+// Declare global google types
+declare global {
+  interface Window {
+    google: typeof google;
+  }
+}
+
 interface ServiceMapProps {
   selectedCategory: string | null;
 }
@@ -201,7 +208,7 @@ const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({ userLocation, f
   const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
 
   useEffect(() => {
-    if (ref.current && !map) {
+    if (ref.current && !map && window.google) {
       const newMap = new window.google.maps.Map(ref.current, {
         center: { lat: userLocation.lat, lng: userLocation.lng },
         zoom: 12,
@@ -215,16 +222,16 @@ const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({ userLocation, f
       });
       setMap(newMap);
     }
-  }, [ref, map]);
+  }, [ref, map, userLocation]);
 
   useEffect(() => {
-    if (map) {
+    if (map && window.google) {
       // Limpar marcadores existentes
       markers.forEach(marker => marker.setMap(null));
       setMarkers([]);
 
       // Adicionar marcador do usuário
-      const userMarker = new google.maps.Marker({
+      const userMarker = new window.google.maps.Marker({
         position: { lat: userLocation.lat, lng: userLocation.lng },
         map: map,
         title: "Sua localização",
@@ -235,7 +242,7 @@ const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({ userLocation, f
               <circle cx="20" cy="20" r="5" fill="white"/>
             </svg>
           `),
-          scaledSize: new google.maps.Size(40, 40)
+          scaledSize: new window.google.maps.Size(40, 40)
         }
       });
 
@@ -256,7 +263,7 @@ const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({ userLocation, f
         const proLat = userLocation.lat + latOffset;
         const proLng = userLocation.lng + lngOffset;
 
-        const marker = new google.maps.Marker({
+        const marker = new window.google.maps.Marker({
           position: { lat: proLat, lng: proLng },
           map: map,
           title: pro.name,
@@ -267,11 +274,11 @@ const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({ userLocation, f
                 <text x="20" y="25" text-anchor="middle" fill="white" font-size="12">💼</text>
               </svg>
             `),
-            scaledSize: new google.maps.Size(40, 40)
+            scaledSize: new window.google.maps.Size(40, 40)
           }
         });
 
-        const infoWindow = new google.maps.InfoWindow({
+        const infoWindow = new window.google.maps.InfoWindow({
           content: `
             <div style="padding: 8px; max-width: 250px;">
               <h3 style="margin: 0 0 8px 0; font-weight: bold;">${pro.name}</h3>
