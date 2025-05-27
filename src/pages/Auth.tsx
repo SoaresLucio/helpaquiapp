@@ -110,7 +110,8 @@ const Auth = () => {
     setError(null);
     
     try {
-      const { session } = await signUp(email, password, firstName, lastName);
+      // Default to 'solicitante' user type for general signup
+      const { session } = await signUp(email, password, firstName, lastName, 'solicitante');
       
       toast({
         title: "Cadastro realizado",

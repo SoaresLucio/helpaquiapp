@@ -5,10 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { currentUser } from '@/data/mockData';
+import { useAuth } from '@/hooks/useAuth';
 
 const FreelancerHome: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   // Mock data - in a real app, this would come from the API
   const stats = {
@@ -50,14 +51,16 @@ const FreelancerHome: React.FC = () => {
     }
   ];
 
-  const categories = currentUser.categories || ['eletrica', 'hidraulica'];
+  // Get user categories from user metadata or default categories
+  const userCategories = user?.user_metadata?.categories || ['eletrica', 'hidraulica'];
+  const userName = user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'Usuário';
 
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-blue-500 to-green-500 rounded-xl p-6 text-white">
         <h1 className="text-2xl font-bold mb-2">
-          Bem-vindo de volta, {currentUser.name}! 👋
+          Bem-vindo de volta, {userName}! 👋
         </h1>
         <p className="text-blue-100 mb-4">
           Você tem {stats.pendingRequests} novas solicitações de serviço
@@ -93,7 +96,7 @@ const FreelancerHome: React.FC = () => {
               <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 ml-1" />
             </div>
             <p className="text-xs text-muted-foreground">
-              Baseado em {currentUser.reviews.length} avaliações
+              Baseado em avaliações recentes
             </p>
           </CardContent>
         </Card>
@@ -138,14 +141,11 @@ const FreelancerHome: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2 mb-4">
-            {categories.map(categoryId => {
-              const category = currentUser.categories?.find(c => c === categoryId);
-              return (
-                <Badge key={categoryId} variant="secondary">
-                  {categoryId}
-                </Badge>
-              );
-            })}
+            {userCategories.map((categoryId: string, index: number) => (
+              <Badge key={index} variant="secondary">
+                {categoryId}
+              </Badge>
+            ))}
           </div>
           <Button variant="outline" onClick={() => navigate('/profile')}>
             Gerenciar Serviços
