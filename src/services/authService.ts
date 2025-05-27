@@ -7,6 +7,7 @@ export interface AuthUser {
   email: string;
   firstName?: string;
   lastName?: string;
+  userType?: 'solicitante' | 'freelancer';
 }
 
 export const signIn = async (email: string, password: string) => {
@@ -41,7 +42,14 @@ export const signIn = async (email: string, password: string) => {
   return data;
 };
 
-export const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
+export const signUp = async (
+  email: string, 
+  password: string, 
+  firstName: string, 
+  lastName: string, 
+  userType: 'solicitante' | 'freelancer',
+  categories?: string[]
+) => {
   if (!email || !password) {
     throw new Error("Email e senha são obrigatórios");
   }
@@ -67,7 +75,9 @@ export const signUp = async (email: string, password: string, firstName: string,
     options: {
       data: {
         first_name: firstName,
-        last_name: lastName
+        last_name: lastName,
+        user_type: userType,
+        categories: categories || []
       }
     }
   });
@@ -181,4 +191,24 @@ export const signInWithGoogle = async () => {
   }
   
   return data;
+};
+
+// Função para obter tipo de usuário
+export const getUserType = async (): Promise<'solicitante' | 'freelancer' | null> => {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  
+  // Try to get from user metadata first
+  const userType = user.user_metadata?.user_type;
+  if (userType) {
+    return userType as 'solicitante' | 'freelancer';
+  }
+  
+  // Fallback to localStorage (for Google auth users)
+  const storedType = localStorage.getItem('userType');
+  if (storedType) {
+    return storedType as 'solicitante' | 'freelancer';
+  }
+  
+  return 'solicitante'; // Default
 };

@@ -115,6 +115,14 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional }) => 
             </span>
           </div>
           
+          {/* Privacy Notice */}
+          <div className="flex items-center mb-3 bg-blue-50 rounded px-3 py-1.5">
+            <Shield className="h-4 w-4 text-blue-600 mr-2" />
+            <span className="text-xs text-blue-800">
+              Contato seguro: Informações pessoais compartilhadas apenas após confirmação de serviço
+            </span>
+          </div>
+          
           <div className="flex items-center justify-between">
             <span className="font-medium text-helpaqui-blue">{professional.price}</span>
             <div className="flex space-x-2">

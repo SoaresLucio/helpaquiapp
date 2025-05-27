@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import PrivacyPolicyDialog from '@/components/PrivacyPolicyDialog';
 import TermsOfUseDialog from '@/components/TermsOfUseDialog';
-import { signUp } from '@/services/authService';
+import { signUp, signInWithGoogle } from '@/services/authService';
 import { differenceInYears, parse } from 'date-fns';
 
 const Register = () => {
@@ -120,7 +119,7 @@ const Register = () => {
     const lastName = lastNameParts.join(' ');
     
     try {
-      await signUp(clientData.email, clientData.password, firstName, lastName);
+      await signUp(clientData.email, clientData.password, firstName, lastName, 'solicitante');
       
       toast({
         title: "Registro bem-sucedido",
@@ -201,7 +200,7 @@ const Register = () => {
     const lastName = lastNameParts.join(' ');
     
     try {
-      await signUp(freelancerData.email, freelancerData.password, firstName, lastName);
+      await signUp(freelancerData.email, freelancerData.password, firstName, lastName, 'freelancer', freelancerData.categories);
       
       toast({
         title: "Registro bem-sucedido",
@@ -246,38 +245,28 @@ const Register = () => {
     });
   };
 
-  const handleGoogleSignup = (credentialResponse: any, userType: 'client' | 'freelancer') => {
-    // In a real app, you would decode the credential and extract user info
-    console.log("Google signup response:", credentialResponse);
-    
-    // Mock data - in a real scenario, you'd decode the credential response
-    const userData = {
-      name: "Usuário Google",
-      email: "user@gmail.com"
-    };
-    
-    if (userType === 'client') {
-      setClientData(prev => ({
-        ...prev,
-        name: userData.name,
-        email: userData.email,
-      }));
+  const handleGoogleSignup = async (credentialResponse: any, userType: 'client' | 'freelancer') => {
+    setIsLoading(true);
+    try {
+      await signInWithGoogle();
+      
+      // Store user type in localStorage temporarily
+      localStorage.setItem('userType', userType === 'client' ? 'solicitante' : 'freelancer');
       
       toast({
         title: "Autenticação com Google bem-sucedida",
-        description: "Complete seu cadastro com os dados adicionais",
+        description: "Redirecionando para a página inicial...",
       });
-    } else {
-      setFreelancerData(prev => ({
-        ...prev,
-        name: userData.name,
-        email: userData.email,
-      }));
       
+      navigate('/');
+    } catch (error: any) {
       toast({
-        title: "Autenticação com Google bem-sucedida",
-        description: "Complete seu cadastro com os dados profissionais",
+        title: "Erro no cadastro com Google",
+        description: error.message || "Falha ao cadastrar com Google",
+        variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -345,18 +334,18 @@ const Register = () => {
           <TabsList className="grid grid-cols-2 mb-8">
             <TabsTrigger value="client" className="flex items-center gap-2">
               <UserRound className="h-4 w-4" />
-              Cliente
+              Solicitante
             </TabsTrigger>
             <TabsTrigger value="freelancer" className="flex items-center gap-2">
               <BriefcaseBusiness className="h-4 w-4" />
-              Profissional
+              Freelancer
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="client">
             <Card>
               <CardHeader>
-                <CardTitle>Registrar como Cliente</CardTitle>
+                <CardTitle>Registrar como Solicitante</CardTitle>
                 <CardDescription>
                   Crie uma conta para encontrar profissionais qualificados
                 </CardDescription>
@@ -528,7 +517,7 @@ const Register = () => {
                     className="w-full bg-helpaqui-blue"
                     disabled={isLoading}
                   >
-                    {isLoading ? "Criando conta..." : "Criar conta de cliente"}
+                    {isLoading ? "Criando conta..." : "Criar conta de solicitante"}
                   </Button>
                 </CardFooter>
               </form>
@@ -538,7 +527,7 @@ const Register = () => {
           <TabsContent value="freelancer">
             <Card>
               <CardHeader>
-                <CardTitle>Registrar como Profissional</CardTitle>
+                <CardTitle>Registrar como Freelancer</CardTitle>
                 <CardDescription>
                   Crie uma conta para oferecer seus serviços na plataforma
                 </CardDescription>
@@ -732,7 +721,7 @@ const Register = () => {
                     className="w-full bg-helpaqui-green"
                     disabled={isLoading}
                   >
-                    {isLoading ? "Criando conta..." : "Criar conta de profissional"}
+                    {isLoading ? "Criando conta..." : "Criar conta de freelancer"}
                   </Button>
                 </CardFooter>
               </form>
