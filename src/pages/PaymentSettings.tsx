@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
@@ -48,14 +47,6 @@ const PaymentSettings = () => {
       isDefault: false
     }
   ]);
-  
-  // Platform fee settings (for admins)
-  const [platformFees, setPlatformFees] = useState({
-    standardFee: 10,
-    premiumFee: 8,
-    enableDynamicFees: true,
-    minimumPayoutAmount: 50
-  });
   
   // Bank account info (for freelancers)
   const [bankInfo, setBankInfo] = useState({
@@ -138,22 +129,6 @@ const PaymentSettings = () => {
       title: "Método removido",
       description: "O método de pagamento foi removido com sucesso.",
     });
-  };
-  
-  // Function to update platform fees (for admins)
-  const handleUpdateFees = (event: React.FormEvent) => {
-    event.preventDefault();
-    setIsProcessing(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      toast({
-        title: "Taxas atualizadas",
-        description: "As taxas da plataforma foram atualizadas com sucesso.",
-      });
-      
-      setIsProcessing(false);
-    }, 1000);
   };
   
   // Function to update bank information (for freelancers)
@@ -303,13 +278,6 @@ const PaymentSettings = () => {
                     >
                       <Wallet className="h-4 w-4 mr-2" />
                       Histórico de Transações
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="platform-fees"
-                      className="w-full justify-start px-4 py-3 border-l-2 border-transparent data-[state=active]:border-helpaqui-blue rounded-none"
-                    >
-                      <ShieldCheck className="h-4 w-4 mr-2" />
-                      Taxas e Comissões
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
@@ -574,170 +542,6 @@ const PaymentSettings = () => {
                         Suas transações aparecerão aqui quando você começar a usar a plataforma.
                       </p>
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="platform-fees">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Taxas da Plataforma</CardTitle>
-                    <CardDescription>
-                      Informações sobre as taxas e comissões da plataforma
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      <div className="p-4 border rounded-lg bg-blue-50 border-blue-100">
-                        <div className="flex items-start gap-2">
-                          <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5" />
-                          <div>
-                            <p className="font-medium text-blue-800">Informação sobre taxas</p>
-                            <p className="text-sm text-blue-700 mt-1">
-                              A HelpAqui cobra uma pequena taxa de serviço para manter a plataforma e garantir a segurança das transações.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="p-4 border rounded-lg">
-                          <h3 className="font-medium mb-2">Taxa para clientes</h3>
-                          <p className="text-2xl font-bold text-helpaqui-blue">
-                            5%
-                          </p>
-                          <p className="text-sm text-gray-500 mt-1">
-                            Taxa aplicada sobre o valor total do serviço
-                          </p>
-                          <ul className="mt-4 text-sm space-y-2">
-                            <li className="flex items-center gap-2">
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                              Garantia de serviço
-                            </li>
-                            <li className="flex items-center gap-2">
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                              Suporte prioritário
-                            </li>
-                            <li className="flex items-center gap-2">
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                              Proteção ao cliente
-                            </li>
-                          </ul>
-                        </div>
-                        
-                        <div className="p-4 border rounded-lg">
-                          <h3 className="font-medium mb-2">Taxa para profissionais</h3>
-                          <p className="text-2xl font-bold text-helpaqui-green">
-                            {platformFees.standardFee}%
-                          </p>
-                          <p className="text-sm text-gray-500 mt-1">
-                            Taxa aplicada sobre os ganhos por serviço
-                          </p>
-                          <ul className="mt-4 text-sm space-y-2">
-                            <li className="flex items-center gap-2">
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                              Mais visibilidade
-                            </li>
-                            <li className="flex items-center gap-2">
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                              Verificação de perfil
-                            </li>
-                            <li className="flex items-center gap-2">
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                              Proteção de pagamento
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                      
-                      <div className="border-t pt-6">
-                        <h3 className="font-medium mb-4">Programa de profissionais premium</h3>
-                        <div className="p-4 border rounded-lg bg-gray-50">
-                          <div className="flex items-center justify-between mb-4">
-                            <div>
-                              <p className="font-medium">Taxa reduzida para profissionais premium</p>
-                              <p className="text-sm text-gray-500 mt-1">
-                                Profissionais com avaliação acima de 4.8 e mais de 20 serviços
-                              </p>
-                            </div>
-                            <span className="text-xl font-bold text-helpaqui-green">
-                              {platformFees.premiumFee}%
-                            </span>
-                          </div>
-                          <Button>Saiba mais sobre o programa premium</Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card className="mt-6">
-                  <CardHeader>
-                    <CardTitle>Configuração de Taxas (Administrador)</CardTitle>
-                    <CardDescription>
-                      Configure as taxas da plataforma e políticas de pagamento
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleUpdateFees}>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="standard-fee">Taxa padrão (%)</Label>
-                            <Input 
-                              id="standard-fee" 
-                              type="number"
-                              min="0"
-                              max="100"
-                              value={platformFees.standardFee}
-                              onChange={(e) => setPlatformFees({...platformFees, standardFee: parseInt(e.target.value)})}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="premium-fee">Taxa premium (%)</Label>
-                            <Input 
-                              id="premium-fee" 
-                              type="number"
-                              min="0"
-                              max="100"
-                              value={platformFees.premiumFee}
-                              onChange={(e) => setPlatformFees({...platformFees, premiumFee: parseInt(e.target.value)})}
-                            />
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="minimum-payout">Valor mínimo para saque (R$)</Label>
-                          <Input 
-                            id="minimum-payout" 
-                            type="number"
-                            min="0"
-                            value={platformFees.minimumPayoutAmount}
-                            onChange={(e) => setPlatformFees({...platformFees, minimumPayoutAmount: parseInt(e.target.value)})}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center space-x-2 pt-2">
-                          <Switch 
-                            id="dynamic-fees" 
-                            checked={platformFees.enableDynamicFees}
-                            onCheckedChange={(checked) => setPlatformFees({...platformFees, enableDynamicFees: checked})}
-                          />
-                          <Label htmlFor="dynamic-fees">Habilitar taxas dinâmicas baseadas em volume</Label>
-                        </div>
-                        
-                        <Button type="submit" className="w-full" disabled={isProcessing}>
-                          {isProcessing ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Atualizando...
-                            </>
-                          ) : (
-                            <>Atualizar configurações de taxas</>
-                          )}
-                        </Button>
-                      </div>
-                    </form>
                   </CardContent>
                 </Card>
               </TabsContent>
