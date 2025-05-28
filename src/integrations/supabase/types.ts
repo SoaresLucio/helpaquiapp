@@ -173,6 +173,101 @@ export type Database = {
         }
         Relationships: []
       }
+      service_proposals: {
+        Row: {
+          created_at: string
+          estimated_time: string | null
+          freelancer_id: string
+          id: string
+          message: string | null
+          proposed_price: number | null
+          service_request_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          estimated_time?: string | null
+          freelancer_id: string
+          id?: string
+          message?: string | null
+          proposed_price?: number | null
+          service_request_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          estimated_time?: string | null
+          freelancer_id?: string
+          id?: string
+          message?: string | null
+          proposed_price?: number | null
+          service_request_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_proposals_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_requests: {
+        Row: {
+          budget_max: number | null
+          budget_min: number | null
+          category: string
+          client_id: string
+          created_at: string
+          description: string | null
+          id: string
+          location_address: string | null
+          location_lat: number | null
+          location_lng: number | null
+          status: string
+          title: string
+          updated_at: string
+          urgency: string | null
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
+          category: string
+          client_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          status?: string
+          title: string
+          updated_at?: string
+          urgency?: string | null
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number | null
+          category?: string
+          client_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          status?: string
+          title?: string
+          updated_at?: string
+          urgency?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

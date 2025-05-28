@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Star, Clock, DollarSign, Calendar, TrendingUp, Users } from 'lucide-react';
+import { Star, Clock, DollarSign, Calendar, TrendingUp, Users, Briefcase } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -65,10 +65,56 @@ const FreelancerHome: React.FC = () => {
         <p className="text-blue-100 mb-4">
           Você tem {stats.pendingRequests} novas solicitações de serviço
         </p>
-        <Button variant="secondary" onClick={() => navigate('/jobs')}>
-          Ver Solicitações
-        </Button>
+        <div className="flex gap-3">
+          <Button variant="secondary" onClick={() => navigate('/jobs')}>
+            <Briefcase className="h-4 w-4 mr-2" />
+            Ver Solicitações
+          </Button>
+          <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+            Meus Trabalhos
+          </Button>
+        </div>
       </div>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Briefcase className="h-5 w-5 mr-2" />
+            Ações Rápidas
+          </CardTitle>
+          <CardDescription>
+            Acesse rapidamente as funcionalidades principais
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button 
+              onClick={() => navigate('/jobs')}
+              className="bg-helpaqui-green hover:bg-helpaqui-green/90 h-16 flex flex-col gap-1"
+            >
+              <Briefcase className="h-5 w-5" />
+              Ver Trabalhos
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/chat')}
+              className="h-16 flex flex-col gap-1"
+            >
+              <Calendar className="h-5 w-5" />
+              Mensagens
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/profile')}
+              className="h-16 flex flex-col gap-1"
+            >
+              <Users className="h-5 w-5" />
+              Meu Perfil
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
