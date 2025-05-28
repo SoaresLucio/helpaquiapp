@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Camera, 
@@ -22,7 +21,7 @@ import { serviceCategories } from '@/data/mockData';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNavigate } from 'react-router-dom';
-import PaymentButton from './payment/PaymentButton';
+import AsaasPaymentButton from './payment/AsaasPaymentButton';
 
 const ServiceRequest: React.FC = () => {
   const { toast } = useToast();
@@ -86,6 +85,25 @@ const ServiceRequest: React.FC = () => {
   };
 
   const handlePaymentComplete = () => {
+    // Save service request to database/state
+    const serviceRequest = {
+      id: Date.now().toString(),
+      title: formData.title,
+      description: formData.description,
+      category: formData.category,
+      location: formData.location,
+      budget: formData.budget,
+      date: formData.date,
+      photos,
+      status: 'active',
+      created_at: new Date().toISOString()
+    };
+
+    // Add to localStorage for now (in a real app, this would be sent to backend)
+    const existingRequests = JSON.parse(localStorage.getItem('serviceRequests') || '[]');
+    existingRequests.push(serviceRequest);
+    localStorage.setItem('serviceRequests', JSON.stringify(existingRequests));
+
     toast({
       title: "Trabalho publicado",
       description: "Seu pedido de HELP foi publicado com sucesso!",
@@ -126,7 +144,7 @@ const ServiceRequest: React.FC = () => {
           </div>
         </div>
 
-        <PaymentButton
+        <AsaasPaymentButton
           amount={parseInt(formData.budget.replace(/\D/g, '')) * 100 || 5000}
           serviceId="temp-service-id"
           freelancerId="temp-freelancer-id"

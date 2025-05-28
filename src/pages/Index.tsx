@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import CategorySelector from '@/components/CategorySelector';
 import ServiceRequest from '@/components/ServiceRequest';
@@ -8,6 +8,8 @@ import ChatInterface from '@/components/ChatInterface';
 import UserProfile from '@/components/UserProfile';
 import SolicitanteHome from '@/components/solicitante/SolicitanteHome';
 import FreelancerHome from '@/components/freelancer/FreelancerHome';
+import PushNotification from '@/components/notifications/PushNotification';
+import { useJobNotifications } from '@/hooks/useJobNotifications';
 import { useAuth } from '@/hooks/useAuth';
 import { mockUsers } from '@/data/mockData';
 import { 
@@ -21,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const { userType, loading } = useAuth();
+  const { currentNotification, acceptJob, rejectJob, dismissNotification } = useJobNotifications();
 
   if (loading) {
     return (
@@ -42,6 +45,16 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <Header />
+      
+      {/* Push Notification Overlay */}
+      {currentNotification && (
+        <PushNotification
+          job={currentNotification}
+          onAccept={acceptJob}
+          onReject={rejectJob}
+          onClose={dismissNotification}
+        />
+      )}
       
       <main className="flex-1 helpaqui-container py-4">
         {/* Category Selector - Only for Solicitantes */}

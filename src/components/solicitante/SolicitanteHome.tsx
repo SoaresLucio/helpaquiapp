@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Star, Filter, Clock, Search, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,9 +22,33 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('rating');
   const [filterRating, setFilterRating] = useState('all');
+  const [allProfessionals, setAllProfessionals] = useState(mockProfessionals);
+
+  // Load freelancer offers from localStorage
+  useEffect(() => {
+    const freelancerOffers = JSON.parse(localStorage.getItem('freelancerOffers') || '[]');
+    
+    // Convert freelancer offers to professional format
+    const convertedOffers = freelancerOffers.map((offer: any) => ({
+      id: offer.id,
+      name: offer.name,
+      description: offer.description,
+      categories: [offer.category],
+      rating: offer.rating,
+      ratingCount: offer.ratingCount,
+      price: offer.price,
+      distance: offer.distance,
+      avatar: offer.avatar,
+      verified: offer.verified,
+      location: offer.location
+    }));
+
+    // Combine mock professionals with real freelancer offers
+    setAllProfessionals([...mockProfessionals, ...convertedOffers]);
+  }, []);
 
   // Filtrar freelancers por categoria, pesquisa e rating
-  const filteredProfessionals = mockProfessionals.filter(pro => {
+  const filteredProfessionals = allProfessionals.filter(pro => {
     const matchesCategory = !selectedCategory || pro.categories.includes(selectedCategory);
     const matchesSearch = !searchTerm || 
       pro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

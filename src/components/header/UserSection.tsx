@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -5,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
+
 interface UserSectionProps {
   isAuthenticated: boolean;
 }
+
 const UserSection: React.FC<UserSectionProps> = ({
   isAuthenticated
 }) => {
@@ -38,50 +41,52 @@ const UserSection: React.FC<UserSectionProps> = ({
     }
     return "Usuário";
   };
+
   if (!isAuthenticated) {
     return <div className="flex items-center gap-4">
         <Link to="/login">
-          <Button variant="ghost">Login</Button>
+          <Button variant="ghost" className="text-gray-700 hover:text-gray-900 hover:bg-gray-100">Login</Button>
         </Link>
         <Link to="/register">
-          <Button>Cadastrar</Button>
+          <Button className="bg-helpaqui-blue hover:bg-helpaqui-blue/90 text-white">Cadastrar</Button>
         </Link>
       </div>;
   }
+
   return <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full hover:bg-gray-100">
           <Avatar className="h-8 w-8">
             <AvatarImage src="" alt={getDisplayName()} />
-            <AvatarFallback>{getUserInitials()}</AvatarFallback>
+            <AvatarFallback className="bg-helpaqui-blue text-white">{getUserInitials()}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" forceMount className="w-56 bg-gray-50">
+      <DropdownMenuContent align="end" forceMount className="w-56 bg-white border border-gray-200 shadow-lg">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{getDisplayName()}</p>
-            <p className="text-xs leading-none text-muted-foreground">{user?.email || ""}</p>
+            <p className="text-sm font-medium leading-none text-gray-900">{getDisplayName()}</p>
+            <p className="text-xs leading-none text-gray-600">{user?.email || ""}</p>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator className="bg-gray-200" />
         <DropdownMenuGroup>
-          <DropdownMenuItem asChild>
-            <Link to="/profile">
+          <DropdownMenuItem asChild className="hover:bg-gray-50">
+            <Link to="/profile" className="text-gray-700">
               <UserIcon className="mr-2 h-4 w-4" />
               <span>Perfil</span>
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link to="/settings">
+          <DropdownMenuItem asChild className="hover:bg-gray-50">
+            <Link to="/settings" className="text-gray-700">
               <Settings className="mr-2 h-4 w-4" />
               <span>Configurações</span>
               <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={logout}>
+        <DropdownMenuSeparator className="bg-gray-200" />
+        <DropdownMenuItem onClick={logout} className="hover:bg-gray-50 text-gray-700">
           <LogOut className="mr-2 h-4 w-4" />
           <span>Sair</span>
           <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
@@ -89,4 +94,5 @@ const UserSection: React.FC<UserSectionProps> = ({
       </DropdownMenuContent>
     </DropdownMenu>;
 };
+
 export default UserSection;
