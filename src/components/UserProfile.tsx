@@ -25,13 +25,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
   const [coverPhoto, setCoverPhoto] = useState<File | null>(null);
 
   // Dados do usuário atual baseados na autenticação
-  const currentUserData = {
+  const currentUserData: User = {
     ...user,
     name: authUser?.user_metadata?.first_name && authUser?.user_metadata?.last_name 
       ? `${authUser.user_metadata.first_name} ${authUser.user_metadata.last_name}`
       : authUser?.email?.split('@')[0] || user.name,
     email: authUser?.email || user.email,
-    type: userType === 'freelancer' ? 'professional' : 'client',
+    type: (userType === 'freelancer' ? 'professional' : 'client') as 'professional' | 'client',
     isVerified: authUser?.email_confirmed_at ? true : false
   };
 
