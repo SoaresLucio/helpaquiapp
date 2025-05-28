@@ -1,68 +1,54 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
-
 interface UserSectionProps {
   isAuthenticated: boolean;
 }
+const UserSection: React.FC<UserSectionProps> = ({
+  isAuthenticated
+}) => {
+  const {
+    user,
+    logout
+  } = useAuth();
 
-const UserSection: React.FC<UserSectionProps> = ({ isAuthenticated }) => {
-  const { user, logout } = useAuth();
-  
   // Helper function to get user's initials for avatar fallback
   const getUserInitials = (): string => {
     if (!user) return "U";
-    
     const email = user.email || "";
     // If email exists, use first letter
     if (email) return email.charAt(0).toUpperCase();
-    
+
     // Fallback
     return "U";
   };
-  
+
   // Helper function to get display name
   const getDisplayName = (): string => {
     if (!user) return "Usuário";
-    
+
     // Use email without domain as a username if available
     if (user.email) {
       const parts = user.email.split('@');
       return parts[0] || "Usuário";
     }
-    
     return "Usuário";
   };
-
   if (!isAuthenticated) {
-    return (
-      <div className="flex items-center gap-4">
+    return <div className="flex items-center gap-4">
         <Link to="/login">
           <Button variant="ghost">Login</Button>
         </Link>
         <Link to="/register">
           <Button>Cadastrar</Button>
         </Link>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <DropdownMenu>
+  return <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
@@ -71,7 +57,7 @@ const UserSection: React.FC<UserSectionProps> = ({ isAuthenticated }) => {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
+      <DropdownMenuContent align="end" forceMount className="w-56 bg-gray-50">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{getDisplayName()}</p>
@@ -101,8 +87,6 @@ const UserSection: React.FC<UserSectionProps> = ({ isAuthenticated }) => {
           <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>
-    </DropdownMenu>
-  );
+    </DropdownMenu>;
 };
-
 export default UserSection;
