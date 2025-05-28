@@ -16,7 +16,7 @@ import { getUserType } from '@/services/authService';
 import { useNavigate } from 'react-router-dom';
 
 const Jobs = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [userType, setUserType] = useState<'solicitante' | 'freelancer'>('freelancer');
@@ -42,7 +42,7 @@ const Jobs = () => {
 
   const { data: jobs = [], isLoading, refetch } = useQuery({
     queryKey: ['service-requests', selectedCategory],
-    queryFn: () => selectedCategory ? getServiceRequestsByCategory(selectedCategory) : getServiceRequests(),
+    queryFn: () => selectedCategory === 'all' ? getServiceRequests() : getServiceRequestsByCategory(selectedCategory),
   });
 
   const categories = [
@@ -127,7 +127,7 @@ const Jobs = () => {
                     <SelectValue placeholder="Todas as categorias" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as categorias</SelectItem>
+                    <SelectItem value="all">Todas as categorias</SelectItem>
                     {categories.map(category => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.icon} {category.name}
@@ -157,9 +157,9 @@ const Jobs = () => {
             <div className="mt-4">
               <div className="flex flex-wrap gap-2">
                 <Button
-                  variant={selectedCategory === '' ? 'default' : 'outline'}
+                  variant={selectedCategory === 'all' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setSelectedCategory('')}
+                  onClick={() => setSelectedCategory('all')}
                 >
                   Todas
                 </Button>
@@ -205,7 +205,7 @@ const Jobs = () => {
                       Nenhum trabalho encontrado
                     </h3>
                     <p className="text-gray-600">
-                      {searchTerm || selectedCategory 
+                      {searchTerm || selectedCategory !== 'all'
                         ? 'Tente ajustar seus filtros de busca'
                         : 'Não há solicitações de serviço disponíveis no momento'
                       }
@@ -237,7 +237,7 @@ const Jobs = () => {
           <TabsContent value="map">
             <JobsMap 
               jobs={filteredJobs}
-              selectedCategory={selectedCategory}
+              selectedCategory={selectedCategory === 'all' ? null : selectedCategory}
             />
           </TabsContent>
         </Tabs>
