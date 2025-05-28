@@ -308,7 +308,6 @@ const Register = () => {
                       <span className="text-xs text-gray-600">Pelo menos 6 caracteres</span>
                     </div>
                     <div className="flex items-center">
-                      <div className="flex items-center">
                       <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${validations.hasNumber ? 'bg-green-500' : 'bg-gray-300'}`}>
                         {validations.hasNumber && <Check className="h-3 w-3 text-white" />}
                       </div>
