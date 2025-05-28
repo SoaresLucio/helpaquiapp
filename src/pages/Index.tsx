@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Header from '@/components/Header';
 import CategorySelector from '@/components/CategorySelector';
 import ServiceRequest from '@/components/ServiceRequest';
@@ -8,7 +8,7 @@ import ChatInterface from '@/components/ChatInterface';
 import UserProfile from '@/components/UserProfile';
 import SolicitanteHome from '@/components/solicitante/SolicitanteHome';
 import FreelancerHome from '@/components/freelancer/FreelancerHome';
-import { getUserType } from '@/services/authService';
+import { useAuth } from '@/hooks/useAuth';
 import { mockUsers } from '@/data/mockData';
 import { 
   MapPin,
@@ -20,24 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [userType, setUserType] = useState<'solicitante' | 'freelancer'>('solicitante');
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUserType = async () => {
-      try {
-        const type = await getUserType();
-        setUserType(type || 'solicitante');
-      } catch (error) {
-        console.error('Error fetching user type:', error);
-        setUserType('solicitante');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserType();
-  }, []);
+  const { userType, loading } = useAuth();
 
   if (loading) {
     return (
@@ -48,6 +31,12 @@ const Index = () => {
         </div>
       </div>
     );
+  }
+
+  // Redirecionar usuário se não tiver tipo definido
+  if (!userType) {
+    window.location.href = '/user-type-selection';
+    return null;
   }
 
   return (

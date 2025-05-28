@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Star, Clock, DollarSign, Calendar, TrendingUp, Users, Briefcase } from 'lucide-react';
+import { Star, Clock, DollarSign, Calendar, TrendingUp, Users, Briefcase, CreditCard } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -88,7 +88,7 @@ const FreelancerHome: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Button 
               onClick={() => navigate('/jobs')}
               className="bg-helpaqui-green hover:bg-helpaqui-green/90 h-16 flex flex-col gap-1"
@@ -103,6 +103,14 @@ const FreelancerHome: React.FC = () => {
             >
               <Calendar className="h-5 w-5" />
               Mensagens
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/payments')}
+              className="h-16 flex flex-col gap-1 bg-blue-50 hover:bg-blue-100 border-blue-200"
+            >
+              <CreditCard className="h-5 w-5" />
+              Pagamentos
             </Button>
             <Button 
               variant="outline"
@@ -199,7 +207,6 @@ const FreelancerHome: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Recent Jobs */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">

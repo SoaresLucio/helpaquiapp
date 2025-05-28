@@ -1,12 +1,15 @@
 
 import React, { useState } from 'react';
-import { MapPin, Star, Filter, Clock, Search } from 'lucide-react';
+import { MapPin, Star, Filter, Clock, Search, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ProfessionalCard from '@/components/ProfessionalCard';
 import ServiceMap from '@/components/ServiceMap';
 import { mockProfessionals, serviceCategories } from '@/data/mockData';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 interface SolicitanteHomeProps {
   selectedCategory: string | null;
@@ -14,6 +17,8 @@ interface SolicitanteHomeProps {
 }
 
 const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onSelectCategory }) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('rating');
   const [filterRating, setFilterRating] = useState('all');
@@ -50,12 +55,14 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
     ? serviceCategories.find(cat => cat.id === selectedCategory)?.name 
     : null;
 
+  const userName = user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'Usuário';
+
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
       <div className="bg-white rounded-xl p-6 shadow-sm">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Bem-vindo ao HelpAqui! 👋
+          Bem-vindo ao HelpAqui, {userName}! 👋
         </h1>
         <p className="text-gray-600 mb-4">
           Encontre freelancers qualificados próximos a você
@@ -96,6 +103,44 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
           </Select>
         </div>
       </div>
+
+      {/* Quick Actions Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Ações Rápidas</CardTitle>
+          <CardDescription>
+            Acesse rapidamente as funcionalidades principais
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/jobs')}
+              className="h-16 flex flex-col gap-1"
+            >
+              <Search className="h-5 w-5" />
+              Buscar Serviços
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/payments')}
+              className="h-16 flex flex-col gap-1 bg-blue-50 hover:bg-blue-100 border-blue-200"
+            >
+              <CreditCard className="h-5 w-5" />
+              Pagamentos
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/profile')}
+              className="h-16 flex flex-col gap-1"
+            >
+              <Clock className="h-5 w-5" />
+              Meu Perfil
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Service Map */}
       <ServiceMap selectedCategory={selectedCategory} />

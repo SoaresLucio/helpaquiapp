@@ -10,6 +10,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
+  userType: 'solicitante' | 'freelancer' | null;
   logout: () => Promise<void>;
 }
 
@@ -18,12 +19,14 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   isAuthenticated: false,
+  userType: null,
   logout: async () => {}
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [userType, setUserType] = useState<'solicitante' | 'freelancer' | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -34,15 +37,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
-      // Se usuário logou via Google e não tem user_type definido, redirecionar para seleção
-      if (session?.user && !session.user.user_metadata?.user_type) {
-        const storedType = localStorage.getItem('userType');
-        if (!storedType) {
-          // Redirecionar para seleção de tipo de usuário somente se não estiver já na página
-          if (window.location.pathname !== '/user-type-selection') {
-            window.location.href = '/user-type-selection';
+      if (session?.user) {
+        // Obter tipo de usuário
+        try {
+          const type = await getUserType();
+          console.log('User type:', type);
+          setUserType(type);
+          
+          // Se usuário logou via Google e não tem user_type definido, redirecionar para seleção
+          if (!type) {
+            const storedType = localStorage.getItem('userType') as 'solicitante' | 'freelancer' | null;
+            if (!storedType && window.location.pathname !== '/user-type-selection') {
+              window.location.href = '/user-type-selection';
+              return;
+            }
+            setUserType(storedType);
           }
+        } catch (error) {
+          console.error("Erro ao obter tipo de usuário:", error);
+          setUserType('solicitante'); // Default
         }
+      } else {
+        setUserType(null);
       }
       
       setLoading(false);
@@ -58,12 +74,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setSession(currentSession);
           setUser(currentUser);
           
-          // Verificar se usuário tem tipo definido
-          if (currentUser && !currentUser.user_metadata?.user_type) {
-            const storedType = localStorage.getItem('userType');
-            if (!storedType && window.location.pathname !== '/user-type-selection') {
-              window.location.href = '/user-type-selection';
+          // Verificar tipo de usuário
+          try {
+            const type = await getUserType();
+            console.log('Current user type:', type);
+            setUserType(type);
+            
+            if (!type) {
+              const storedType = localStorage.getItem('userType') as 'solicitante' | 'freelancer' | null;
+              if (!storedType && window.location.pathname !== '/user-type-selection') {
+                window.location.href = '/user-type-selection';
+                return;
+              }
+              setUserType(storedType);
             }
+          } catch (error) {
+            console.error("Erro ao obter tipo de usuário:", error);
+            setUserType('solicitante'); // Default
           }
         }
       } catch (error) {
@@ -85,6 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await signOut();
       setSession(null);
       setUser(null);
+      setUserType(null);
       localStorage.removeItem('userType');
       toast({
         title: "Desconectado com sucesso",
@@ -106,6 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         loading,
         isAuthenticated: !!session,
+        userType,
         logout
       }}
     >
