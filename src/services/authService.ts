@@ -10,36 +10,62 @@ export interface AuthUser {
   userType?: 'solicitante' | 'freelancer';
 }
 
+// Enhanced input validation and sanitization
+const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email.trim().toLowerCase());
+};
+
+const sanitizeInput = (input: string): string => {
+  return input.trim().replace(/[<>]/g, '');
+};
+
 export const signIn = async (email: string, password: string) => {
-  if (!email || !password) {
+  // Enhanced validation
+  const cleanEmail = sanitizeInput(email).toLowerCase();
+  const cleanPassword = password; // Don't modify password
+  
+  if (!cleanEmail || !cleanPassword) {
     throw new Error("Email e senha são obrigatórios");
   }
   
-  // Validate email format
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
+  if (!validateEmail(cleanEmail)) {
     throw new Error("Formato de e-mail inválido");
   }
   
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
-  
-  if (error) {
-    console.error("Erro de autenticação:", error);
-    
-    // Provide more user-friendly error messages
-    if (error.message.includes("Invalid login")) {
-      throw new Error("Email ou senha incorretos. Por favor, tente novamente.");
-    } else if (error.message.includes("Email not confirmed")) {
-      throw new Error("Por favor, confirme seu email antes de fazer login.");
-    } else {
-      throw new Error("Email ou senha incorretos. Por favor, tente novamente.");
-    }
+  if (cleanPassword.length < 6) {
+    throw new Error("Senha deve ter pelo menos 6 caracteres");
   }
   
-  return data;
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: cleanEmail,
+      password: cleanPassword
+    });
+    
+    if (error) {
+      console.error("Authentication error:", error);
+      
+      // More specific error handling
+      switch (error.message) {
+        case 'Invalid login credentials':
+          throw new Error("Email ou senha incorretos. Verifique suas credenciais.");
+        case 'Email not confirmed':
+          throw new Error("Por favor, confirme seu email antes de fazer login.");
+        case 'Too many requests':
+          throw new Error("Muitas tentativas de login. Tente novamente em alguns minutos.");
+        default:
+          throw new Error("Erro no login. Tente novamente mais tarde.");
+      }
+    }
+    
+    console.log("Login successful:", data.user?.email);
+    return data;
+    
+  } catch (error: any) {
+    console.error("Sign in error:", error);
+    throw error;
+  }
 };
 
 export const signUp = async (
@@ -50,72 +76,97 @@ export const signUp = async (
   userType: 'solicitante' | 'freelancer',
   categories?: string[]
 ) => {
-  if (!email || !password) {
-    throw new Error("Email e senha são obrigatórios");
+  // Enhanced validation and sanitization
+  const cleanEmail = sanitizeInput(email).toLowerCase();
+  const cleanPassword = password; // Don't modify password
+  const cleanFirstName = sanitizeInput(firstName);
+  const cleanLastName = sanitizeInput(lastName);
+  
+  if (!cleanEmail || !cleanPassword || !cleanFirstName || !cleanLastName) {
+    throw new Error("Todos os campos são obrigatórios");
   }
   
-  // Validate email format
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
+  if (!validateEmail(cleanEmail)) {
     throw new Error("Formato de e-mail inválido");
   }
   
-  // Enforce password strength
-  if (password.length < 8) {
+  // Enhanced password validation
+  if (cleanPassword.length < 8) {
     throw new Error("A senha deve ter pelo menos 8 caracteres");
   }
   
-  if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+  if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(cleanPassword)) {
     throw new Error("A senha deve conter letras maiúsculas, minúsculas e números");
   }
   
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        first_name: firstName,
-        last_name: lastName,
-        user_type: userType,
-        categories: categories || []
-      }
-    }
-  });
-  
-  if (error) {
-    console.error("Erro de registro:", error);
-    
-    if (error.message.includes("User already registered")) {
-      throw new Error("Este email já foi cadastrado. Por favor, faça login.");
-    } else {
-      throw new Error(error.message || "Erro ao criar conta. Tente novamente mais tarde.");
-    }
+  if (cleanFirstName.length < 2 || cleanLastName.length < 2) {
+    throw new Error("Nome e sobrenome devem ter pelo menos 2 caracteres");
   }
   
-  return data;
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email: cleanEmail,
+      password: cleanPassword,
+      options: {
+        data: {
+          first_name: cleanFirstName,
+          last_name: cleanLastName,
+          user_type: userType,
+          categories: categories || []
+        }
+      }
+    });
+    
+    if (error) {
+      console.error("Registration error:", error);
+      
+      switch (error.message) {
+        case 'User already registered':
+          throw new Error("Este email já está cadastrado. Faça login ou use outro email.");
+        case 'Password should be at least 6 characters':
+          throw new Error("A senha deve ter pelo menos 6 caracteres");
+        case 'Signup is disabled':
+          throw new Error("Novos cadastros estão temporariamente desabilitados");
+        default:
+          throw new Error("Erro ao criar conta. Tente novamente mais tarde.");
+      }
+    }
+    
+    console.log("Registration successful:", data.user?.email);
+    return data;
+    
+  } catch (error: any) {
+    console.error("Sign up error:", error);
+    throw error;
+  }
 };
 
 export const resetPassword = async (email: string) => {
-  if (!email) {
+  const cleanEmail = sanitizeInput(email).toLowerCase();
+  
+  if (!cleanEmail) {
     throw new Error("Email é obrigatório");
   }
   
-  // Validate email format
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
+  if (!validateEmail(cleanEmail)) {
     throw new Error("Formato de e-mail inválido");
   }
   
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/new-password`,
-  });
-  
-  if (error) {
-    console.error("Erro ao enviar email de redefinição de senha:", error);
-    throw new Error(error.message || "Erro ao enviar email de redefinição. Tente novamente mais tarde.");
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+      redirectTo: `${window.location.origin}/new-password`,
+    });
+    
+    if (error) {
+      console.error("Reset password error:", error);
+      throw new Error("Erro ao enviar email de redefinição. Verifique o endereço e tente novamente.");
+    }
+    
+    return true;
+  } catch (error: any) {
+    console.error("Reset password error:", error);
+    throw error;
   }
-  
-  return true;
 };
 
 export const updatePassword = async (newPassword: string) => {
@@ -123,7 +174,7 @@ export const updatePassword = async (newPassword: string) => {
     throw new Error("Nova senha é obrigatória");
   }
   
-  // Enforce password strength
+  // Enhanced password validation
   if (newPassword.length < 8) {
     throw new Error("A senha deve ter pelo menos 8 caracteres");
   }
@@ -132,40 +183,72 @@ export const updatePassword = async (newPassword: string) => {
     throw new Error("A senha deve conter letras maiúsculas, minúsculas e números");
   }
   
-  const { error } = await supabase.auth.updateUser({
-    password: newPassword
-  });
-  
-  if (error) {
-    console.error("Erro ao atualizar senha:", error);
-    throw new Error(error.message || "Erro ao atualizar senha. Tente novamente mais tarde.");
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+    
+    if (error) {
+      console.error("Update password error:", error);
+      throw new Error("Erro ao atualizar senha. Tente novamente mais tarde.");
+    }
+    
+    return true;
+  } catch (error: any) {
+    console.error("Update password error:", error);
+    throw error;
   }
-  
-  return true;
 };
 
 export const signOut = async () => {
-  const { error } = await supabase.auth.signOut();
-  if (error) {
-    console.error("Erro ao deslogar:", error);
-    throw new Error(error.message || "Erro ao sair. Tente novamente mais tarde.");
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Sign out error:", error);
+      throw new Error("Erro ao sair. Tente novamente mais tarde.");
+    }
+    
+    // Clear any local storage
+    localStorage.removeItem('userType');
+    console.log("Logout successful");
+    return true;
+  } catch (error: any) {
+    console.error("Sign out error:", error);
+    throw error;
   }
-  return true;
 };
 
 export const getCurrentSession = async (): Promise<Session | null> => {
-  const { data: { session } } = await supabase.auth.getSession();
-  return session;
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error("Get session error:", error);
+      return null;
+    }
+    return session;
+  } catch (error) {
+    console.error("Get session error:", error);
+    return null;
+  }
 };
 
 export const getCurrentUser = async (): Promise<User | null> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) {
+      console.error("Get user error:", error);
+      return null;
+    }
+    return user;
+  } catch (error) {
+    console.error("Get user error:", error);
+    return null;
+  }
 };
 
 export const verifySession = async (): Promise<boolean> => {
   const session = await getCurrentSession();
-  return session !== null;
+  return session !== null && session.expires_at ? new Date(session.expires_at * 1000) > new Date() : false;
 };
 
 export const setupAuthListener = (callback: (session: Session | null) => void) => {
@@ -176,39 +259,49 @@ export const setupAuthListener = (callback: (session: Session | null) => void) =
   return subscription;
 };
 
-// Função para login com Google
+// Enhanced Google login with error handling
 export const signInWithGoogle = async () => {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${window.location.origin}/user-type-selection`
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/user-type-selection`
+      }
+    });
+    
+    if (error) {
+      console.error("Google login error:", error);
+      throw new Error("Erro ao fazer login com Google. Tente novamente.");
     }
-  });
-  
-  if (error) {
-    console.error("Erro no login Google:", error);
-    throw new Error(error.message || "Erro ao fazer login com Google");
+    
+    return data;
+  } catch (error: any) {
+    console.error("Google login error:", error);
+    throw error;
   }
-  
-  return data;
 };
 
-// Função para obter tipo de usuário
+// Enhanced user type getter with better error handling
 export const getUserType = async (): Promise<'solicitante' | 'freelancer' | null> => {
-  const user = await getCurrentUser();
-  if (!user) return null;
-  
-  // Try to get from user metadata first
-  const userType = user.user_metadata?.user_type;
-  if (userType) {
-    return userType as 'solicitante' | 'freelancer';
+  try {
+    const user = await getCurrentUser();
+    if (!user) return null;
+    
+    // Try to get from user metadata first
+    const userType = user.user_metadata?.user_type;
+    if (userType && ['solicitante', 'freelancer'].includes(userType)) {
+      return userType as 'solicitante' | 'freelancer';
+    }
+    
+    // Fallback to localStorage (for Google auth users)
+    const storedType = localStorage.getItem('userType');
+    if (storedType && ['solicitante', 'freelancer'].includes(storedType)) {
+      return storedType as 'solicitante' | 'freelancer';
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Error getting user type:", error);
+    return null;
   }
-  
-  // Fallback to localStorage (for Google auth users)
-  const storedType = localStorage.getItem('userType');
-  if (storedType) {
-    return storedType as 'solicitante' | 'freelancer';
-  }
-  
-  return 'solicitante'; // Default
 };

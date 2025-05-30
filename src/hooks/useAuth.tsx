@@ -31,70 +31,102 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Configurar listener de autenticação
+    // Setup auth listener
     const subscription = setupAuthListener(async (session) => {
       console.log('Auth state change:', session);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        // Obter tipo de usuário
         try {
-          const type = await getUserType();
-          console.log('User type:', type);
-          setUserType(type);
+          let type = await getUserType();
+          console.log('User type from metadata:', type);
           
-          // Se usuário logou via Google e não tem user_type definido, redirecionar para seleção
+          // Get user type from metadata or localStorage
           if (!type) {
-            const storedType = localStorage.getItem('userType') as 'solicitante' | 'freelancer' | null;
-            if (!storedType && window.location.pathname !== '/user-type-selection') {
+            type = session.user.user_metadata?.user_type || localStorage.getItem('userType') as 'solicitante' | 'freelancer';
+          }
+          
+          // If still no type, redirect to selection
+          if (!type) {
+            console.log('No user type found, redirecting to selection');
+            if (window.location.pathname !== '/user-type-selection') {
               window.location.href = '/user-type-selection';
               return;
             }
-            setUserType(storedType);
           }
+          
+          setUserType(type);
+          
+          // Handle post-login redirect logic
+          const currentPath = window.location.pathname;
+          const isAuthPage = ['/login', '/register', '/user-type-selection'].includes(currentPath);
+          
+          if (isAuthPage && type) {
+            console.log(`Redirecting ${type} user to appropriate home`);
+            // Small delay to ensure state is updated
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 100);
+          }
+          
         } catch (error) {
-          console.error("Erro ao obter tipo de usuário:", error);
-          setUserType('solicitante'); // Default
+          console.error("Error getting user type:", error);
+          setUserType('solicitante'); // Default fallback
         }
       } else {
         setUserType(null);
+        localStorage.removeItem('userType');
+        
+        // Only redirect to login if not already on auth pages
+        const currentPath = window.location.pathname;
+        const publicPaths = ['/login', '/register', '/reset-password', '/new-password', '/user-type-selection'];
+        
+        if (!publicPaths.includes(currentPath)) {
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 100);
+        }
       }
       
       setLoading(false);
     });
 
-    // Verificar sessão atual
+    // Check current session
     const checkSession = async () => {
       try {
         const currentSession = await getCurrentSession();
-        console.log('Current session:', currentSession);
+        console.log('Current session on load:', currentSession);
+        
         if (currentSession) {
           const currentUser = await getCurrentUser();
           setSession(currentSession);
           setUser(currentUser);
           
-          // Verificar tipo de usuário
           try {
-            const type = await getUserType();
-            console.log('Current user type:', type);
-            setUserType(type);
+            let type = await getUserType();
             
             if (!type) {
-              const storedType = localStorage.getItem('userType') as 'solicitante' | 'freelancer' | null;
-              if (!storedType && window.location.pathname !== '/user-type-selection') {
+              type = currentSession.user.user_metadata?.user_type || localStorage.getItem('userType') as 'solicitante' | 'freelancer';
+            }
+            
+            if (!type) {
+              if (window.location.pathname !== '/user-type-selection') {
                 window.location.href = '/user-type-selection';
                 return;
               }
-              setUserType(storedType);
             }
+            
+            console.log('Setting user type on load:', type);
+            setUserType(type);
+            
           } catch (error) {
-            console.error("Erro ao obter tipo de usuário:", error);
-            setUserType('solicitante'); // Default
+            console.error("Error getting user type on load:", error);
+            setUserType('solicitante');
           }
         }
       } catch (error) {
-        console.error("Erro ao verificar sessão:", error);
+        console.error("Error checking session:", error);
       } finally {
         setLoading(false);
       }
@@ -114,13 +146,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setUserType(null);
       localStorage.removeItem('userType');
+      
       toast({
-        title: "Desconectado com sucesso",
+        title: "Logout realizado com sucesso",
         description: "Você foi desconectado do sistema."
       });
+      
+      // Force redirect to login
+      window.location.href = '/login';
     } catch (error: any) {
       toast({
-        title: "Erro ao sair",
+        title: "Erro ao fazer logout",
         description: error.message,
         variant: "destructive"
       });
@@ -146,19 +182,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => useContext(AuthContext);
 
 export const RequireAuth = ({ children }: { children: ReactNode }) => {
-  const { isAuthenticated, loading } = useAuth();
-  const navigate = useNavigate();
+  const { isAuthenticated, loading, userType } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
-    // Não redirecionar se estiver na página de reset de senha, seleção de tipo de usuário ou se ainda estiver carregando
-    if (!loading && !isAuthenticated && !['/reset-password', '/new-password', '/user-type-selection'].includes(location.pathname)) {
-      navigate('/login');
+    // Don't redirect if still loading or on safe paths
+    const safePaths = ['/reset-password', '/new-password', '/user-type-selection'];
+    
+    if (!loading && !isAuthenticated && !safePaths.includes(location.pathname)) {
+      window.location.href = '/login';
     }
-  }, [isAuthenticated, loading, navigate, location.pathname]);
+  }, [isAuthenticated, loading, location.pathname]);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Carregando...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-helpaqui-blue mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
   }
 
   return isAuthenticated ? <>{children}</> : null;

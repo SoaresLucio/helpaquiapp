@@ -11,7 +11,7 @@ import FreelancerHome from '@/components/freelancer/FreelancerHome';
 import PushNotification from '@/components/notifications/PushNotification';
 import { useJobNotifications } from '@/hooks/useJobNotifications';
 import { useAuth } from '@/hooks/useAuth';
-import { mockUsers } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   MapPin,
   MessageCircle,
@@ -20,10 +20,62 @@ import {
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+// Remove mock data imports and create real user interface
+interface RealUser {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  avatar: string;
+  type: 'client' | 'professional';
+  rating?: number;
+  isVerified?: boolean;
+}
+
 const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const { userType, loading } = useAuth();
+  const [currentUser, setCurrentUser] = useState<RealUser | null>(null);
+  const { userType, loading, user: authUser } = useAuth();
   const { currentNotification, acceptJob, rejectJob, dismissNotification } = useJobNotifications();
+
+  // Fetch real user data from Supabase
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!authUser?.id) return;
+
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authUser.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching user profile:', error);
+          return;
+        }
+
+        // Create user object with real data
+        const realUser: RealUser = {
+          id: authUser.id,
+          name: profile?.first_name && profile?.last_name 
+            ? `${profile.first_name} ${profile.last_name}`
+            : authUser.email?.split('@')[0] || 'Usuário',
+          email: authUser.email || '',
+          phone: profile?.phone || '',
+          avatar: profile?.avatar_url || '/placeholder.svg',
+          type: userType === 'freelancer' ? 'professional' : 'client',
+          isVerified: authUser.email_confirmed_at ? true : false
+        };
+
+        setCurrentUser(realUser);
+      } catch (error) {
+        console.error('Error in fetchUserData:', error);
+      }
+    };
+
+    fetchUserData();
+  }, [authUser, userType]);
 
   if (loading) {
     return (
@@ -36,7 +88,7 @@ const Index = () => {
     );
   }
 
-  // Redirecionar usuário se não tiver tipo definido
+  // Redirect if no user type is defined
   if (!userType) {
     window.location.href = '/user-type-selection';
     return null;
@@ -98,15 +150,19 @@ const Index = () => {
               </TabsContent>
               
               <TabsContent value="chat">
-                <ChatInterface 
-                  recipientId={mockUsers[1].id}
-                  recipientName={mockUsers[1].name}
-                  recipientAvatar={mockUsers[1].avatar}
-                />
+                {/* Only show chat if we have real user data */}
+                {currentUser && (
+                  <ChatInterface 
+                    recipientId="placeholder" // This should be replaced with real chat logic
+                    recipientName="Sistema"
+                    recipientAvatar="/placeholder.svg"
+                  />
+                )}
               </TabsContent>
               
               <TabsContent value="profile">
-                <UserProfile user={mockUsers[0]} />
+                {/* Only show profile if we have real user data */}
+                {currentUser && <UserProfile user={currentUser} />}
               </TabsContent>
             </Tabs>
           </div>

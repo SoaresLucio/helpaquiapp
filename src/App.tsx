@@ -23,34 +23,62 @@ import AIChat from "./pages/AIChat";
 import UserProfilePage from "./pages/UserProfilePage";
 import { AuthProvider, RequireAuth, useAuth } from "./hooks/useAuth";
 
-// Root component that handles initial redirect
+// Component to handle initial route logic
 const AppRoutes = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, userType } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Só redirecionar se não estiver carregando e não estiver autenticado
-    // E não estiver já nas páginas de auth ou reset
-    if (!loading && !isAuthenticated) {
-      const publicPaths = ['/login', '/register', '/reset-password', '/new-password', '/user-type-selection'];
-      if (!publicPaths.includes(location.pathname)) {
-        navigate('/login');
+    // Only handle redirects when not loading
+    if (loading) return;
+
+    const currentPath = location.pathname;
+    const publicPaths = ['/login', '/register', '/reset-password', '/new-password', '/user-type-selection'];
+    const isPublicPath = publicPaths.includes(currentPath);
+
+    // Handle unauthenticated users
+    if (!isAuthenticated) {
+      if (!isPublicPath) {
+        console.log('Unauthenticated user accessing protected route, redirecting to login');
+        navigate('/login', { replace: true });
       }
+      return;
     }
-    
-    // Se estiver autenticado e nas páginas de auth, redirecionar para home
-    if (!loading && isAuthenticated) {
-      const authPaths = ['/login', '/register'];
-      if (authPaths.includes(location.pathname)) {
-        navigate('/');
+
+    // Handle authenticated users without user type
+    if (isAuthenticated && !userType) {
+      if (currentPath !== '/user-type-selection') {
+        console.log('Authenticated user without type, redirecting to selection');
+        navigate('/user-type-selection', { replace: true });
       }
+      return;
     }
-  }, [isAuthenticated, loading, location.pathname, navigate]);
+
+    // Handle authenticated users on auth pages
+    if (isAuthenticated && userType && isPublicPath) {
+      console.log('Authenticated user on auth page, redirecting to home');
+      navigate('/', { replace: true });
+      return;
+    }
+
+  }, [isAuthenticated, loading, userType, location.pathname, navigate]);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-helpaqui-blue mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando aplicação...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Routes>
-      {/* Public routes - accessible without authentication */}
+      {/* Public routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/reset-password" element={<ResetPassword />} />
@@ -119,7 +147,7 @@ const AppRoutes = () => {
         </RequireAuth>
       } />
       
-      {/* Catch all route */}
+      {/* Catch all route for 404 errors */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

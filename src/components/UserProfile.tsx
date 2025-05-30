@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { User } from '@/data/mockData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -14,8 +13,30 @@ import BankTab from './profile/BankTab';
 import IncomeTab from './profile/IncomeTab';
 import SettingsTab from './profile/SettingsTab';
 
+// Real user interface without mock data dependencies
+interface RealUserProfile {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  type: 'professional' | 'client';
+  isVerified: boolean;
+  phone?: string;
+  address?: string;
+  coverPhoto?: string;
+}
+
 interface UserProfileProps {
-  user: User;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    avatar: string;
+    type: 'client' | 'professional';
+    rating?: number;
+    isVerified?: boolean;
+  };
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
@@ -24,17 +45,48 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
   const navigate = useNavigate();
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [coverPhoto, setCoverPhoto] = useState<File | null>(null);
+  const [realUserData, setRealUserData] = useState<RealUserProfile | null>(null);
 
-  // Dados do usuário atual baseados na autenticação
-  const currentUserData: User = {
-    ...user,
-    name: authUser?.user_metadata?.first_name && authUser?.user_metadata?.last_name 
-      ? `${authUser.user_metadata.first_name} ${authUser.user_metadata.last_name}`
-      : authUser?.email?.split('@')[0] || user.name,
-    email: authUser?.email || user.email,
-    type: (userType === 'freelancer' ? 'professional' : 'client') as 'professional' | 'client',
-    isVerified: authUser?.email_confirmed_at ? true : false
-  };
+  // Fetch real user data from Supabase instead of using mock data
+  useEffect(() => {
+    const fetchRealUserData = async () => {
+      if (!authUser?.id) return;
+
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authUser.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return;
+        }
+
+        // Create real user data object
+        const userData: RealUserProfile = {
+          id: authUser.id,
+          name: profile?.first_name && profile?.last_name 
+            ? `${profile.first_name} ${profile.last_name}`
+            : authUser.email?.split('@')[0] || 'Usuário',
+          email: authUser.email || '',
+          avatar: profile?.avatar_url || '/placeholder.svg',
+          type: (userType === 'freelancer' ? 'professional' : 'client'),
+          isVerified: authUser.email_confirmed_at ? true : false,
+          phone: profile?.phone || '',
+          address: profile?.address || '',
+          coverPhoto: profile?.cover_photo || undefined
+        };
+
+        setRealUserData(userData);
+      } catch (error) {
+        console.error('Error in fetchRealUserData:', error);
+      }
+    };
+
+    fetchRealUserData();
+  }, [authUser, userType]);
 
   const uploadToSupabase = async (file: File, type: 'profile' | 'cover'): Promise<string | null> => {
     if (!authUser?.id) return null;
@@ -69,7 +121,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
         const avatarUrl = await uploadToSupabase(file, 'profile');
         
         if (avatarUrl && authUser?.id) {
-          // Update profile in database
           const { error } = await supabase
             .from('profiles')
             .upsert({
@@ -78,6 +129,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
             });
 
           if (error) throw error;
+
+          // Update local state
+          if (realUserData) {
+            setRealUserData({ ...realUserData, avatar: avatarUrl });
+          }
         }
         
         toast({
@@ -100,7 +156,23 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
       setCoverPhoto(file);
       
       try {
-        await uploadToSupabase(file, 'cover');
+        const coverUrl = await uploadToSupabase(file, 'cover');
+        
+        if (coverUrl && authUser?.id) {
+          const { error } = await supabase
+            .from('profiles')
+            .upsert({
+              id: authUser.id,
+              cover_photo: coverUrl,
+            });
+
+          if (error) throw error;
+
+          // Update local state
+          if (realUserData) {
+            setRealUserData({ ...realUserData, coverPhoto: coverUrl });
+          }
+        }
         
         toast({
           title: "Foto de capa atualizada",
@@ -116,15 +188,27 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     }
   };
 
+  // Don't render until we have real user data
+  if (!realUserData) {
+    return (
+      <div className="helpaqui-card p-4 text-center">
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="helpaqui-card overflow-hidden dark:bg-gray-800 dark:text-white">
       <ProfileHeader 
-        user={currentUserData}
+        user={realUserData}
         onProfilePhotoUpload={handleProfilePhotoUpload}
         onCoverPhotoUpload={handleCoverPhotoUpload}
       />
       
-      {/* Botão de acesso aos Pagamentos */}
+      {/* Payment Settings Button */}
       <div className="px-4 pb-4">
         <Button 
           onClick={() => navigate('/payments')}
@@ -144,7 +228,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
         </TabsList>
         
         <TabsContent value="profile">
-          <ProfileTab user={currentUserData} />
+          <ProfileTab user={realUserData} />
         </TabsContent>
         
         <TabsContent value="bank">
