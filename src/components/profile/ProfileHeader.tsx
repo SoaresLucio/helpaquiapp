@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Camera, BadgeCheck, Mail, User as UserIcon } from 'lucide-react';
+import { Camera, BadgeCheck, Mail, User as UserIcon, Clock, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,7 +28,19 @@ interface ProfileData {
   first_name?: string;
   last_name?: string;
   avatar_url?: string;
+  phone?: string;
+  address?: string;
 }
+
+interface BankData {
+  bank_name?: string;
+  account_number?: string;
+  account_type?: string;
+  branch?: string;
+  document?: string;
+}
+
+type VerificationStatus = 'verified' | 'pending' | 'incomplete';
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ 
   user, 
@@ -38,7 +50,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const { toast } = useToast();
   const { user: authUser } = useAuth();
   const [profileData, setProfileData] = useState<ProfileData>({});
-  const isVerified = user.isVerified || false;
+  const [bankData, setBankData] = useState<BankData>({});
+  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('incomplete');
   const [previewProfile, setPreviewProfile] = useState<string | null>(null);
   const [previewCover, setPreviewCover] = useState<string | null>(null);
   
@@ -48,20 +61,32 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       if (!authUser?.id) return;
 
       try {
-        const { data, error } = await supabase
+        // Fetch profile data
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('first_name, last_name, avatar_url')
+          .select('first_name, last_name, avatar_url, phone, address')
           .eq('id', authUser.id)
           .maybeSingle();
 
-        if (error) {
-          console.error('Error fetching profile:', error);
-          return;
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+        } else if (profile) {
+          setProfileData(profile);
         }
 
-        if (data) {
-          setProfileData(data);
+        // Fetch bank data
+        const { data: bank, error: bankError } = await supabase
+          .from('bank_details')
+          .select('bank_name, account_number, account_type, branch, document')
+          .eq('user_id', authUser.id)
+          .maybeSingle();
+
+        if (bankError) {
+          console.error('Error fetching bank data:', bankError);
+        } else if (bank) {
+          setBankData(bank);
         }
+
       } catch (error) {
         console.error('Error:', error);
       }
@@ -69,6 +94,43 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
     fetchProfileData();
   }, [authUser?.id]);
+
+  // Calculate verification status based on profile completeness
+  useEffect(() => {
+    const calculateVerificationStatus = () => {
+      // Check if basic profile info is complete
+      const hasBasicInfo = profileData.first_name && 
+                          profileData.last_name && 
+                          profileData.phone && 
+                          profileData.address;
+
+      // Check if bank details are complete (mainly for freelancers)
+      const hasBankInfo = bankData.bank_name && 
+                         bankData.account_number && 
+                         bankData.account_type && 
+                         bankData.branch && 
+                         bankData.document;
+
+      // For freelancers, require both profile and bank info
+      // For clients, only require profile info
+      const isFreelancer = user.type === 'professional';
+      const requiredInfoComplete = isFreelancer 
+        ? hasBasicInfo && hasBankInfo 
+        : hasBasicInfo;
+
+      if (!hasBasicInfo && (!isFreelancer || !hasBankInfo)) {
+        setVerificationStatus('incomplete');
+      } else if (requiredInfoComplete && user.isVerified) {
+        setVerificationStatus('verified');
+      } else if (requiredInfoComplete && !user.isVerified) {
+        setVerificationStatus('pending');
+      } else {
+        setVerificationStatus('incomplete');
+      }
+    };
+
+    calculateVerificationStatus();
+  }, [profileData, bankData, user.type, user.isVerified]);
 
   // Enhanced profile photo handler with preview
   const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,6 +189,35 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const getAvatarUrl = () => {
     return previewProfile || profileData.avatar_url || user.avatar;
   };
+
+  // Get verification status component
+  const getVerificationStatusBadge = () => {
+    switch (verificationStatus) {
+      case 'verified':
+        return (
+          <Badge variant="outline" className="text-green-600 border-green-200">
+            <BadgeCheck className="h-3 w-3 mr-1" />
+            Perfil Verificado
+          </Badge>
+        );
+      case 'pending':
+        return (
+          <Badge variant="outline" className="text-yellow-500 border-yellow-200">
+            <Clock className="h-3 w-3 mr-1" />
+            Você será notificado assim que seu perfil for aprovado.
+          </Badge>
+        );
+      case 'incomplete':
+        return (
+          <Badge variant="outline" className="text-red-500 border-red-200">
+            <AlertTriangle className="h-3 w-3 mr-1" />
+            Seu perfil está incompleto. Envie suas informações pessoais e bancárias para utilizar todos os recursos do HelpAqui.
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
   
   return (
     <>
@@ -153,7 +244,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         <div className="text-center my-4 space-y-2">
           <div className="flex items-center justify-center gap-2">
             <h2 className="text-xl font-bold">{getDisplayName()}</h2>
-            {isVerified && (
+            {verificationStatus === 'verified' && (
               <BadgeCheck className="h-5 w-5 text-blue-500" />
             )}
           </div>
@@ -172,11 +263,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             </Badge>
           </div>
           
-          {isVerified && (
-            <Badge variant="outline" className="text-green-600 border-green-200">
-              ✓ Perfil Verificado
-            </Badge>
-          )}
+          {/* Verification status badge */}
+          <div className="flex justify-center">
+            {getVerificationStatusBadge()}
+          </div>
         </div>
       </div>
     </>
