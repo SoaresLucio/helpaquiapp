@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '@/data/mockData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import ProfileHeader from './profile/ProfileHeader';
 import ProfileTab from './profile/ProfileTab';
 import BankTab from './profile/BankTab';
@@ -35,31 +36,83 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     isVerified: authUser?.email_confirmed_at ? true : false
   };
 
-  const handleProfilePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const uploadToSupabase = async (file: File, type: 'profile' | 'cover'): Promise<string | null> => {
+    if (!authUser?.id) return null;
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${authUser.id}/${type === 'profile' ? 'avatar' : 'cover'}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error(`Error uploading ${type} photo:`, error);
+      throw error;
+    }
+  };
+
+  const handleProfilePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setProfilePhoto(file);
       
-      // In a real app, you would upload this to your server or storage
-      // Here we just show a success message
-      toast({
-        title: "Foto de perfil carregada",
-        description: "Sua foto de perfil foi atualizada com sucesso."
-      });
+      try {
+        const avatarUrl = await uploadToSupabase(file, 'profile');
+        
+        if (avatarUrl && authUser?.id) {
+          // Update profile in database
+          const { error } = await supabase
+            .from('profiles')
+            .upsert({
+              id: authUser.id,
+              avatar_url: avatarUrl,
+            });
+
+          if (error) throw error;
+        }
+        
+        toast({
+          title: "Foto de perfil atualizada",
+          description: "Sua foto de perfil foi atualizada com sucesso."
+        });
+      } catch (error: any) {
+        toast({
+          title: "Erro ao atualizar foto",
+          description: error.message || "Ocorreu um erro ao fazer upload da foto.",
+          variant: "destructive"
+        });
+      }
     }
   };
   
-  const handleCoverPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setCoverPhoto(file);
       
-      // In a real app, you would upload this to your server or storage
-      // Here we just show a success message
-      toast({
-        title: "Foto de capa carregada",
-        description: "Sua foto de capa foi atualizada com sucesso."
-      });
+      try {
+        await uploadToSupabase(file, 'cover');
+        
+        toast({
+          title: "Foto de capa atualizada",
+          description: "Sua foto de capa foi atualizada com sucesso."
+        });
+      } catch (error: any) {
+        toast({
+          title: "Erro ao atualizar foto",
+          description: error.message || "Ocorreu um erro ao fazer upload da foto.",
+          variant: "destructive"
+        });
+      }
     }
   };
 

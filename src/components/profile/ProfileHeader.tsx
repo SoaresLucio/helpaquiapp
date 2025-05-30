@@ -1,8 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Camera, BadgeCheck, Mail, User as UserIcon } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 // Define the User interface that matches what we're using
 interface User {
@@ -22,16 +24,52 @@ interface ProfileHeaderProps {
   onCoverPhotoUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
+interface ProfileData {
+  first_name?: string;
+  last_name?: string;
+  avatar_url?: string;
+}
+
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ 
   user, 
   onProfilePhotoUpload,
   onCoverPhotoUpload
 }) => {
   const { toast } = useToast();
+  const { user: authUser } = useAuth();
+  const [profileData, setProfileData] = useState<ProfileData>({});
   const isVerified = user.isVerified || false;
   const [previewProfile, setPreviewProfile] = useState<string | null>(null);
   const [previewCover, setPreviewCover] = useState<string | null>(null);
   
+  // Fetch profile data from Supabase
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      if (!authUser?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, avatar_url')
+          .eq('id', authUser.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return;
+        }
+
+        if (data) {
+          setProfileData(data);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    };
+
+    fetchProfileData();
+  }, [authUser?.id]);
+
   // Enhanced profile photo handler with preview
   const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -76,6 +114,19 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       return { background: 'linear-gradient(to right, var(--helpaqui-blue), var(--helpaqui-green))' };
     }
   };
+
+  // Get display name from Supabase data or fallback
+  const getDisplayName = () => {
+    if (profileData.first_name && profileData.last_name) {
+      return `${profileData.first_name} ${profileData.last_name}`;
+    }
+    return user.name;
+  };
+
+  // Get avatar URL from Supabase data or fallback
+  const getAvatarUrl = () => {
+    return previewProfile || profileData.avatar_url || user.avatar;
+  };
   
   return (
     <>
@@ -89,8 +140,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       <div className="px-4 relative">
         <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white bg-white shadow-md -mt-12 mx-auto">
           <img 
-            src={previewProfile || user.avatar} 
-            alt={user.name}
+            src={getAvatarUrl()} 
+            alt={getDisplayName()}
             className="w-full h-full object-cover" 
           />
           <label htmlFor="profile-upload" className="absolute bottom-0 right-0 bg-helpaqui-blue p-1 rounded-full cursor-pointer">
@@ -101,7 +152,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         
         <div className="text-center my-4 space-y-2">
           <div className="flex items-center justify-center gap-2">
-            <h2 className="text-xl font-bold">{user.name}</h2>
+            <h2 className="text-xl font-bold">{getDisplayName()}</h2>
             {isVerified && (
               <BadgeCheck className="h-5 w-5 text-blue-500" />
             )}

@@ -1,61 +1,138 @@
 
-import React, { useState } from 'react';
-import { Camera, Mail, Phone, Pencil, Star, BadgeCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mail, Phone, Pencil, Star, BadgeCheck, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import ResponseTimeIndicator from '@/components/ResponseTimeIndicator';
+import ProfileEditForm from './ProfileEditForm';
 import { User } from '@/data/mockData';
 
 interface ProfileTabProps {
   user: User;
 }
 
+interface ProfileData {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  address?: string;
+  avatar_url?: string;
+}
+
 const ProfileTab: React.FC<ProfileTabProps> = ({ user }) => {
   const { toast } = useToast();
-  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
-  const [coverPhoto, setCoverPhoto] = useState<File | null>(null);
+  const { user: authUser } = useAuth();
+  const [profileData, setProfileData] = useState<ProfileData>({});
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
   const isFreelancer = user.type === 'professional';
   const isVerified = user.isVerified || false;
 
-  const handleProfilePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setProfilePhoto(e.target.files[0]);
-      
-      toast({
-        title: "Foto de perfil carregada",
-        description: "Sua foto de perfil foi atualizada com sucesso."
-      });
+  // Fetch current profile data from Supabase
+  const fetchProfileData = async () => {
+    if (!authUser?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, phone, address, avatar_url')
+        .eq('id', authUser.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      if (data) {
+        setProfileData(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
     }
   };
-  
-  const handleCoverPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setCoverPhoto(e.target.files[0]);
-      
-      toast({
-        title: "Foto de capa carregada",
-        description: "Sua foto de capa foi atualizada com sucesso."
-      });
-    }
+
+  useEffect(() => {
+    fetchProfileData();
+  }, [authUser?.id]);
+
+  const handleEditSuccess = () => {
+    setIsEditDialogOpen(false);
+    fetchProfileData(); // Refresh data
+    toast({
+      title: "Perfil atualizado!",
+      description: "Suas informações foram salvas com sucesso."
+    });
   };
+
+  const displayName = profileData.first_name && profileData.last_name 
+    ? `${profileData.first_name} ${profileData.last_name}`
+    : user.name;
+
+  const displayPhone = profileData.phone || user.phone;
+  const displayAddress = profileData.address || 'Não informado';
+
+  if (loading) {
+    return (
+      <div className="p-4 flex items-center justify-center">
+        <div className="text-center">Carregando perfil...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <h3 className="font-semibold">Informações de Contato</h3>
-          <div className="flex items-center text-gray-600 dark:text-gray-300">
-            <Mail className="h-4 w-4 mr-2 text-helpaqui-blue" />
-            <span>{user.email}</span>
+        <div className="space-y-4">
+          <h3 className="font-semibold">Informações Pessoais</h3>
+          
+          <div className="space-y-3">
+            <div className="flex items-center">
+              <UserIcon className="h-4 w-4 mr-2 text-helpaqui-blue" />
+              <span className="font-medium">{displayName}</span>
+            </div>
+            
+            <div className="flex items-center text-gray-600 dark:text-gray-300">
+              <Mail className="h-4 w-4 mr-2 text-helpaqui-blue" />
+              <span>{user.email}</span>
+            </div>
+            
+            <div className="flex items-center text-gray-600 dark:text-gray-300">
+              <Phone className="h-4 w-4 mr-2 text-helpaqui-blue" />
+              <span>{displayPhone || 'Não informado'}</span>
+            </div>
+
+            <div className="text-gray-600 dark:text-gray-300">
+              <strong>Endereço:</strong> {displayAddress}
+            </div>
           </div>
-          <div className="flex items-center text-gray-600 dark:text-gray-300">
-            <Phone className="h-4 w-4 mr-2 text-helpaqui-blue" />
-            <span>{user.phone}</span>
-          </div>
-          <Button variant="outline" size="sm" className="mt-2">
-            <Pencil className="h-3 w-3 mr-1" /> Editar Informações
-          </Button>
+
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="mt-2">
+                <Pencil className="h-3 w-3 mr-1" /> Editar Informações
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Editar Perfil</DialogTitle>
+                <DialogDescription>
+                  Atualize suas informações pessoais e foto de perfil
+                </DialogDescription>
+              </DialogHeader>
+              <ProfileEditForm 
+                initialData={profileData}
+                onSuccess={handleEditSuccess}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
         
         {isFreelancer && (
