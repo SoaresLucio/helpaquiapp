@@ -24,6 +24,8 @@ interface RealUserProfile {
   phone?: string;
   address?: string;
   coverPhoto?: string;
+  rating?: number;
+  reviews?: any[];
 }
 
 interface UserProfileProps {
@@ -76,7 +78,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
           isVerified: authUser.email_confirmed_at ? true : false,
           phone: profile?.phone || '',
           address: profile?.address || '',
-          coverPhoto: profile?.cover_photo || undefined
+          coverPhoto: profile?.cover_photo || undefined,
+          rating: 4.5, // Mock rating for now
+          reviews: [] // Mock reviews for now
         };
 
         setRealUserData(userData);
