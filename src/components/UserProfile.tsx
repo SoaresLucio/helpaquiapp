@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,7 @@ import SettingsTab from './profile/SettingsTab';
 
 // Align with the User interface from ProfileHeader to avoid type conflicts
 interface RealUserProfile {
-  id?: string;
+  id: string; // Made required to match User interface
   name: string;
   email?: string;
   avatar: string; 
