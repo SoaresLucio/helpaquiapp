@@ -14,6 +14,7 @@ interface User {
   avatar: string; 
   type?: 'professional' | 'client';
   isVerified?: boolean;
+  phone?: string; // Made optional to match RealUserProfile
   // Add coverPhoto property to the User type
   coverPhoto?: string;
 }
