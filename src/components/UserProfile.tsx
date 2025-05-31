@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -22,7 +20,7 @@ interface RealUserProfile {
   avatar: string; 
   type?: 'professional' | 'client';
   isVerified?: boolean;
-  phone?: string;
+  phone: string; // Made required to match User interface
   address?: string;
   coverPhoto?: string;
   rating?: number;
@@ -77,7 +75,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
           avatar: profile?.avatar_url || '/placeholder.svg',
           type: (userType === 'freelancer' ? 'professional' : 'client'),
           isVerified: authUser.email_confirmed_at ? true : false,
-          phone: profile?.phone || undefined,
+          phone: profile?.phone || '', // Provide empty string as default to satisfy required type
           address: profile?.address || undefined,
           coverPhoto: profile?.cover_photo || undefined,
           rating: 4.5, // Mock rating for now
