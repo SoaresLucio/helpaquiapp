@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ import SettingsTab from './profile/SettingsTab';
 interface RealUserProfile {
   id: string; // Made required to match User interface
   name: string;
-  email?: string;
+  email: string; // Made required to match User interface
   avatar: string; 
   type?: 'professional' | 'client';
   isVerified?: boolean;
