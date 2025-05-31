@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ interface RealUserProfile {
   phone: string; // Made required to match User interface
   address?: string;
   coverPhoto?: string;
-  rating?: number;
+  rating: number; // Made required to match User interface expectations
   reviews?: any[];
 }
 
