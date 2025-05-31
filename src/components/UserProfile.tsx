@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -13,14 +12,14 @@ import BankTab from './profile/BankTab';
 import IncomeTab from './profile/IncomeTab';
 import SettingsTab from './profile/SettingsTab';
 
-// Real user interface without mock data dependencies
+// Align with the User interface from ProfileHeader to avoid type conflicts
 interface RealUserProfile {
-  id: string;
+  id?: string;
   name: string;
-  email: string;
-  avatar: string;
-  type: 'professional' | 'client';
-  isVerified: boolean;
+  email?: string;
+  avatar: string; 
+  type?: 'professional' | 'client';
+  isVerified?: boolean;
   phone?: string;
   address?: string;
   coverPhoto?: string;
@@ -76,8 +75,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
           avatar: profile?.avatar_url || '/placeholder.svg',
           type: (userType === 'freelancer' ? 'professional' : 'client'),
           isVerified: authUser.email_confirmed_at ? true : false,
-          phone: profile?.phone || '',
-          address: profile?.address || '',
+          phone: profile?.phone || undefined,
+          address: profile?.address || undefined,
           coverPhoto: profile?.cover_photo || undefined,
           rating: 4.5, // Mock rating for now
           reviews: [] // Mock reviews for now
