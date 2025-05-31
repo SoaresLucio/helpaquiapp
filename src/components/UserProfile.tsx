@@ -18,7 +18,7 @@ interface RealUserProfile {
   name: string;
   email: string; // Made required to match User interface
   avatar: string; 
-  type?: 'professional' | 'client';
+  type: 'professional' | 'client'; // Made required to match User interface expectations
   isVerified?: boolean;
   phone: string; // Made required to match User interface
   address?: string;
@@ -73,7 +73,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
             : authUser.email?.split('@')[0] || 'Usuário',
           email: authUser.email || '',
           avatar: profile?.avatar_url || '/placeholder.svg',
-          type: (userType === 'freelancer' ? 'professional' : 'client'),
+          type: (userType === 'freelancer' ? 'professional' : 'client') as 'professional' | 'client', // Ensure type assertion
           isVerified: authUser.email_confirmed_at ? true : false,
           phone: profile?.phone || '', // Provide empty string as default to satisfy required type
           address: profile?.address || undefined,
