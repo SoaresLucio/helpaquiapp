@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,7 @@ interface RealUserProfile {
   address?: string;
   coverPhoto?: string;
   rating: number; // Made required to match User interface expectations
-  reviews?: any[];
+  reviews: any[]; // Made required to match User interface expectations
 }
 
 interface UserProfileProps {
@@ -80,7 +79,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
           address: profile?.address || undefined,
           coverPhoto: profile?.cover_photo || undefined,
           rating: 4.5, // Mock rating for now
-          reviews: [] // Mock reviews for now
+          reviews: [] // Mock reviews for now - now required property
         };
 
         setRealUserData(userData);
