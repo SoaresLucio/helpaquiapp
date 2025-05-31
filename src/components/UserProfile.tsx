@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -12,19 +13,18 @@ import BankTab from './profile/BankTab';
 import IncomeTab from './profile/IncomeTab';
 import SettingsTab from './profile/SettingsTab';
 
-// Align with the User interface from ProfileHeader to avoid type conflicts
-interface RealUserProfile {
-  id: string; // Made required to match User interface
+interface UserProfile {
+  id: string;
   name: string;
-  email: string; // Made required to match User interface
-  avatar: string; 
-  type: 'professional' | 'client'; // Made required to match User interface expectations
-  isVerified?: boolean;
-  phone: string; // Made required to match User interface
+  email: string;
+  avatar: string;
+  type: 'professional' | 'client';
+  isVerified: boolean;
+  phone: string;
   address?: string;
   coverPhoto?: string;
-  rating: number; // Made required to match User interface expectations
-  reviews: any[]; // Made required to match User interface expectations
+  rating: number;
+  reviews: any[];
 }
 
 interface UserProfileProps {
@@ -44,13 +44,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
   const { toast } = useToast();
   const { user: authUser, userType } = useAuth();
   const navigate = useNavigate();
-  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
-  const [coverPhoto, setCoverPhoto] = useState<File | null>(null);
-  const [realUserData, setRealUserData] = useState<RealUserProfile | null>(null);
+  const [realUserData, setRealUserData] = useState<UserProfile | null>(null);
 
-  // Fetch real user data from Supabase instead of using mock data
   useEffect(() => {
-    const fetchRealUserData = async () => {
+    const fetchUserData = async () => {
       if (!authUser?.id) return;
 
       try {
@@ -65,33 +62,32 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
           return;
         }
 
-        // Create real user data object
-        const userData: RealUserProfile = {
+        const userData: UserProfile = {
           id: authUser.id,
           name: profile?.first_name && profile?.last_name 
             ? `${profile.first_name} ${profile.last_name}`
             : authUser.email?.split('@')[0] || 'Usuário',
           email: authUser.email || '',
           avatar: profile?.avatar_url || '/placeholder.svg',
-          type: (userType === 'freelancer' ? 'professional' : 'client') as 'professional' | 'client', // Ensure type assertion
-          isVerified: authUser.email_confirmed_at ? true : false,
-          phone: profile?.phone || '', // Provide empty string as default to satisfy required type
-          address: profile?.address || undefined,
-          coverPhoto: profile?.cover_photo || undefined,
-          rating: 4.5, // Mock rating for now
-          reviews: [] // Mock reviews for now - now required property
+          type: (userType === 'freelancer' ? 'professional' : 'client') as 'professional' | 'client',
+          isVerified: !!authUser.email_confirmed_at,
+          phone: profile?.phone || '',
+          address: profile?.address,
+          coverPhoto: profile?.cover_photo,
+          rating: 4.5,
+          reviews: []
         };
 
         setRealUserData(userData);
       } catch (error) {
-        console.error('Error in fetchRealUserData:', error);
+        console.error('Error in fetchUserData:', error);
       }
     };
 
-    fetchRealUserData();
+    fetchUserData();
   }, [authUser, userType]);
 
-  const uploadToSupabase = async (file: File, type: 'profile' | 'cover'): Promise<string | null> => {
+  const uploadFile = async (file: File, type: 'profile' | 'cover'): Promise<string | null> => {
     if (!authUser?.id) return null;
 
     try {
@@ -115,83 +111,49 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     }
   };
 
-  const handleProfilePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setProfilePhoto(file);
-      
-      try {
-        const avatarUrl = await uploadToSupabase(file, 'profile');
-        
-        if (avatarUrl && authUser?.id) {
-          const { error } = await supabase
-            .from('profiles')
-            .upsert({
-              id: authUser.id,
-              avatar_url: avatarUrl,
-            });
+  const updateProfile = async (field: 'avatar_url' | 'cover_photo', value: string) => {
+    if (!authUser?.id) return;
 
-          if (error) throw error;
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: authUser.id, [field]: value });
 
-          // Update local state
-          if (realUserData) {
-            setRealUserData({ ...realUserData, avatar: avatarUrl });
-          }
-        }
-        
-        toast({
-          title: "Foto de perfil atualizada",
-          description: "Sua foto de perfil foi atualizada com sucesso."
-        });
-      } catch (error: any) {
-        toast({
-          title: "Erro ao atualizar foto",
-          description: error.message || "Ocorreu um erro ao fazer upload da foto.",
-          variant: "destructive"
-        });
-      }
-    }
+    if (error) throw error;
   };
-  
-  const handleCoverPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setCoverPhoto(file);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'profile' | 'cover') => {
+    if (!e.target.files?.[0]) return;
+
+    const file = e.target.files[0];
+    
+    try {
+      const url = await uploadFile(file, type);
       
-      try {
-        const coverUrl = await uploadToSupabase(file, 'cover');
-        
-        if (coverUrl && authUser?.id) {
-          const { error } = await supabase
-            .from('profiles')
-            .upsert({
-              id: authUser.id,
-              cover_photo: coverUrl,
-            });
+      if (url) {
+        const field = type === 'profile' ? 'avatar_url' : 'cover_photo';
+        await updateProfile(field, url);
 
-          if (error) throw error;
-
-          // Update local state
-          if (realUserData) {
-            setRealUserData({ ...realUserData, coverPhoto: coverUrl });
-          }
+        if (realUserData) {
+          setRealUserData({
+            ...realUserData,
+            [type === 'profile' ? 'avatar' : 'coverPhoto']: url
+          });
         }
-        
-        toast({
-          title: "Foto de capa atualizada",
-          description: "Sua foto de capa foi atualizada com sucesso."
-        });
-      } catch (error: any) {
-        toast({
-          title: "Erro ao atualizar foto",
-          description: error.message || "Ocorreu um erro ao fazer upload da foto.",
-          variant: "destructive"
-        });
       }
+      
+      toast({
+        title: `Foto de ${type === 'profile' ? 'perfil' : 'capa'} atualizada`,
+        description: "Sua foto foi atualizada com sucesso."
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar foto",
+        description: error.message || "Ocorreu um erro ao fazer upload da foto.",
+        variant: "destructive"
+      });
     }
   };
 
-  // Don't render until we have real user data
   if (!realUserData) {
     return (
       <div className="helpaqui-card p-4 text-center">
@@ -207,11 +169,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     <div className="helpaqui-card overflow-hidden dark:bg-gray-800 dark:text-white">
       <ProfileHeader 
         user={realUserData}
-        onProfilePhotoUpload={handleProfilePhotoUpload}
-        onCoverPhotoUpload={handleCoverPhotoUpload}
+        onProfilePhotoUpload={(e) => handlePhotoUpload(e, 'profile')}
+        onCoverPhotoUpload={(e) => handlePhotoUpload(e, 'cover')}
       />
       
-      {/* Payment Settings Button */}
       <div className="px-4 pb-4">
         <Button 
           onClick={() => navigate('/payments')}

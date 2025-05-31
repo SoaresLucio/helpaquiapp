@@ -8,21 +8,36 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { BriefcaseBusiness, UserRound, AlertCircle, LockIcon, Check } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { signIn, signUp } from '@/services/authService';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { signIn, signUp } from '@/services/authService';
 import { supabase } from "@/integrations/supabase/client";
+
+interface FormData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+interface ValidationState {
+  length: boolean;
+  hasNumber: boolean;
+  hasLetter: boolean;
+}
 
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [formData, setFormData] = useState<FormData>({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: ''
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('login');
-  const [validations, setValidations] = useState({
+  const [validations, setValidations] = useState<ValidationState>({
     length: false,
     hasNumber: false,
     hasLetter: false
@@ -30,26 +45,21 @@ const Auth = () => {
   const [emailError, setEmailError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Verificar se o usuário já está autenticado
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/');
-      }
+      if (session) navigate('/');
     };
     checkUser();
   }, [navigate]);
 
-  // Password validation
   useEffect(() => {
     setValidations({
-      length: password.length >= 6,
-      hasNumber: /\d/.test(password),
-      hasLetter: /[a-zA-Z]/.test(password)
+      length: formData.password.length >= 6,
+      hasNumber: /\d/.test(formData.password),
+      hasLetter: /[a-zA-Z]/.test(formData.password)
     });
-  }, [password]);
+  }, [formData.password]);
 
-  // Email validation
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValid = emailRegex.test(email);
@@ -57,31 +67,67 @@ const Auth = () => {
     return isValid;
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const updateFormData = (field: keyof FormData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'email' && value) validateEmail(value);
+  };
+
+  const handleSubmit = async (e: React.FormEvent, isSignUp: boolean) => {
     e.preventDefault();
     
-    if (!validateEmail(email)) {
-      return;
+    if (!validateEmail(formData.email)) return;
+    
+    if (isSignUp) {
+      if (!formData.firstName || !formData.lastName) {
+        setError("Nome e sobrenome são obrigatórios");
+        return;
+      }
+      
+      if (!validations.length || !validations.hasNumber || !validations.hasLetter) {
+        setError("A senha não atende aos requisitos mínimos");
+        return;
+      }
     }
     
     setLoading(true);
     setError(null);
     
     try {
-      await signIn(email, password);
-      
-      toast({
-        title: "Login bem-sucedido",
-        description: "Bem-vindo de volta!"
-      });
-      
-      navigate('/');
+      if (isSignUp) {
+        const { session } = await signUp(formData.email, formData.password, formData.firstName, formData.lastName, 'solicitante');
+        
+        toast({
+          title: "Cadastro realizado",
+          description: session 
+            ? "Conta criada com sucesso!" 
+            : "Verifique seu e-mail para confirmar seu cadastro."
+        });
+        
+        if (session) {
+          navigate('/');
+        } else {
+          setActiveTab('login');
+          toast({
+            title: "Confirmação necessária",
+            description: "Enviamos um email de confirmação. Por favor, verifique sua caixa de entrada."
+          });
+        }
+      } else {
+        await signIn(formData.email, formData.password);
+        
+        toast({
+          title: "Login bem-sucedido",
+          description: "Bem-vindo de volta!"
+        });
+        
+        navigate('/');
+      }
     } catch (error: any) {
-      console.error("Erro de login:", error);
-      setError(error.message || "Email ou senha incorretos.");
+      console.error(`Erro de ${isSignUp ? 'cadastro' : 'login'}:`, error);
+      setError(error.message || `Erro ao ${isSignUp ? 'criar conta' : 'fazer login'}. Verifique os dados e tente novamente.`);
       toast({
-        title: "Erro no login",
-        description: error.message || "Credenciais inválidas.",
+        title: `Erro no ${isSignUp ? 'cadastro' : 'login'}`,
+        description: error.message || "Ocorreu um erro",
         variant: "destructive"
       });
     } finally {
@@ -89,59 +135,11 @@ const Auth = () => {
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateEmail(email)) {
-      return;
-    }
-    
-    if (!firstName || !lastName) {
-      setError("Nome e sobrenome são obrigatórios");
-      return;
-    }
-    
-    if (!validations.length || !validations.hasNumber || !validations.hasLetter) {
-      setError("A senha não atende aos requisitos mínimos");
-      return;
-    }
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // Default to 'solicitante' user type for general signup
-      const { session } = await signUp(email, password, firstName, lastName, 'solicitante');
-      
-      toast({
-        title: "Cadastro realizado",
-        description: session 
-          ? "Conta criada com sucesso!" 
-          : "Verifique seu e-mail para confirmar seu cadastro."
-      });
-      
-      // Se não for necessário confirmar o e-mail
-      if (session) {
-        navigate('/');
-      } else {
-        setActiveTab('login');
-        toast({
-          title: "Confirmação necessária",
-          description: "Enviamos um email de confirmação. Por favor, verifique sua caixa de entrada."
-        });
-      }
-    } catch (error: any) {
-      console.error("Erro de cadastro:", error);
-      setError(error.message || "Erro ao criar conta. Verifique os dados e tente novamente.");
-      toast({
-        title: "Erro no cadastro",
-        description: error.message || "Ocorreu um erro no cadastro",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const ValidationIcon = ({ isValid }: { isValid: boolean }) => (
+    <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${isValid ? 'bg-green-500' : 'bg-gray-300'}`}>
+      {isValid && <Check className="h-3 w-3 text-white" />}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
@@ -175,11 +173,9 @@ const Auth = () => {
           <Card>
             <CardHeader>
               <CardTitle>Entrar</CardTitle>
-              <CardDescription>
-                Acesse sua conta HelpAqui
-              </CardDescription>
+              <CardDescription>Acesse sua conta HelpAqui</CardDescription>
             </CardHeader>
-            <form onSubmit={handleLogin}>
+            <form onSubmit={(e) => handleSubmit(e, false)}>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
@@ -187,11 +183,8 @@ const Auth = () => {
                     id="email" 
                     type="email" 
                     placeholder="seu@email.com" 
-                    value={email} 
-                    onChange={e => {
-                      setEmail(e.target.value);
-                      if (e.target.value) validateEmail(e.target.value);
-                    }} 
+                    value={formData.email} 
+                    onChange={e => updateFormData('email', e.target.value)}
                     className={emailError ? "border-red-500" : ""}
                     required 
                   />
@@ -203,8 +196,8 @@ const Auth = () => {
                     <Input 
                       id="password" 
                       type="password" 
-                      value={password} 
-                      onChange={e => setPassword(e.target.value)} 
+                      value={formData.password} 
+                      onChange={e => updateFormData('password', e.target.value)}
                       required 
                     />
                     <LockIcon className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
@@ -224,11 +217,9 @@ const Auth = () => {
           <Card>
             <CardHeader>
               <CardTitle>Cadastro</CardTitle>
-              <CardDescription>
-                Crie sua conta para usar o HelpAqui
-              </CardDescription>
+              <CardDescription>Crie sua conta para usar o HelpAqui</CardDescription>
             </CardHeader>
-            <form onSubmit={handleSignUp}>
+            <form onSubmit={(e) => handleSubmit(e, true)}>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
@@ -236,11 +227,8 @@ const Auth = () => {
                     id="signup-email" 
                     type="email" 
                     placeholder="seu@email.com" 
-                    value={email} 
-                    onChange={e => {
-                      setEmail(e.target.value);
-                      if (e.target.value) validateEmail(e.target.value);
-                    }}
+                    value={formData.email} 
+                    onChange={e => updateFormData('email', e.target.value)}
                     className={emailError ? "border-red-500" : ""}
                     required 
                   />
@@ -252,8 +240,8 @@ const Auth = () => {
                     id="first-name" 
                     type="text" 
                     placeholder="Seu nome" 
-                    value={firstName} 
-                    onChange={e => setFirstName(e.target.value)} 
+                    value={formData.firstName} 
+                    onChange={e => updateFormData('firstName', e.target.value)}
                     required 
                   />
                 </div>
@@ -263,8 +251,8 @@ const Auth = () => {
                     id="last-name" 
                     type="text" 
                     placeholder="Seu sobrenome" 
-                    value={lastName} 
-                    onChange={e => setLastName(e.target.value)} 
+                    value={formData.lastName} 
+                    onChange={e => updateFormData('lastName', e.target.value)}
                     required 
                   />
                 </div>
@@ -273,28 +261,22 @@ const Auth = () => {
                   <Input 
                     id="signup-password" 
                     type="password" 
-                    value={password} 
-                    onChange={e => setPassword(e.target.value)} 
+                    value={formData.password} 
+                    onChange={e => updateFormData('password', e.target.value)}
                     required 
                     className={!validations.length ? "border-red-300" : ""}
                   />
                   <div className="mt-2 space-y-2">
                     <div className="flex items-center">
-                      <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${validations.length ? 'bg-green-500' : 'bg-gray-300'}`}>
-                        {validations.length && <Check className="h-3 w-3 text-white" />}
-                      </div>
+                      <ValidationIcon isValid={validations.length} />
                       <span className="text-xs text-gray-600">Pelo menos 6 caracteres</span>
                     </div>
                     <div className="flex items-center">
-                      <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${validations.hasNumber ? 'bg-green-500' : 'bg-gray-300'}`}>
-                        {validations.hasNumber && <Check className="h-3 w-3 text-white" />}
-                      </div>
+                      <ValidationIcon isValid={validations.hasNumber} />
                       <span className="text-xs text-gray-600">Pelo menos um número</span>
                     </div>
                     <div className="flex items-center">
-                      <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${validations.hasLetter ? 'bg-green-500' : 'bg-gray-300'}`}>
-                        {validations.hasLetter && <Check className="h-3 w-3 text-white" />}
-                      </div>
+                      <ValidationIcon isValid={validations.hasLetter} />
                       <span className="text-xs text-gray-600">Pelo menos uma letra</span>
                     </div>
                   </div>
@@ -304,7 +286,7 @@ const Auth = () => {
                 <Button 
                   type="submit" 
                   className="w-full" 
-                  disabled={loading || !validations.length || !validations.hasNumber || !validations.hasLetter || !firstName || !lastName || !email || !!emailError}
+                  disabled={loading || !validations.length || !validations.hasNumber || !validations.hasLetter || !formData.firstName || !formData.lastName || !formData.email || !!emailError}
                 >
                   {loading ? "Cadastrando..." : "Cadastrar"}
                 </Button>
