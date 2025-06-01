@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -6,11 +5,9 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
-
 interface UserSectionProps {
   isAuthenticated: boolean;
 }
-
 const UserSection: React.FC<UserSectionProps> = ({
   isAuthenticated
 }) => {
@@ -41,22 +38,17 @@ const UserSection: React.FC<UserSectionProps> = ({
     }
     return "Usuário";
   };
-
   if (!isAuthenticated) {
-    return (
-      <div className="flex items-center gap-4">
+    return <div className="flex items-center gap-4">
         <Link to="/login">
           <Button variant="ghost" className="text-gray-700 hover:text-gray-900 hover:bg-gray-100">Login</Button>
         </Link>
         <Link to="/register">
           <Button className="bg-helpaqui-blue hover:bg-helpaqui-blue/90 text-white">Cadastrar</Button>
         </Link>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <DropdownMenu>
+  return <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full hover:bg-gray-100">
           <Avatar className="h-8 w-8">
@@ -65,7 +57,7 @@ const UserSection: React.FC<UserSectionProps> = ({
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" forceMount className="w-56 border border-gray-200 shadow-lg bg-white text-black">
+      <DropdownMenuContent align="end" forceMount className="w-56 border border-gray-800 shadow-lg bg-white text-black">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none text-gray-900">{getDisplayName()}</p>
@@ -95,8 +87,6 @@ const UserSection: React.FC<UserSectionProps> = ({
           <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>
-    </DropdownMenu>
-  );
+    </DropdownMenu>;
 };
-
 export default UserSection;
