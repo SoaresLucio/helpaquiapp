@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -6,11 +5,9 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
-
 interface UserSectionProps {
   isAuthenticated: boolean;
 }
-
 const UserSection: React.FC<UserSectionProps> = ({
   isAuthenticated
 }) => {
@@ -41,7 +38,6 @@ const UserSection: React.FC<UserSectionProps> = ({
     }
     return "Usuário";
   };
-
   if (!isAuthenticated) {
     return <div className="flex items-center gap-4">
         <Link to="/login">
@@ -52,7 +48,6 @@ const UserSection: React.FC<UserSectionProps> = ({
         </Link>
       </div>;
   }
-
   return <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full hover:bg-gray-100">
@@ -62,7 +57,7 @@ const UserSection: React.FC<UserSectionProps> = ({
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" forceMount className="w-56 bg-white border border-gray-200 shadow-lg">
+      <DropdownMenuContent align="end" forceMount className="<div class=\"w-56 border border-gray-200 shadow-lg bg-white bg-opacity-100 text-black\">">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none text-gray-900">{getDisplayName()}</p>
@@ -94,5 +89,4 @@ const UserSection: React.FC<UserSectionProps> = ({
       </DropdownMenuContent>
     </DropdownMenu>;
 };
-
 export default UserSection;
