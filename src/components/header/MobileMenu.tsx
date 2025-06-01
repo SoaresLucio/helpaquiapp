@@ -62,6 +62,17 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ currentPath }) => {
             </SheetClose>
             
             <SheetClose asChild>
+              <Link to="/chat">
+                <Button
+                  variant="ghost"
+                  className={`w-full justify-start ${currentPath === "/chat" ? "bg-secondary" : ""}`}
+                >
+                  Bate Papo
+                </Button>
+              </Link>
+            </SheetClose>
+            
+            <SheetClose asChild>
               <Link to="/ai-chat">
                 <Button
                   variant="ghost"

@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { MapPin, MessageCircle, PhoneCall, User } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useNavigate } from 'react-router-dom';
 
 // Remove mock data imports and create real user interface
 interface RealUser {
@@ -26,8 +27,10 @@ interface RealUser {
   isVerified?: boolean;
 }
 const Index = () => {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<RealUser | null>(null);
+  const [activeTab, setActiveTab] = useState('actions');
   const {
     userType,
     loading,
@@ -71,6 +74,18 @@ const Index = () => {
     };
     fetchUserData();
   }, [authUser, userType]);
+  const handleChatRedirect = () => {
+    navigate('/chat');
+  };
+
+  const handleMobileNavigation = (section: string) => {
+    if (section === 'chat') {
+      navigate('/chat');
+    } else {
+      setActiveTab(section);
+    }
+  };
+
   if (loading) {
     return <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -103,12 +118,12 @@ const Index = () => {
           
           {/* Sidebar */}
           <div className="w-full lg:w-[400px] space-y-4">
-            <Tabs defaultValue="actions" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid grid-cols-3 mb-4">
                 <TabsTrigger value="actions">
                   {userType === "freelancer" ? "Oferecer" : "Solicitar"}
                 </TabsTrigger>
-                <TabsTrigger value="chat">Chat</TabsTrigger>
+                <TabsTrigger value="chat" onClick={handleChatRedirect}>Chat</TabsTrigger>
                 <TabsTrigger value="profile">Perfil</TabsTrigger>
               </TabsList>
               
@@ -133,14 +148,20 @@ const Index = () => {
       
       {/* Mobile Navigation */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex items-center justify-around p-2 z-10">
-        <button className="flex flex-col items-center p-2">
+        <button 
+          className="flex flex-col items-center p-2"
+          onClick={() => handleMobileNavigation('actions')}
+        >
           <MapPin className="h-6 w-6 text-helpaqui-blue" />
           <span className="text-xs mt-1">
             {userType === "freelancer" ? "Oferecer" : "Solicitar"}
           </span>
         </button>
         
-        <button className="flex flex-col items-center p-2">
+        <button 
+          className="flex flex-col items-center p-2"
+          onClick={() => handleMobileNavigation('chat')}
+        >
           <MessageCircle className="h-6 w-6 text-helpaqui-blue" />
           <span className="text-xs mt-1">Bate Papo</span>
         </button>
@@ -150,7 +171,10 @@ const Index = () => {
           <span className="text-xs mt-1">Contatos</span>
         </button>
         
-        <button className="flex flex-col items-center p-2">
+        <button 
+          className="flex flex-col items-center p-2"
+          onClick={() => handleMobileNavigation('profile')}
+        >
           <User className="h-6 w-6 text-helpaqui-blue" />
           <span className="text-xs mt-1">Perfil</span>
         </button>
