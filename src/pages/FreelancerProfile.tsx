@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ArrowLeft, Star, MapPin, Clock, BadgeCheck, MessageCircle, Phone, Share2 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -9,75 +8,61 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Header from '@/components/Header';
 import { mockProfessionals } from '@/data/mockData';
-
 const FreelancerProfile: React.FC = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
-  
+  const {
+    id
+  } = useParams();
+
   // Em um app real, você buscaria o freelancer pelo ID
   const freelancer = mockProfessionals[0]; // Para demonstração
-  
-  const [showAllReviews, setShowAllReviews] = useState(false);
 
+  const [showAllReviews, setShowAllReviews] = useState(false);
   const completedJobs = 47; // Mock data
   const responseRate = 98;
   const averageResponseTime = "1h";
-
-  const reviews = [
-    {
-      id: '1',
-      userName: 'Maria Silva',
-      userAvatar: '/placeholder.svg',
-      rating: 5,
-      comment: 'Excelente trabalho! Muito profissional e entregou tudo no prazo acordado.',
-      date: '2024-01-15',
-      jobTitle: 'Desenvolvimento de Website'
-    },
-    {
-      id: '2',
-      userName: 'João Santos',
-      userAvatar: '/placeholder.svg',
-      rating: 5,
-      comment: 'Superou minhas expectativas. Recomendo para todos!',
-      date: '2024-01-10',
-      jobTitle: 'Design de Logo'
-    },
-    {
-      id: '3',
-      userName: 'Ana Costa',
-      userAvatar: '/placeholder.svg',
-      rating: 4,
-      comment: 'Bom trabalho, mas poderia ter mais comunicação durante o processo.',
-      date: '2024-01-05',
-      jobTitle: 'Consultoria em Marketing'
-    },
-    {
-      id: '4',
-      userName: 'Pedro Lima',
-      userAvatar: '/placeholder.svg',
-      rating: 5,
-      comment: 'Fantástico! Trabalho de alta qualidade e atendimento excepcional.',
-      date: '2023-12-28',
-      jobTitle: 'Desenvolvimento de App'
-    }
-  ];
-
+  const reviews = [{
+    id: '1',
+    userName: 'Maria Silva',
+    userAvatar: '/placeholder.svg',
+    rating: 5,
+    comment: 'Excelente trabalho! Muito profissional e entregou tudo no prazo acordado.',
+    date: '2024-01-15',
+    jobTitle: 'Desenvolvimento de Website'
+  }, {
+    id: '2',
+    userName: 'João Santos',
+    userAvatar: '/placeholder.svg',
+    rating: 5,
+    comment: 'Superou minhas expectativas. Recomendo para todos!',
+    date: '2024-01-10',
+    jobTitle: 'Design de Logo'
+  }, {
+    id: '3',
+    userName: 'Ana Costa',
+    userAvatar: '/placeholder.svg',
+    rating: 4,
+    comment: 'Bom trabalho, mas poderia ter mais comunicação durante o processo.',
+    date: '2024-01-05',
+    jobTitle: 'Consultoria em Marketing'
+  }, {
+    id: '4',
+    userName: 'Pedro Lima',
+    userAvatar: '/placeholder.svg',
+    rating: 5,
+    comment: 'Fantástico! Trabalho de alta qualidade e atendimento excepcional.',
+    date: '2023-12-28',
+    jobTitle: 'Desenvolvimento de App'
+  }];
   const displayedReviews = showAllReviews ? reviews : reviews.slice(0, 2);
-
   const handleStartChat = () => {
     // Redirecionar para página de chat ou abrir modal de chat
     navigate('/chat');
   };
-
-  return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+  return <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       <Header />
       <div className="helpaqui-container py-6">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate(-1)} 
-          className="flex items-center mb-4 text-gray-700 dark:text-gray-300"
-        >
+        <Button variant="ghost" onClick={() => navigate(-1)} className="flex items-center mb-4 text-gray-700 dark:text-gray-300">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Button>
@@ -92,14 +77,10 @@ const FreelancerProfile: React.FC = () => {
                     <AvatarImage src={freelancer.avatar} alt={freelancer.name} />
                     <AvatarFallback>{freelancer.name.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white ${
-                    freelancer.available ? 'bg-green-500' : 'bg-gray-400'
-                  }`}></div>
-                  {freelancer.isVerified && (
-                    <div className="absolute top-0 left-0 bg-blue-500 rounded-full p-1 border-2 border-white">
+                  <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white ${freelancer.available ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                  {freelancer.isVerified && <div className="absolute top-0 left-0 bg-blue-500 rounded-full p-1 border-2 border-white">
                       <BadgeCheck className="h-4 w-4 text-white" />
-                    </div>
-                  )}
+                    </div>}
                 </div>
 
                 <div className="flex-1">
@@ -186,26 +167,18 @@ const FreelancerProfile: React.FC = () => {
               </Card>
 
               {/* Portfólio */}
-              {freelancer.portfolio.length > 0 && (
-                <Card>
+              {freelancer.portfolio.length > 0 && <Card>
                   <CardHeader>
                     <CardTitle>Portfólio</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {freelancer.portfolio.map((image, index) => (
-                        <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-200">
-                          <img 
-                            src={image} 
-                            alt={`Trabalho ${index + 1}`}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer" 
-                          />
-                        </div>
-                      ))}
+                      {freelancer.portfolio.map((image, index) => <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-200">
+                          <img src={image} alt={`Trabalho ${index + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer" />
+                        </div>)}
                     </div>
                   </CardContent>
-                </Card>
-              )}
+                </Card>}
 
               {/* Avaliações */}
               <Card>
@@ -214,8 +187,7 @@ const FreelancerProfile: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {displayedReviews.map((review, index) => (
-                      <div key={review.id}>
+                    {displayedReviews.map((review, index) => <div key={review.id}>
                         <div className="flex items-start gap-3">
                           <Avatar className="w-10 h-10">
                             <AvatarImage src={review.userAvatar} alt={review.userName} />
@@ -230,16 +202,7 @@ const FreelancerProfile: React.FC = () => {
                             </div>
                             <div className="flex items-center gap-2 mb-2">
                               <div className="flex">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star 
-                                    key={i} 
-                                    className={`h-4 w-4 ${
-                                      i < review.rating 
-                                        ? 'text-yellow-500 fill-yellow-500' 
-                                        : 'text-gray-300'
-                                    }`}
-                                  />
-                                ))}
+                                {[...Array(5)].map((_, i) => <Star key={i} className={`h-4 w-4 ${i < review.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`} />)}
                               </div>
                               <Badge variant="secondary" className="text-xs">
                                 {review.jobTitle}
@@ -251,18 +214,11 @@ const FreelancerProfile: React.FC = () => {
                           </div>
                         </div>
                         {index < displayedReviews.length - 1 && <Separator className="mt-4" />}
-                      </div>
-                    ))}
+                      </div>)}
                     
-                    {!showAllReviews && reviews.length > 2 && (
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setShowAllReviews(true)}
-                        className="w-full mt-4"
-                      >
+                    {!showAllReviews && reviews.length > 2 && <Button variant="outline" onClick={() => setShowAllReviews(true)} className="w-full mt-4">
                         Ver todas as avaliações ({reviews.length - 2} restantes)
-                      </Button>
-                    )}
+                      </Button>}
                   </div>
                 </CardContent>
               </Card>
@@ -273,15 +229,13 @@ const FreelancerProfile: React.FC = () => {
               {/* Categorias de Trabalho */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Categorias de Trabalho</CardTitle>
+                  <CardTitle className="text-center">Trabalhos Realizados</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {freelancer.categories.map((category, index) => (
-                      <Badge key={index} variant="secondary">
+                    {freelancer.categories.map((category, index) => <Badge key={index} variant="secondary">
                         {category}
-                      </Badge>
-                    ))}
+                      </Badge>)}
                   </div>
                 </CardContent>
               </Card>
@@ -289,7 +243,7 @@ const FreelancerProfile: React.FC = () => {
               {/* Informações de Contato */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Contato</CardTitle>
+                  <CardTitle className="text-center">Estatísticas</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="text-center">
@@ -319,8 +273,6 @@ const FreelancerProfile: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default FreelancerProfile;
