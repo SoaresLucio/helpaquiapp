@@ -57,7 +57,7 @@ const UserSection: React.FC<UserSectionProps> = ({
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" forceMount className="w-56 border border-gray-800 shadow-lg bg-white text-black">
+      <DropdownMenuContent align="end" forceMount className="w-56 border border-gray-800 shadow-lg opacity-50 bg-white text-black">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none text-gray-900">{getDisplayName()}</p>
