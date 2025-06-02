@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/integrations/supabase/types';
 
 export interface SubscriptionPlan {
   id: string;
@@ -27,6 +28,14 @@ export interface UserSubscription {
   subscription_plans?: SubscriptionPlan;
 }
 
+// Helper function to convert Json to string array
+const convertFeaturesToStringArray = (features: Json): string[] => {
+  if (Array.isArray(features)) {
+    return features.filter((item): item is string => typeof item === 'string');
+  }
+  return [];
+};
+
 // Get all available subscription plans
 export const getSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
   try {
@@ -37,7 +46,11 @@ export const getSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
 
     if (error) throw error;
     
-    return data || [];
+    // Convert the data to match our interface
+    return (data || []).map(plan => ({
+      ...plan,
+      features: convertFeaturesToStringArray(plan.features)
+    }));
   } catch (error) {
     console.error('Error fetching subscription plans:', error);
     return [];
@@ -65,7 +78,14 @@ export const getCurrentSubscription = async (): Promise<UserSubscription | null>
 
     if (error) throw error;
     
-    return data;
+    if (!data) return null;
+
+    // Convert the nested subscription_plans features
+    if (data.subscription_plans) {
+      data.subscription_plans.features = convertFeaturesToStringArray(data.subscription_plans.features);
+    }
+    
+    return data as UserSubscription;
   } catch (error) {
     console.error('Error fetching current subscription:', error);
     return null;

@@ -26,9 +26,9 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 function App() {
-  const { isAuthenticated, isLoading } = useAuthState();
+  const { isAuthenticated, loading } = useAuthState();
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-helpaqui-blue"></div>
