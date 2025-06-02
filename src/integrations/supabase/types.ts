@@ -322,11 +322,98 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          features: Json
+          id: string
+          max_requests_per_month: number | null
+          name: string
+          price_monthly: number
+          priority_support: boolean | null
+          stripe_price_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          features?: Json
+          id?: string
+          max_requests_per_month?: number | null
+          name: string
+          price_monthly: number
+          priority_support?: boolean | null
+          stripe_price_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          features?: Json
+          id?: string
+          max_requests_per_month?: number | null
+          name?: string
+          price_monthly?: number
+          priority_support?: boolean | null
+          stripe_price_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan_id: string | null
+          requests_used_this_month: number | null
+          status: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_id?: string | null
+          requests_used_this_month?: number | null
+          status?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_id?: string | null
+          requests_used_this_month?: number | null
+          status?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      check_request_limit: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
