@@ -12,27 +12,41 @@ import {
   DollarSign
 } from 'lucide-react';
 
-interface Message {
+// Define proper message types
+interface BaseMessage {
   id: string;
   senderId: string;
   senderName: string;
   content: string;
   timestamp: string;
-  type: 'text' | 'file' | 'schedule_suggestion' | 'value_display' | 'location';
   read: boolean;
-  scheduleData?: {
+}
+
+interface TextMessage extends BaseMessage {
+  type: 'text';
+}
+
+interface ScheduleMessage extends BaseMessage {
+  type: 'schedule_suggestion';
+  scheduleData: {
     date: string;
     time: string;
     message: string;
     confirmed?: boolean;
   };
-  fileData?: {
+}
+
+interface FileMessage extends BaseMessage {
+  type: 'file';
+  fileData: {
     name: string;
     size: string;
     type: 'image' | 'document';
     url: string;
   };
 }
+
+type Message = TextMessage | ScheduleMessage | FileMessage;
 
 interface ChatMessagesProps {
   messages: Message[];
@@ -73,7 +87,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
               <p className="text-sm leading-relaxed">{message.content}</p>
             )}
 
-            {message.type === 'schedule_suggestion' && message.scheduleData && (
+            {message.type === 'schedule_suggestion' && (
               <div className="space-y-3">
                 <div className={`flex items-center gap-2 ${isOwnMessage ? 'text-blue-100' : 'text-gray-600'}`}>
                   <Calendar className="h-4 w-4" />
@@ -107,7 +121,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
               </div>
             )}
 
-            {message.type === 'file' && message.fileData && (
+            {message.type === 'file' && (
               <div className="space-y-2">
                 <div className={`flex items-center gap-2 ${isOwnMessage ? 'text-blue-100' : 'text-gray-600'}`}>
                   <FileImage className="h-4 w-4" />

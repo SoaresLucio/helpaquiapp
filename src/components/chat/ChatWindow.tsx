@@ -28,15 +28,51 @@ interface ChatWindowProps {
   onUpdateUnreadCount: (conversationId: string, count: number) => void;
 }
 
+// Define proper message types
+interface BaseMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  content: string;
+  timestamp: string;
+  read: boolean;
+}
+
+interface TextMessage extends BaseMessage {
+  type: 'text';
+}
+
+interface ScheduleMessage extends BaseMessage {
+  type: 'schedule_suggestion';
+  scheduleData: {
+    date: string;
+    time: string;
+    message: string;
+    confirmed?: boolean;
+  };
+}
+
+interface FileMessage extends BaseMessage {
+  type: 'file';
+  fileData: {
+    name: string;
+    size: string;
+    type: 'image' | 'document';
+    url: string;
+  };
+}
+
+type Message = TextMessage | ScheduleMessage | FileMessage;
+
 // Mock messages with proper types
-const mockMessages = [
+const mockMessages: Message[] = [
   {
     id: '1',
     senderId: 'user_123',
     senderName: 'João Silva',
     content: 'Olá! Vi seu interesse no projeto de desenvolvimento.',
     timestamp: '10:25',
-    type: 'text' as const,
+    type: 'text',
     read: true
   },
   {
@@ -45,7 +81,7 @@ const mockMessages = [
     senderName: 'Você',
     content: 'Oi! Sim, tenho muito interesse. Qual seria o valor?',
     timestamp: '10:27',
-    type: 'text' as const,
+    type: 'text',
     read: true
   },
   {
@@ -54,7 +90,7 @@ const mockMessages = [
     senderName: 'João Silva',
     content: 'Para um projeto desse escopo, estou pensando em R$ 2.500',
     timestamp: '10:28',
-    type: 'text' as const,
+    type: 'text',
     read: true
   },
   {
@@ -63,7 +99,7 @@ const mockMessages = [
     senderName: 'João Silva',
     content: '',
     timestamp: '10:29',
-    type: 'schedule_suggestion' as const,
+    type: 'schedule_suggestion',
     scheduleData: {
       date: '2024-06-15',
       time: '14:00',
@@ -77,7 +113,7 @@ const mockMessages = [
     senderName: 'Você',
     content: 'Ótimo! Quando podemos começar o projeto?',
     timestamp: '10:30',
-    type: 'text' as const,
+    type: 'text',
     read: false
   }
 ];
@@ -87,7 +123,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   userType,
   onUpdateUnreadCount
 }) => {
-  const [messages, setMessages] = useState(mockMessages);
+  const [messages, setMessages] = useState<Message[]>(mockMessages);
   const [blockedContent, setBlockedContent] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -109,16 +145,35 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       return false;
     }
 
-    const newMessage = {
+    const baseMessage = {
       id: `msg_${Date.now()}`,
       senderId: 'me',
       senderName: 'Você',
       content,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      type,
-      read: false,
-      ...additionalData
+      read: false
     };
+
+    let newMessage: Message;
+
+    if (type === 'schedule_suggestion' && additionalData?.scheduleData) {
+      newMessage = {
+        ...baseMessage,
+        type: 'schedule_suggestion',
+        scheduleData: additionalData.scheduleData
+      };
+    } else if (type === 'file' && additionalData?.fileData) {
+      newMessage = {
+        ...baseMessage,
+        type: 'file',
+        fileData: additionalData.fileData
+      };
+    } else {
+      newMessage = {
+        ...baseMessage,
+        type: 'text'
+      };
+    }
 
     setMessages(prev => [...prev, newMessage]);
     return true;
@@ -126,11 +181,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
   const handleConfirmSchedule = (messageId: string) => {
     setMessages(prev => 
-      prev.map(msg => 
-        msg.id === messageId 
-          ? { ...msg, scheduleData: { ...msg.scheduleData, confirmed: true } }
-          : msg
-      )
+      prev.map(msg => {
+        if (msg.id === messageId && msg.type === 'schedule_suggestion') {
+          return {
+            ...msg,
+            scheduleData: { ...msg.scheduleData, confirmed: true }
+          };
+        }
+        return msg;
+      })
     );
   };
 
