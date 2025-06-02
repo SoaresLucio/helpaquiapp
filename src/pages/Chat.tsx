@@ -7,8 +7,31 @@ import ChatWindow from '@/components/chat/ChatWindow';
 import { Card } from '@/components/ui/card';
 import { MessageCircle } from 'lucide-react';
 
+// Interface para conversas compatível com ambos os componentes
+interface ConversationData {
+  id: string;
+  participantId: string;
+  participantName: string;
+  participantAvatar: string;
+  participantType: 'freelancer' | 'client';
+  lastMessage: string;
+  timestamp: string;
+  unreadCount: number;
+  status: string;
+  jobTitle: string;
+  jobCategory: string;
+  jobStatus: string;
+  agreedValue: number; // em centavos
+  location: {
+    address: string;
+    lat: number;
+    lng: number;
+  };
+  isOnline: boolean;
+}
+
 // Mock data para conversas com mais detalhes
-const mockConversations = [
+const mockConversations: ConversationData[] = [
   {
     id: '1',
     participantId: 'user_123',
@@ -22,7 +45,7 @@ const mockConversations = [
     jobTitle: 'Desenvolvimento de Website',
     jobCategory: 'Tecnologia',
     jobStatus: 'aguardando_inicio',
-    agreedValue: 250000, // em centavos
+    agreedValue: 250000,
     location: {
       address: 'Rua das Flores, 123 - Centro',
       lat: -23.5505,
@@ -76,8 +99,8 @@ const mockConversations = [
 
 const Chat = () => {
   const { userType } = useAuth();
-  const [selectedConversation, setSelectedConversation] = useState(mockConversations[0]);
-  const [conversations, setConversations] = useState(mockConversations);
+  const [selectedConversation, setSelectedConversation] = useState<ConversationData>(mockConversations[0]);
+  const [conversations, setConversations] = useState<ConversationData[]>(mockConversations);
 
   const updateConversationUnreadCount = (conversationId: string, count: number) => {
     setConversations(prev => 
@@ -87,6 +110,10 @@ const Chat = () => {
           : conv
       )
     );
+  };
+
+  const handleSelectConversation = (conversation: ConversationData) => {
+    setSelectedConversation(conversation);
   };
 
   return (
@@ -100,7 +127,7 @@ const Chat = () => {
             <ChatSidebar 
               conversations={conversations}
               selectedConversation={selectedConversation}
-              onSelectConversation={setSelectedConversation}
+              onSelectConversation={handleSelectConversation}
             />
           </div>
 

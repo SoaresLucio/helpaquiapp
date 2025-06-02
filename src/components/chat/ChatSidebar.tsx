@@ -9,14 +9,23 @@ import { Separator } from '@/components/ui/separator';
 
 interface Conversation {
   id: string;
+  participantId: string;
   participantName: string;
   participantAvatar: string;
+  participantType: 'freelancer' | 'client';
   lastMessage: string;
   timestamp: string;
   unreadCount: number;
   status: string;
   jobTitle: string;
   jobCategory: string;
+  jobStatus: string;
+  agreedValue: number;
+  location: {
+    address: string;
+    lat: number;
+    lng: number;
+  };
   isOnline: boolean;
 }
 

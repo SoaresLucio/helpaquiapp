@@ -28,7 +28,7 @@ interface ChatWindowProps {
   onUpdateUnreadCount: (conversationId: string, count: number) => void;
 }
 
-// Mock messages com diferentes tipos
+// Mock messages with proper types
 const mockMessages = [
   {
     id: '1',
@@ -36,7 +36,7 @@ const mockMessages = [
     senderName: 'João Silva',
     content: 'Olá! Vi seu interesse no projeto de desenvolvimento.',
     timestamp: '10:25',
-    type: 'text',
+    type: 'text' as const,
     read: true
   },
   {
@@ -45,7 +45,7 @@ const mockMessages = [
     senderName: 'Você',
     content: 'Oi! Sim, tenho muito interesse. Qual seria o valor?',
     timestamp: '10:27',
-    type: 'text',
+    type: 'text' as const,
     read: true
   },
   {
@@ -54,7 +54,7 @@ const mockMessages = [
     senderName: 'João Silva',
     content: 'Para um projeto desse escopo, estou pensando em R$ 2.500',
     timestamp: '10:28',
-    type: 'text',
+    type: 'text' as const,
     read: true
   },
   {
@@ -63,7 +63,7 @@ const mockMessages = [
     senderName: 'João Silva',
     content: '',
     timestamp: '10:29',
-    type: 'schedule_suggestion',
+    type: 'schedule_suggestion' as const,
     scheduleData: {
       date: '2024-06-15',
       time: '14:00',
@@ -77,7 +77,7 @@ const mockMessages = [
     senderName: 'Você',
     content: 'Ótimo! Quando podemos começar o projeto?',
     timestamp: '10:30',
-    type: 'text',
+    type: 'text' as const,
     read: false
   }
 ];
