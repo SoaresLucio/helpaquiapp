@@ -21,6 +21,7 @@ import NewPassword from "./pages/NewPassword";
 import CategoryManagement from "./pages/CategoryManagement";
 import AIChat from "./pages/AIChat";
 import Subscription from "./pages/Subscription";
+import SolicitantePlans from "./pages/SolicitantePlans";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ function App() {
             <Route path="/new-password" element={<NewPassword />} />
             <Route path="/user-type" element={<UserTypeSelection />} />
             <Route path="/subscription" element={<Subscription />} />
+            <Route path="/solicitante-plans" element={<SolicitantePlans />} />
             
             {/* Protected routes */}
             {isAuthenticated ? (

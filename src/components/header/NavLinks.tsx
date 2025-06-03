@@ -32,6 +32,16 @@ const NavLinks: React.FC<NavLinksProps> = ({ currentPath }) => {
         Serviços
       </Link>
       <Link
+        to="/solicitante-plans"
+        className={cn(
+          navigationMenuTriggerStyle(),
+          "bg-transparent",
+          currentPath === "/solicitante-plans" && "text-helpaqui-blue font-medium"
+        )}
+      >
+        Planos
+      </Link>
+      <Link
         to="/chat"
         className={cn(
           navigationMenuTriggerStyle(),
