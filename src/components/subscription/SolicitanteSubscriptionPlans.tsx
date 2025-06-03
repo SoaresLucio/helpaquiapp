@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, User, Zap, Crown } from 'lucide-react';
+import { Check, Star, Zap, Gift } from 'lucide-react';
 import { toast } from 'sonner';
 import { 
   getSubscriptionPlans, 
@@ -69,9 +69,15 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
   };
 
   const getPlanIcon = (planName: string) => {
-    if (planName.includes('Boss') || planName.includes('Premium')) return <Crown className="h-5 w-5 text-yellow-500" />;
-    if (planName.includes('Medium') || planName.includes('Pro')) return <Zap className="h-5 w-5 text-blue-500" />;
-    return <User className="h-5 w-5 text-green-500" />;
+    if (planName.includes('Boss')) return <Star className="h-5 w-5 text-yellow-500" />;
+    if (planName.includes('Medium')) return <Zap className="h-5 w-5 text-blue-500" />;
+    return <Gift className="h-5 w-5 text-green-500" />;
+  };
+
+  const getPlanGradient = (planName: string) => {
+    if (planName.includes('Boss')) return 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200';
+    if (planName.includes('Medium')) return 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200';
+    return 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200';
   };
 
   const isCurrentPlan = (planId: string) => {
@@ -86,13 +92,19 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
   };
 
   const getPlanBenefits = (planName: string) => {
-    if (planName.includes('Boss') || planName.includes('Premium')) {
-      return 'Ideal para quem precisa de muitos serviços mensalmente';
+    if (planName.includes('Boss')) {
+      return 'Ideal para empresas e profissionais que precisam de muitos serviços';
     }
-    if (planName.includes('Medium') || planName.includes('Pro')) {
-      return 'Perfeito para uso regular de serviços';
+    if (planName.includes('Medium')) {
+      return 'Perfeito para uso regular e divulgação do seu negócio';
     }
-    return 'Ótimo para começar e testar a plataforma';
+    return 'Ótimo para começar e conhecer a plataforma';
+  };
+
+  const formatMaxRequests = (maxRequests: number | null) => {
+    if (maxRequests === -1) return "Ilimitadas";
+    if (maxRequests === null) return "0";
+    return maxRequests.toString();
   };
 
   if (loading) {
@@ -134,13 +146,9 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
             key={plan.id} 
             className={`relative transition-all duration-300 ${
               isCurrentPlan(plan.id) 
-                ? 'ring-2 ring-helpaqui-blue border-helpaqui-blue shadow-lg' 
-                : 'hover:shadow-lg hover:scale-105'
-            } ${
-              (plan.name.includes('Boss') || plan.name.includes('Premium'))
-                ? 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200' 
-                : ''
-            }`}
+                ? 'ring-2 ring-helpaqui-blue border-helpaqui-blue shadow-lg scale-105' 
+                : 'hover:shadow-lg hover:scale-102'
+            } ${getPlanGradient(plan.name)}`}
           >
             {isCurrentPlan(plan.id) && (
               <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-helpaqui-blue">
@@ -148,7 +156,7 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
               </Badge>
             )}
             
-            {(plan.name.includes('Boss') || plan.name.includes('Premium')) && (
+            {plan.name.includes('Boss') && (
               <Badge className="absolute -top-2 right-4 bg-yellow-500 text-yellow-900">
                 Mais Popular
               </Badge>
@@ -163,8 +171,14 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
               </div>
               
               <div className="text-3xl font-bold text-helpaqui-blue mb-2">
-                {formatPrice(plan.price_monthly)}
-                <span className="text-sm font-normal text-gray-500">/mês</span>
+                {plan.price_monthly === 0 ? 'Grátis' : formatPrice(plan.price_monthly)}
+                {plan.price_monthly > 0 && (
+                  <span className="text-sm font-normal text-gray-500">/mês</span>
+                )}
+              </div>
+              
+              <div className="text-sm text-gray-600 mb-2">
+                {formatMaxRequests(plan.max_requests_per_month)} solicitações{plan.max_requests_per_month !== -1 ? ' por mês' : ''}
               </div>
               
               <p className="text-sm text-gray-600">
@@ -207,9 +221,7 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
               <span className="font-medium mb-1">Solicitações utilizadas:</span>
               <span>
                 {currentSubscription.requests_used_this_month || 0} / {
-                  currentSubscription.subscription_plans?.max_requests_per_month === -1 
-                    ? "Ilimitadas" 
-                    : currentSubscription.subscription_plans?.max_requests_per_month
+                  formatMaxRequests(currentSubscription.subscription_plans?.max_requests_per_month || null)
                 }
               </span>
             </div>

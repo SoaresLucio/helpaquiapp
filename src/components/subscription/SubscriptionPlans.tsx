@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, Zap } from 'lucide-react';
+import { Check, Star, Zap, Gift } from 'lucide-react';
 import { toast } from 'sonner';
 import { 
   getSubscriptionPlans, 
@@ -73,18 +73,30 @@ const SubscriptionPlans: React.FC = () => {
   const getPlanIcon = (planName: string) => {
     if (planName.includes('Boss')) return <Star className="h-5 w-5 text-yellow-500" />;
     if (planName.includes('Medium')) return <Zap className="h-5 w-5 text-blue-500" />;
-    if (planName.includes('Easy')) return <Check className="h-5 w-5 text-green-500" />;
+    if (planName.includes('Free')) return <Gift className="h-5 w-5 text-green-500" />;
     return null;
+  };
+
+  const getPlanGradient = (planName: string) => {
+    if (planName.includes('Boss')) return 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200';
+    if (planName.includes('Medium')) return 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200';
+    return 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200';
   };
 
   const isCurrentPlan = (planId: string) => {
     return currentSubscription?.plan_id === planId;
   };
 
+  const formatMaxRequests = (maxRequests: number | null) => {
+    if (maxRequests === -1) return "Ilimitadas";
+    if (maxRequests === null) return "0";
+    return maxRequests.toString();
+  };
+
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[...Array(4)].map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[...Array(3)].map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardHeader>
               <div className="h-6 bg-gray-200 rounded"></div>
@@ -114,19 +126,15 @@ const SubscriptionPlans: React.FC = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans.map((plan) => (
           <Card 
             key={plan.id} 
-            className={`relative ${
+            className={`relative transition-all duration-300 ${
               isCurrentPlan(plan.id) 
-                ? 'ring-2 ring-helpaqui-blue border-helpaqui-blue' 
-                : 'hover:shadow-lg transition-shadow'
-            } ${
-              plan.name.includes('Boss') 
-                ? 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200' 
-                : ''
-            }`}
+                ? 'ring-2 ring-helpaqui-blue border-helpaqui-blue shadow-lg scale-105' 
+                : 'hover:shadow-lg hover:scale-102'
+            } ${getPlanGradient(plan.name)}`}
           >
             {isCurrentPlan(plan.id) && (
               <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-helpaqui-blue">
@@ -140,32 +148,38 @@ const SubscriptionPlans: React.FC = () => {
               </Badge>
             )}
 
-            <CardHeader className="text-center">
-              <div className="flex items-center justify-center mb-2">
+            <CardHeader className="text-center pb-4">
+              <div className="flex items-center justify-center mb-3">
                 {getPlanIcon(plan.name)}
                 <CardTitle className="ml-2 text-xl font-bold">
                   {plan.name}
                 </CardTitle>
               </div>
               
-              <div className="text-3xl font-bold text-helpaqui-blue">
-                {formatPrice(plan.price_monthly)}
-                <span className="text-sm font-normal text-gray-500">/mês</span>
+              <div className="text-3xl font-bold text-helpaqui-blue mb-2">
+                {plan.price_monthly === 0 ? 'Grátis' : formatPrice(plan.price_monthly)}
+                {plan.price_monthly > 0 && (
+                  <span className="text-sm font-normal text-gray-500">/mês</span>
+                )}
+              </div>
+              
+              <div className="text-sm text-gray-600">
+                {formatMaxRequests(plan.max_requests_per_month)} solicitações{plan.max_requests_per_month !== -1 ? ' por mês' : ''}
               </div>
             </CardHeader>
 
             <CardContent className="space-y-4">
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 {(plan.features as string[]).map((feature, index) => (
                   <li key={index} className="flex items-start">
-                    <Check className="h-4 w-4 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
-                    <span className="text-sm text-gray-600">{feature}</span>
+                    <Check className="h-4 w-4 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-sm text-gray-700">{feature}</span>
                   </li>
                 ))}
               </ul>
 
               <Button
-                className="w-full"
+                className="w-full mt-6"
                 variant={isCurrentPlan(plan.id) ? "outline" : "default"}
                 disabled={isCurrentPlan(plan.id) || subscribing === plan.id}
                 onClick={() => handleSubscribe(plan.id)}
@@ -186,8 +200,8 @@ const SubscriptionPlans: React.FC = () => {
       </div>
 
       {currentSubscription && (
-        <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <h3 className="font-semibold text-blue-900 mb-2">Status da Assinatura</h3>
+        <div className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+          <h3 className="font-semibold text-blue-900 mb-4">Status da Assinatura</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-blue-800">
             <div>
               <span className="font-medium">Plano: </span>
@@ -196,9 +210,7 @@ const SubscriptionPlans: React.FC = () => {
             <div>
               <span className="font-medium">Solicitações usadas: </span>
               {currentSubscription.requests_used_this_month || 0} / {
-                currentSubscription.subscription_plans?.max_requests_per_month === -1 
-                  ? "Ilimitadas" 
-                  : currentSubscription.subscription_plans?.max_requests_per_month
+                formatMaxRequests(currentSubscription.subscription_plans?.max_requests_per_month || null)
               }
             </div>
             <div>
