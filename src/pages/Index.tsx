@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import CategorySelector from '@/components/CategorySelector';
@@ -26,6 +27,7 @@ interface RealUser {
   rating?: number;
   isVerified?: boolean;
 }
+
 const Index = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -74,6 +76,7 @@ const Index = () => {
     };
     fetchUserData();
   }, [authUser, userType]);
+
   const handleChatRedirect = () => {
     navigate('/chat');
   };
@@ -87,33 +90,56 @@ const Index = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-helpaqui-blue mx-auto mb-4"></div>
           <p className="text-gray-600">Carregando...</p>
         </div>
-      </div>;
+      </div>
+    );
   }
 
   // Redirect if no user type is defined
   if (!userType) {
-    window.location.href = '/user-type-selection';
+    navigate('/user-type');
     return null;
   }
-  return <div className="min-h-screen bg-gray-100 flex flex-col">
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex flex-col">
       <Header />
       
       {/* Push Notification Overlay */}
-      {currentNotification && <PushNotification job={currentNotification} onAccept={acceptJob} onReject={rejectJob} onClose={dismissNotification} />}
+      {currentNotification && (
+        <PushNotification 
+          job={currentNotification} 
+          onAccept={acceptJob} 
+          onReject={rejectJob} 
+          onClose={dismissNotification} 
+        />
+      )}
       
       <main className="flex-1 helpaqui-container py-4">
         {/* Category Selector - Only for Solicitantes */}
-        {userType === 'solicitante' && <CategorySelector onSelectCategory={setSelectedCategory} selectedCategory={selectedCategory} />}
+        {userType === 'solicitante' && (
+          <CategorySelector 
+            onSelectCategory={setSelectedCategory} 
+            selectedCategory={selectedCategory} 
+          />
+        )}
         
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Main Content */}
           <div className="flex-1">
-            {userType === 'solicitante' ? <SolicitanteHome selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} /> : <FreelancerHome />}
+            {userType === 'solicitante' ? (
+              <SolicitanteHome 
+                selectedCategory={selectedCategory} 
+                onSelectCategory={setSelectedCategory} 
+              />
+            ) : (
+              <FreelancerHome />
+            )}
           </div>
           
           {/* Sidebar */}
@@ -133,8 +159,13 @@ const Index = () => {
               
               <TabsContent value="chat">
                 {/* Only show chat if we have real user data */}
-                {currentUser && <ChatInterface recipientId="placeholder" // This should be replaced with real chat logic
-              recipientName="Sistema" recipientAvatar="/placeholder.svg" />}
+                {currentUser && (
+                  <ChatInterface 
+                    recipientId="placeholder" // This should be replaced with real chat logic
+                    recipientName="Sistema" 
+                    recipientAvatar="/placeholder.svg" 
+                  />
+                )}
               </TabsContent>
               
               <TabsContent value="profile">
@@ -179,6 +210,8 @@ const Index = () => {
           <span className="text-xs mt-1">Perfil</span>
         </button>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Index;

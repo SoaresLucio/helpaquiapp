@@ -2,8 +2,8 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useAuthState } from "./hooks/useAuthState";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Register from "./pages/Register";
@@ -27,7 +27,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 function App() {
-  const { isAuthenticated, loading } = useAuthState();
+  const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return (
@@ -44,32 +44,26 @@ function App() {
         <BrowserRouter>
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/new-password" element={<NewPassword />} />
             <Route path="/user-type" element={<UserTypeSelection />} />
-            <Route path="/subscription" element={<Subscription />} />
-            <Route path="/solicitante-plans" element={<SolicitantePlans />} />
             
-            {/* Protected routes */}
-            {isAuthenticated ? (
-              <>
-                <Route path="/profile" element={<UserProfilePage />} />
-                <Route path="/freelancer-profile" element={<FreelancerProfile />} />
-                <Route path="/jobs" element={<Jobs />} />
-                <Route path="/chat" element={<Chat />} />
-                <Route path="/notes" element={<Notes />} />
-                <Route path="/payment-settings" element={<PaymentSettings />} />
-                <Route path="/profile-verification" element={<ProfileVerification />} />
-                <Route path="/category-management" element={<CategoryManagement />} />
-                <Route path="/ai-chat" element={<AIChat />} />
-              </>
-            ) : (
-              <Route path="*" element={<Login />} />
-            )}
+            {/* Routes that require authentication */}
+            <Route path="/" element={isAuthenticated ? <Index /> : <Navigate to="/login" replace />} />
+            <Route path="/subscription" element={isAuthenticated ? <Subscription /> : <Navigate to="/login" replace />} />
+            <Route path="/solicitante-plans" element={isAuthenticated ? <SolicitantePlans /> : <Navigate to="/login" replace />} />
+            <Route path="/profile" element={isAuthenticated ? <UserProfilePage /> : <Navigate to="/login" replace />} />
+            <Route path="/freelancer-profile" element={isAuthenticated ? <FreelancerProfile /> : <Navigate to="/login" replace />} />
+            <Route path="/jobs" element={isAuthenticated ? <Jobs /> : <Navigate to="/login" replace />} />
+            <Route path="/chat" element={isAuthenticated ? <Chat /> : <Navigate to="/login" replace />} />
+            <Route path="/notes" element={isAuthenticated ? <Notes /> : <Navigate to="/login" replace />} />
+            <Route path="/payment-settings" element={isAuthenticated ? <PaymentSettings /> : <Navigate to="/login" replace />} />
+            <Route path="/profile-verification" element={isAuthenticated ? <ProfileVerification /> : <Navigate to="/login" replace />} />
+            <Route path="/category-management" element={isAuthenticated ? <CategoryManagement /> : <Navigate to="/login" replace />} />
+            <Route path="/ai-chat" element={isAuthenticated ? <AIChat /> : <Navigate to="/login" replace />} />
             
             {/* 404 route */}
             <Route path="*" element={<NotFound />} />

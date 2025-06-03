@@ -4,12 +4,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BriefcaseBusiness, UserRound } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
 
 const UserTypeSelection = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [selectedType, setSelectedType] = useState<'solicitante' | 'freelancer' | null>(null);
@@ -32,19 +31,13 @@ const UserTypeSelection = () => {
       // Store in localStorage as backup
       localStorage.setItem('userType', userType);
 
-      toast({
-        title: "Tipo de usuário definido",
-        description: `Você foi cadastrado como ${userType === 'solicitante' ? 'solicitante' : 'freelancer'}.`
-      });
+      toast.success(`Tipo de usuário definido como ${userType === 'solicitante' ? 'solicitante' : 'freelancer'}.`);
 
-      navigate('/');
+      // Use React Router navigation instead of window.location.href
+      navigate('/', { replace: true });
     } catch (error: any) {
       console.error("Erro ao definir tipo de usuário:", error);
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao definir tipo de usuário",
-        variant: "destructive"
-      });
+      toast.error(error.message || "Erro ao definir tipo de usuário");
     } finally {
       setLoading(false);
     }

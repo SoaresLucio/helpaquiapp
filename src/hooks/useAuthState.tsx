@@ -34,35 +34,16 @@ export const useAuthState = () => {
             userType = session.user.user_metadata?.user_type || localStorage.getItem('userType') as 'solicitante' | 'freelancer';
           }
           
-          if (!userType && window.location.pathname !== '/user-type-selection') {
-            window.location.href = '/user-type-selection';
-            return;
-          }
-          
-          const currentPath = window.location.pathname;
-          const isAuthPage = ['/login', '/register', '/user-type-selection'].includes(currentPath);
-          
-          if (isAuthPage && userType) {
-            setTimeout(() => {
-              window.location.href = '/';
-            }, 100);
+          if (userType) {
+            localStorage.setItem('userType', userType);
           }
           
         } catch (error) {
           console.error("Error getting user type:", error);
-          userType = 'solicitante';
+          userType = 'solicitante'; // Default fallback
         }
       } else {
         localStorage.removeItem('userType');
-        
-        const currentPath = window.location.pathname;
-        const publicPaths = ['/login', '/register', '/reset-password', '/new-password', '/user-type-selection'];
-        
-        if (!publicPaths.includes(currentPath)) {
-          setTimeout(() => {
-            window.location.href = '/login';
-          }, 100);
-        }
       }
       
       setAuthState({
