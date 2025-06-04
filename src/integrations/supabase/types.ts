@@ -333,6 +333,7 @@ export type Database = {
           priority_support: boolean | null
           stripe_price_id: string | null
           updated_at: string
+          user_type: string | null
         }
         Insert: {
           created_at?: string
@@ -344,6 +345,7 @@ export type Database = {
           priority_support?: boolean | null
           stripe_price_id?: string | null
           updated_at?: string
+          user_type?: string | null
         }
         Update: {
           created_at?: string
@@ -355,6 +357,7 @@ export type Database = {
           priority_support?: boolean | null
           stripe_price_id?: string | null
           updated_at?: string
+          user_type?: string | null
         }
         Relationships: []
       }

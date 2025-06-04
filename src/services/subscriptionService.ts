@@ -10,6 +10,7 @@ export interface SubscriptionPlan {
   features: string[];
   max_requests_per_month: number | null;
   priority_support: boolean | null;
+  user_type: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -36,13 +37,19 @@ const convertFeaturesToStringArray = (features: Json): string[] => {
   return [];
 };
 
-// Get all available subscription plans
-export const getSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
+// Get all available subscription plans, optionally filtered by user type
+export const getSubscriptionPlans = async (userType?: 'solicitante' | 'freelancer'): Promise<SubscriptionPlan[]> => {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('subscription_plans')
       .select('*')
       .order('price_monthly', { ascending: true });
+
+    if (userType) {
+      query = query.eq('user_type', userType);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
     

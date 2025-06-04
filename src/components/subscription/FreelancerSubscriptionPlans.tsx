@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, Zap, Gift } from 'lucide-react';
+import { Check, Star, Zap, Gift, Users, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { 
   getSubscriptionPlans, 
@@ -13,7 +13,7 @@ import {
   type UserSubscription 
 } from '@/services/subscriptionService';
 
-const SolicitanteSubscriptionPlans: React.FC = () => {
+const FreelancerSubscriptionPlans: React.FC = () => {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [currentSubscription, setCurrentSubscription] = useState<UserSubscription | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,7 +27,7 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
     setLoading(true);
     try {
       const [plansData, currentSub] = await Promise.all([
-        getSubscriptionPlans('solicitante'),
+        getSubscriptionPlans('freelancer'),
         getCurrentSubscription()
       ]);
       
@@ -69,13 +69,13 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
   };
 
   const getPlanIcon = (planName: string) => {
-    if (planName.includes('Boss')) return <Star className="h-5 w-5 text-yellow-500" />;
-    if (planName.includes('Medium')) return <Zap className="h-5 w-5 text-blue-500" />;
+    if (planName.includes('Maximum')) return <Star className="h-5 w-5 text-yellow-500" />;
+    if (planName.includes('Medium')) return <TrendingUp className="h-5 w-5 text-blue-500" />;
     return <Gift className="h-5 w-5 text-green-500" />;
   };
 
   const getPlanGradient = (planName: string) => {
-    if (planName.includes('Boss')) return 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200';
+    if (planName.includes('Maximum')) return 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200';
     if (planName.includes('Medium')) return 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200';
     return 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200';
   };
@@ -92,17 +92,17 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
   };
 
   const getPlanBenefits = (planName: string) => {
-    if (planName.includes('Boss')) {
-      return 'Ideal para empresas e profissionais que precisam de muitos serviços';
+    if (planName.includes('Maximum')) {
+      return 'Para profissionais que querem máxima visibilidade e crescimento acelerado';
     }
     if (planName.includes('Medium')) {
-      return 'Perfeito para uso regular e divulgação do seu negócio';
+      return 'Ideal para freelancers que buscam expandir seus negócios';
     }
-    return 'Ótimo para começar e conhecer a plataforma';
+    return 'Perfeito para começar sua jornada como freelancer';
   };
 
   const formatMaxRequests = (maxRequests: number | null) => {
-    if (maxRequests === -1) return "Ilimitadas";
+    if (maxRequests === -1) return "Ilimitados";
     if (maxRequests === null) return "0";
     return maxRequests.toString();
   };
@@ -133,10 +133,10 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">
-          Planos para Solicitantes
+          Escolha seu Plano Freelancer
         </h2>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Encontre o plano perfeito para suas necessidades e comece a solicitar serviços hoje mesmo.
+          Encontre o plano perfeito para expandir seus negócios e se conectar com mais clientes.
         </p>
       </div>
 
@@ -156,7 +156,7 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
               </Badge>
             )}
             
-            {plan.name.includes('Boss') && (
+            {plan.name.includes('Maximum') && (
               <Badge className="absolute -top-2 right-4 bg-yellow-500 text-yellow-900">
                 Mais Popular
               </Badge>
@@ -166,7 +166,7 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
               <div className="flex items-center justify-center mb-3">
                 {getPlanIcon(plan.name)}
                 <CardTitle className="ml-2 text-xl font-bold">
-                  {plan.name}
+                  {plan.name.replace(' (Freelancer)', '')}
                 </CardTitle>
               </div>
               
@@ -178,7 +178,7 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
               </div>
               
               <div className="text-sm text-gray-600 mb-2">
-                {formatMaxRequests(plan.max_requests_per_month)} solicitações{plan.max_requests_per_month !== -1 ? ' por mês' : ''}
+                {formatMaxRequests(plan.max_requests_per_month)} chats{plan.max_requests_per_month !== -1 ? ' simultâneos' : ''}
               </div>
               
               <p className="text-sm text-gray-600">
@@ -218,7 +218,7 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
               <span>{currentSubscription.subscription_plans?.name}</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-medium mb-1">Solicitações utilizadas:</span>
+              <span className="font-medium mb-1">Chats utilizados:</span>
               <span>
                 {currentSubscription.requests_used_this_month || 0} / {
                   formatMaxRequests(currentSubscription.subscription_plans?.max_requests_per_month || null)
@@ -238,4 +238,4 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
   );
 };
 
-export default SolicitanteSubscriptionPlans;
+export default FreelancerSubscriptionPlans;

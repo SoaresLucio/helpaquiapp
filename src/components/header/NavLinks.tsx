@@ -3,12 +3,15 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 interface NavLinksProps {
   currentPath: string;
 }
 
 const NavLinks: React.FC<NavLinksProps> = ({ currentPath }) => {
+  const { userType } = useAuth();
+
   return (
     <nav className="hidden md:flex gap-6">
       <Link
@@ -31,16 +34,30 @@ const NavLinks: React.FC<NavLinksProps> = ({ currentPath }) => {
       >
         Serviços
       </Link>
-      <Link
-        to="/solicitante-plans"
-        className={cn(
-          navigationMenuTriggerStyle(),
-          "bg-transparent",
-          currentPath === "/solicitante-plans" && "text-helpaqui-blue font-medium"
-        )}
-      >
-        Planos
-      </Link>
+      {userType === 'solicitante' && (
+        <Link
+          to="/solicitante-plans"
+          className={cn(
+            navigationMenuTriggerStyle(),
+            "bg-transparent",
+            currentPath === "/solicitante-plans" && "text-helpaqui-blue font-medium"
+          )}
+        >
+          Planos
+        </Link>
+      )}
+      {userType === 'freelancer' && (
+        <Link
+          to="/freelancer-plans"
+          className={cn(
+            navigationMenuTriggerStyle(),
+            "bg-transparent",
+            currentPath === "/freelancer-plans" && "text-helpaqui-blue font-medium"
+          )}
+        >
+          Planos
+        </Link>
+      )}
       <Link
         to="/chat"
         className={cn(
