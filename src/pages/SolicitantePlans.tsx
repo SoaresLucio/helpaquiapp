@@ -1,17 +1,21 @@
-
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SolicitanteSubscriptionPlans from '@/components/subscription/SolicitanteSubscriptionPlans';
+import BannerCarousel from '@/components/banners/BannerCarousel';
 import { useAccessControl } from '@/hooks/useAccessControl';
+import { usePromotionalBanners } from '@/hooks/usePromotionalBanners';
 
 const SolicitantePlans: React.FC = () => {
   const { hasAccess, userType, loading } = useAccessControl({ 
     requiredUserType: 'solicitante' 
   });
+  
+  const { banners, loading: bannersLoading, error: bannersError } = usePromotionalBanners('solicitante');
 
   useEffect(() => {
     console.log('SolicitantePlans - Access check:', { hasAccess, userType, loading });
-  }, [hasAccess, userType, loading]);
+    console.log('SolicitantePlans - Banners:', { banners, bannersLoading, bannersError });
+  }, [hasAccess, userType, loading, banners, bannersLoading, bannersError]);
 
   if (loading) {
     return (
@@ -38,6 +42,13 @@ const SolicitantePlans: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Banner promocional */}
+        {!bannersLoading && banners.length > 0 && (
+          <div className="mb-8">
+            <BannerCarousel banners={banners} />
+          </div>
+        )}
+
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 text-center mb-2">
             Planos para Solicitantes
