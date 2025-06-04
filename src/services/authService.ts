@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
 
@@ -18,6 +17,58 @@ const validateEmail = (email: string): boolean => {
 
 const sanitizeInput = (input: string): string => {
   return input.trim().replace(/[<>]/g, '');
+};
+
+// Enhanced user validation function
+export const validateUserData = (user: User | null): boolean => {
+  if (!user) {
+    console.error('User validation failed: No user provided');
+    return false;
+  }
+  
+  if (!user.id) {
+    console.error('User validation failed: Missing user ID');
+    return false;
+  }
+  
+  if (!user.email) {
+    console.error('User validation failed: Missing email');
+    return false;
+  }
+  
+  if (!validateEmail(user.email)) {
+    console.error('User validation failed: Invalid email format', user.email);
+    return false;
+  }
+  
+  return true;
+};
+
+// Enhanced session validation
+export const validateSession = async (): Promise<boolean> => {
+  try {
+    const session = await getCurrentSession();
+    if (!session) {
+      console.warn('Session validation failed: No active session');
+      return false;
+    }
+    
+    if (!session.user || !validateUserData(session.user)) {
+      console.error('Session validation failed: Invalid user data in session');
+      return false;
+    }
+    
+    // Check if session is expired
+    if (session.expires_at && new Date(session.expires_at * 1000) <= new Date()) {
+      console.warn('Session validation failed: Session expired');
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Session validation error:', error);
+    return false;
+  }
 };
 
 export const signIn = async (email: string, password: string) => {
@@ -59,7 +110,12 @@ export const signIn = async (email: string, password: string) => {
       }
     }
     
-    console.log("Login successful:", data.user?.email);
+    // Validate user data after successful login
+    if (data.user && !validateUserData(data.user)) {
+      throw new Error("Dados de usuário inválidos. Entre em contato com o suporte.");
+    }
+    
+    console.log("Login successful:", data.user?.email, "ID:", data.user?.id);
     return data;
     
   } catch (error: any) {
@@ -225,6 +281,13 @@ export const getCurrentSession = async (): Promise<Session | null> => {
       console.error("Get session error:", error);
       return null;
     }
+    
+    // Validate session user data
+    if (session?.user && !validateUserData(session.user)) {
+      console.error("Invalid user data in session");
+      return null;
+    }
+    
     return session;
   } catch (error) {
     console.error("Get session error:", error);
@@ -239,6 +302,13 @@ export const getCurrentUser = async (): Promise<User | null> => {
       console.error("Get user error:", error);
       return null;
     }
+    
+    // Validate user data
+    if (user && !validateUserData(user)) {
+      console.error("Invalid user data received");
+      return null;
+    }
+    
     return user;
   } catch (error) {
     console.error("Get user error:", error);
@@ -253,6 +323,13 @@ export const verifySession = async (): Promise<boolean> => {
 
 export const setupAuthListener = (callback: (session: Session | null) => void) => {
   const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Validate session before passing to callback
+    if (session?.user && !validateUserData(session.user)) {
+      console.error("Invalid user data in auth state change");
+      callback(null);
+      return;
+    }
+    
     callback(session);
   });
   
@@ -290,15 +367,18 @@ export const getUserType = async (): Promise<'solicitante' | 'freelancer' | null
     // Try to get from user metadata first
     const userType = user.user_metadata?.user_type;
     if (userType && ['solicitante', 'freelancer'].includes(userType)) {
+      console.log("User type from metadata:", userType, "for user:", user.id);
       return userType as 'solicitante' | 'freelancer';
     }
     
     // Fallback to localStorage (for Google auth users)
     const storedType = localStorage.getItem('userType');
     if (storedType && ['solicitante', 'freelancer'].includes(storedType)) {
+      console.log("User type from localStorage:", storedType, "for user:", user.id);
       return storedType as 'solicitante' | 'freelancer';
     }
     
+    console.warn("No user type found for user:", user.id);
     return null;
   } catch (error) {
     console.error("Error getting user type:", error);

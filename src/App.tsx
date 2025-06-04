@@ -4,6 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+
+// Pages
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Register from "./pages/Register";
@@ -22,6 +25,7 @@ import CategoryManagement from "./pages/CategoryManagement";
 import AIChat from "./pages/AIChat";
 import Subscription from "./pages/Subscription";
 import SolicitantePlans from "./pages/SolicitantePlans";
+import FreelancerPlans from "./pages/FreelancerPlans";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,19 +55,76 @@ function App() {
             <Route path="/new-password" element={<NewPassword />} />
             <Route path="/user-type" element={<UserTypeSelection />} />
             
-            {/* Routes that require authentication */}
-            <Route path="/" element={isAuthenticated ? <Index /> : <Navigate to="/login" replace />} />
-            <Route path="/subscription" element={isAuthenticated ? <Subscription /> : <Navigate to="/login" replace />} />
-            <Route path="/solicitante-plans" element={isAuthenticated ? <SolicitantePlans /> : <Navigate to="/login" replace />} />
-            <Route path="/profile" element={isAuthenticated ? <UserProfilePage /> : <Navigate to="/login" replace />} />
-            <Route path="/freelancer-profile" element={isAuthenticated ? <FreelancerProfile /> : <Navigate to="/login" replace />} />
-            <Route path="/jobs" element={isAuthenticated ? <Jobs /> : <Navigate to="/login" replace />} />
-            <Route path="/chat" element={isAuthenticated ? <Chat /> : <Navigate to="/login" replace />} />
-            <Route path="/notes" element={isAuthenticated ? <Notes /> : <Navigate to="/login" replace />} />
-            <Route path="/payment-settings" element={isAuthenticated ? <PaymentSettings /> : <Navigate to="/login" replace />} />
-            <Route path="/profile-verification" element={isAuthenticated ? <ProfileVerification /> : <Navigate to="/login" replace />} />
-            <Route path="/category-management" element={isAuthenticated ? <CategoryManagement /> : <Navigate to="/login" replace />} />
-            <Route path="/ai-chat" element={isAuthenticated ? <AIChat /> : <Navigate to="/login" replace />} />
+            {/* Protected routes that require authentication */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            } />
+            
+            {/* General protected routes */}
+            <Route path="/subscription" element={
+              <ProtectedRoute>
+                <Subscription />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <UserProfilePage />
+              </ProtectedRoute>
+            } />
+            <Route path="/freelancer-profile" element={
+              <ProtectedRoute>
+                <FreelancerProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/jobs" element={
+              <ProtectedRoute>
+                <Jobs />
+              </ProtectedRoute>
+            } />
+            <Route path="/chat" element={
+              <ProtectedRoute>
+                <Chat />
+              </ProtectedRoute>
+            } />
+            <Route path="/notes" element={
+              <ProtectedRoute>
+                <Notes />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment-settings" element={
+              <ProtectedRoute>
+                <PaymentSettings />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile-verification" element={
+              <ProtectedRoute>
+                <ProfileVerification />
+              </ProtectedRoute>
+            } />
+            <Route path="/category-management" element={
+              <ProtectedRoute>
+                <CategoryManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/ai-chat" element={
+              <ProtectedRoute>
+                <AIChat />
+              </ProtectedRoute>
+            } />
+            
+            {/* User type specific routes with access control */}
+            <Route path="/solicitante-plans" element={
+              <ProtectedRoute requiredUserType="solicitante">
+                <SolicitantePlans />
+              </ProtectedRoute>
+            } />
+            <Route path="/freelancer-plans" element={
+              <ProtectedRoute requiredUserType="freelancer">
+                <FreelancerPlans />
+              </ProtectedRoute>
+            } />
             
             {/* 404 route */}
             <Route path="*" element={<NotFound />} />
