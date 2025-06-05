@@ -9,33 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      app_settings: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          key: string
-          updated_at: string
-          value: Json
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          key: string
-          updated_at?: string
-          value: Json
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          key?: string
-          updated_at?: string
-          value?: Json
-        }
-        Relationships: []
-      }
       bank_details: {
         Row: {
           account_number: string
@@ -173,48 +146,6 @@ export type Database = {
           status?: string
           stripe_session_id?: string | null
           updated_at?: string
-        }
-        Relationships: []
-      }
-      profile_verifications: {
-        Row: {
-          additional_data: Json | null
-          created_at: string
-          document_url: string | null
-          id: string
-          notes: string | null
-          reviewed_at: string | null
-          status: string
-          submitted_at: string
-          updated_at: string
-          user_id: string
-          verification_type: string
-        }
-        Insert: {
-          additional_data?: Json | null
-          created_at?: string
-          document_url?: string | null
-          id?: string
-          notes?: string | null
-          reviewed_at?: string | null
-          status?: string
-          submitted_at?: string
-          updated_at?: string
-          user_id: string
-          verification_type: string
-        }
-        Update: {
-          additional_data?: Json | null
-          created_at?: string
-          document_url?: string | null
-          id?: string
-          notes?: string | null
-          reviewed_at?: string | null
-          status?: string
-          submitted_at?: string
-          updated_at?: string
-          user_id?: string
-          verification_type?: string
         }
         Relationships: []
       }
@@ -469,80 +400,6 @@ export type Database = {
           stripe_price_id?: string | null
           updated_at?: string
           user_type?: string | null
-        }
-        Relationships: []
-      }
-      support_messages: {
-        Row: {
-          created_at: string
-          id: string
-          is_admin: boolean
-          message: string
-          sender_id: string
-          ticket_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_admin?: boolean
-          message: string
-          sender_id: string
-          ticket_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_admin?: boolean
-          message?: string
-          sender_id?: string
-          ticket_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "support_messages_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: false
-            referencedRelation: "support_tickets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      support_tickets: {
-        Row: {
-          category: string | null
-          created_at: string
-          description: string | null
-          id: string
-          priority: string
-          resolved_at: string | null
-          status: string
-          subject: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          priority?: string
-          resolved_at?: string | null
-          status?: string
-          subject: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          category?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          priority?: string
-          resolved_at?: string | null
-          status?: string
-          subject?: string
-          updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
