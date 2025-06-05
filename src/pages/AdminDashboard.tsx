@@ -12,7 +12,7 @@ import SupportTickets from '@/components/admin/SupportTickets';
 import AdminOverview from '@/components/admin/AdminOverview';
 
 const AdminDashboard = () => {
-  const { hasAccess, loading } = useAccessControl({ requiredUserType: 'helpadmin' });
+  const { hasAccess, loading } = useAccessControl({ requiredUserType: 'helladmin' });
 
   if (loading) {
     return (
