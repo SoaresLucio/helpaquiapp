@@ -50,25 +50,37 @@ const SupportTickets = () => {
 
   const fetchTickets = async () => {
     try {
+      // First get tickets based on filter
       let query = supabase
         .from('support_tickets')
-        .select(`
-          *,
-          profiles (
-            first_name,
-            last_name
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (filter !== 'all') {
         query = query.eq('status', filter);
       }
 
-      const { data, error } = await query;
+      const { data: ticketsData, error } = await query;
 
       if (error) throw error;
-      setTickets(data || []);
+
+      // Then get profile information for each ticket
+      const ticketsWithProfiles = await Promise.all(
+        (ticketsData || []).map(async (ticket) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('id', ticket.user_id)
+            .single();
+
+          return {
+            ...ticket,
+            profiles: profile
+          };
+        })
+      );
+
+      setTickets(ticketsWithProfiles);
     } catch (error: any) {
       toast({
         title: 'Erro',

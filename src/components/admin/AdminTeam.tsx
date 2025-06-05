@@ -34,20 +34,32 @@ const AdminTeam = () => {
 
   const fetchAdmins = async () => {
     try {
-      const { data, error } = await supabase
+      // First get admin user roles
+      const { data: adminRoles, error: rolesError } = await supabase
         .from('user_roles')
-        .select(`
-          *,
-          profiles (
-            first_name,
-            last_name
-          )
-        `)
+        .select('*')
         .eq('role', 'helpadmin')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setAdmins(data || []);
+      if (rolesError) throw rolesError;
+
+      // Then get profile information for each admin
+      const adminsWithProfiles = await Promise.all(
+        (adminRoles || []).map(async (role) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('id', role.user_id)
+            .single();
+
+          return {
+            ...role,
+            profiles: profile
+          };
+        })
+      );
+
+      setAdmins(adminsWithProfiles);
     } catch (error: any) {
       toast({
         title: 'Erro',
@@ -64,11 +76,11 @@ const AdminTeam = () => {
     setAdding(true);
 
     try {
-      // First, check if user exists by email in profiles
+      // First, check if user exists by ID in profiles
       const { data: userData, error: userError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('id', newAdminEmail) // This assumes you're entering user ID, not email
+        .eq('id', newAdminEmail)
         .single();
 
       if (userError) {

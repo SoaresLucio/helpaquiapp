@@ -37,19 +37,31 @@ const ProfileVerifications = () => {
 
   const fetchVerifications = async () => {
     try {
-      const { data, error } = await supabase
+      // First get all verifications
+      const { data: verificationsData, error } = await supabase
         .from('profile_verifications')
-        .select(`
-          *,
-          profiles (
-            first_name,
-            last_name
-          )
-        `)
+        .select('*')
         .order('submitted_at', { ascending: false });
 
       if (error) throw error;
-      setVerifications(data || []);
+
+      // Then get profile information for each verification
+      const verificationsWithProfiles = await Promise.all(
+        (verificationsData || []).map(async (verification) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('id', verification.user_id)
+            .single();
+
+          return {
+            ...verification,
+            profiles: profile
+          };
+        })
+      );
+
+      setVerifications(verificationsWithProfiles);
     } catch (error: any) {
       toast({
         title: 'Erro',
