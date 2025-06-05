@@ -11,6 +11,7 @@ import { Plus, Trash2, Shield, Users } from 'lucide-react';
 
 interface AdminUser {
   id: string;
+  user_id: string;
   role: string;
   created_at: string;
   profiles?: {
@@ -63,27 +64,44 @@ const AdminTeam = () => {
     setAdding(true);
 
     try {
-      // Primeiro, verifica se o usuário existe
+      // First, check if user exists by email in profiles
       const { data: userData, error: userError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('id', newAdminEmail); // Assumindo que o email é o ID, mas isso precisa ser ajustado
+        .eq('id', newAdminEmail) // This assumes you're entering user ID, not email
+        .single();
 
       if (userError) {
-        // Se não encontrou por ID, tenta buscar na tabela auth.users (isso pode não funcionar diretamente)
         toast({
           title: 'Erro',
-          description: 'Usuário não encontrado. Verifique o email.',
+          description: 'Usuário não encontrado. Verifique o ID do usuário.',
           variant: 'destructive'
         });
         return;
       }
 
-      // Adiciona o role de admin
+      // Check if user already has admin role
+      const { data: existingRole } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', userData.id)
+        .eq('role', 'helpadmin')
+        .single();
+
+      if (existingRole) {
+        toast({
+          title: 'Erro',
+          description: 'Este usuário já é um administrador.',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Add admin role
       const { error: roleError } = await supabase
         .from('user_roles')
         .insert([{
-          user_id: userData[0]?.id,
+          user_id: userData.id,
           role: 'helpadmin'
         }]);
 
@@ -112,7 +130,7 @@ const AdminTeam = () => {
         .from('user_roles')
         .delete()
         .eq('user_id', userId)
-        .eq('role', 'helladmin');
+        .eq('role', 'helpadmin');
 
       if (error) throw error;
 
@@ -163,13 +181,13 @@ const AdminTeam = () => {
             </DialogHeader>
             <form onSubmit={handleAddAdmin} className="space-y-4">
               <div>
-                <Label htmlFor="email">Email do Usuário</Label>
+                <Label htmlFor="userId">ID do Usuário</Label>
                 <Input
-                  id="email"
-                  type="email"
+                  id="userId"
+                  type="text"
                   value={newAdminEmail}
                   onChange={(e) => setNewAdminEmail(e.target.value)}
-                  placeholder="usuario@exemplo.com"
+                  placeholder="UUID do usuário"
                   required
                 />
                 <p className="text-sm text-gray-500 mt-1">
