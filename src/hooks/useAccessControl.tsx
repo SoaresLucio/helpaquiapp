@@ -2,16 +2,18 @@
 import { useAuth } from './useAuth';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { adminSyncService } from '@/services/adminSyncService';
 
 interface UseAccessControlOptions {
   requiredUserType?: 'solicitante' | 'freelancer';
   redirectOnMismatch?: boolean;
+  enableAdminSync?: boolean;
 }
 
 export const useAccessControl = (options: UseAccessControlOptions = {}) => {
   const { isAuthenticated, userType, loading, user } = useAuth();
   const navigate = useNavigate();
-  const { requiredUserType, redirectOnMismatch = true } = options;
+  const { requiredUserType, redirectOnMismatch = true, enableAdminSync = false } = options;
 
   // Verify user authentication and type
   const hasAccess = isAuthenticated && 
@@ -19,6 +21,18 @@ export const useAccessControl = (options: UseAccessControlOptions = {}) => {
 
   // Verify user ID consistency
   const isUserValid = user?.id && user.email;
+
+  // Initialize admin sync if enabled and user has access
+  useEffect(() => {
+    if (enableAdminSync && hasAccess && isUserValid) {
+      console.log('Inicializando sincronização administrativa...');
+      
+      // Verificar se o usuário tem permissão para usar o painel administrativo
+      adminSyncService.checkSyncStatus().then(status => {
+        console.log('Status da sincronização administrativa:', status);
+      });
+    }
+  }, [enableAdminSync, hasAccess, isUserValid]);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -55,6 +69,8 @@ export const useAccessControl = (options: UseAccessControlOptions = {}) => {
     userType,
     loading,
     isUserValid,
-    userId: user?.id
+    userId: user?.id,
+    // Métodos de sincronização administrativa
+    syncService: enableAdminSync ? adminSyncService : null
   };
 };
