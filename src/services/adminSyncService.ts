@@ -17,6 +17,15 @@ export interface SyncStatus {
   error: string | null;
 }
 
+// Define the allowed table names for synchronization
+type SyncableTableNames = 
+  | 'profiles'
+  | 'categorias'
+  | 'service_requests'
+  | 'subscription_plans'
+  | 'promotional_banners'
+  | 'app_settings';
+
 class AdminSyncService {
   private toast: any;
 
@@ -100,7 +109,7 @@ class AdminSyncService {
   }
 
   // Sincronizar dados específicos por tabela
-  async syncTableData(tableName: string) {
+  async syncTableData(tableName: SyncableTableNames) {
     try {
       console.log(`Sincronizando dados da tabela: ${tableName}`);
 

@@ -3,6 +3,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { adminSyncService, SyncData, SyncStatus } from '@/services/adminSyncService';
 import { useToast } from '@/components/ui/use-toast';
 
+// Define the allowed table names for synchronization
+type SyncableTableNames = 
+  | 'profiles'
+  | 'categorias'
+  | 'service_requests'
+  | 'subscription_plans'
+  | 'promotional_banners'
+  | 'app_settings';
+
 export const useAdminSync = () => {
   const [syncData, setSyncData] = useState<SyncData | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>({
@@ -44,7 +53,7 @@ export const useAdminSync = () => {
   }, []);
 
   // Sincronização de tabela específica
-  const syncTable = useCallback(async (tableName: string) => {
+  const syncTable = useCallback(async (tableName: SyncableTableNames) => {
     setSyncStatus(prev => ({ ...prev, isLoading: true }));
     
     try {
@@ -80,7 +89,8 @@ export const useAdminSync = () => {
         
         // Atualizar dados quando houver mudanças
         if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE' || payload.eventType === 'DELETE') {
-          syncTable(payload.table);
+          const tableName = payload.table as SyncableTableNames;
+          syncTable(tableName);
         }
       });
 
