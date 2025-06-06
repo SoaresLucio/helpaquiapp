@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -5,7 +6,7 @@ import Auth from './pages/Auth';
 import ResetPassword from './pages/ResetPassword';
 import NewPassword from './pages/NewPassword';
 import UserTypeSelection from './pages/UserTypeSelection';
-import Home from './pages/Home';
+import Index from './pages/Index';
 import FreelancerPlans from './pages/FreelancerPlans';
 import SolicitantePlans from './pages/SolicitantePlans';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -27,7 +28,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/new-password" element={<NewPassword />} />
             <Route path="/user-type-selection" element={<UserTypeSelection />} />
-            <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/freelancer-plans" element={<ProtectedRoute requiredUserType="freelancer"><FreelancerPlans /></ProtectedRoute>} />
             <Route path="/solicitante-plans" element={<ProtectedRoute requiredUserType="solicitante"><SolicitantePlans /></ProtectedRoute>} />
             <Route path="/admin-sync" element={<ProtectedRoute><AdminSync /></ProtectedRoute>} />
