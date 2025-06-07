@@ -4,12 +4,17 @@ import { Star, Clock, DollarSign, Calendar, TrendingUp, Users, Briefcase, Credit
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import BannerCarousel from '@/components/banners/BannerCarousel';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { usePromotionalBanners } from '@/hooks/usePromotionalBanners';
 
 const FreelancerHome: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  
+  // Hook para buscar banners promocionais
+  const { banners, loading: bannersLoading, error: bannersError } = usePromotionalBanners('freelancer');
   
   // Mock data - in a real app, this would come from the API
   const stats = {
@@ -57,6 +62,13 @@ const FreelancerHome: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Banner promocional - Área específica para divulgação */}
+      {!bannersLoading && banners.length > 0 && (
+        <div className="mb-6">
+          <BannerCarousel banners={banners} className="rounded-xl shadow-lg" />
+        </div>
+      )}
+
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-blue-500 to-green-500 rounded-xl p-6 text-white">
         <h1 className="text-2xl font-bold mb-2">

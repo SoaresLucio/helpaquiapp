@@ -7,9 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ProfessionalCard from '@/components/ProfessionalCard';
 import ServiceMap from '@/components/ServiceMap';
+import BannerCarousel from '@/components/banners/BannerCarousel';
 import { mockProfessionals, serviceCategories } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { usePromotionalBanners } from '@/hooks/usePromotionalBanners';
 
 interface SolicitanteHomeProps {
   selectedCategory: string | null;
@@ -23,6 +25,9 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
   const [sortBy, setSortBy] = useState('rating');
   const [filterRating, setFilterRating] = useState('all');
   const [allProfessionals, setAllProfessionals] = useState(mockProfessionals);
+  
+  // Hook para buscar banners promocionais
+  const { banners, loading: bannersLoading, error: bannersError } = usePromotionalBanners('solicitante');
 
   // Load freelancer offers from localStorage
   useEffect(() => {
@@ -83,6 +88,13 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
 
   return (
     <div className="space-y-6">
+      {/* Banner promocional - Área específica para divulgação */}
+      {!bannersLoading && banners.length > 0 && (
+        <div className="mb-6">
+          <BannerCarousel banners={banners} className="rounded-xl shadow-lg" />
+        </div>
+      )}
+
       {/* Welcome Section */}
       <div className="bg-white rounded-xl p-6 shadow-sm">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
