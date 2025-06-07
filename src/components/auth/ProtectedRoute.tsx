@@ -35,15 +35,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (requiredUserType && userType !== requiredUserType) {
     console.warn(`Access denied: User type '${userType}' cannot access '${requiredUserType}' content`);
     
-    // Redirect to appropriate home based on user type
-    if (userType === 'solicitante') {
-      return <Navigate to="/solicitante-plans" replace />;
-    } else if (userType === 'freelancer') {
-      return <Navigate to="/freelancer-plans" replace />;
-    } else {
-      // Se não tem tipo definido, vai para seleção de tipo
-      return <Navigate to="/user-type-selection" replace />;
-    }
+    // Redirect to login to trigger proper redirect flow
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;

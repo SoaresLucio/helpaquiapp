@@ -5,7 +5,6 @@ import Register from './pages/Register';
 import Auth from './pages/Auth';
 import ResetPassword from './pages/ResetPassword';
 import NewPassword from './pages/NewPassword';
-import UserTypeSelection from './pages/UserTypeSelection';
 import Index from './pages/Index';
 import FreelancerPlans from './pages/FreelancerPlans';
 import SolicitantePlans from './pages/SolicitantePlans';
@@ -25,7 +24,6 @@ function App() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/new-password" element={<NewPassword />} />
-          <Route path="/user-type-selection" element={<UserTypeSelection />} />
           <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
           <Route path="/freelancer-plans" element={<ProtectedRoute requiredUserType="freelancer"><FreelancerPlans /></ProtectedRoute>} />
           <Route path="/solicitante-plans" element={<ProtectedRoute requiredUserType="solicitante"><SolicitantePlans /></ProtectedRoute>} />

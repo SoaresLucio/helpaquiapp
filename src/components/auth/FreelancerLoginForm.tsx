@@ -41,9 +41,11 @@ const FreelancerLoginForm: React.FC<FreelancerLoginFormProps> = ({
         description: "Bem-vindo de volta ao HelpAqui!"
       });
       
-      // Redirecionar baseado no tipo de usuário
-      const redirectPath = await handlePostLoginRedirect();
-      navigate(redirectPath, { replace: true });
+      // Aguarda um pouco para o estado de autenticação ser atualizado
+      setTimeout(async () => {
+        const redirectPath = await handlePostLoginRedirect();
+        navigate(redirectPath, { replace: true });
+      }, 1000);
       
     } catch (error) {
       console.error("Login error:", error);
