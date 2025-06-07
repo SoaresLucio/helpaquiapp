@@ -88,6 +88,26 @@ const NavLinks: React.FC<NavLinksProps> = ({ currentPath }) => {
       >
         Notas
       </Link>
+      <Link
+        to="/payments"
+        className={cn(
+          navigationMenuTriggerStyle(),
+          "bg-transparent",
+          currentPath === "/payments" && "text-helpaqui-blue font-medium"
+        )}
+      >
+        Pagamentos
+      </Link>
+      <Link
+        to="/profile"
+        className={cn(
+          navigationMenuTriggerStyle(),
+          "bg-transparent",
+          currentPath === "/profile" && "text-helpaqui-blue font-medium"
+        )}
+      >
+        Perfil
+      </Link>
     </nav>
   );
 };
