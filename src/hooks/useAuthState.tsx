@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { setupAuthListener, getCurrentSession, getUserType } from '@/services/authService';
+import { handlePostLoginRedirect } from '@/services/loginRedirectService';
 
 interface AuthState {
   session: Session | null;
@@ -36,6 +37,9 @@ export const useAuthState = () => {
           
           if (userType) {
             localStorage.setItem('userType', userType);
+            console.log('User type confirmed:', userType, 'for user:', session.user.id);
+          } else {
+            console.warn('No user type found for authenticated user:', session.user.id);
           }
           
         } catch (error) {

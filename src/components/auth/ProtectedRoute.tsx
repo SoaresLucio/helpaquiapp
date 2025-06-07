@@ -40,8 +40,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       return <Navigate to="/solicitante-plans" replace />;
     } else if (userType === 'freelancer') {
       return <Navigate to="/freelancer-plans" replace />;
+    } else {
+      // Se não tem tipo definido, vai para seleção de tipo
+      return <Navigate to="/user-type-selection" replace />;
     }
-    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
