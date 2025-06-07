@@ -102,7 +102,7 @@ const Index = () => {
 
   // Redirect if no user type is defined
   if (!userType) {
-    navigate('/login', { replace: true });
+    navigate('/user-type');
     return null;
   }
 

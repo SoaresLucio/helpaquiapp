@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { signIn, signInWithGoogle } from '@/services/authService';
-import { handlePostLoginRedirect } from '@/services/loginRedirectService';
 import GoogleIcon from './GoogleIcon';
 
 interface FreelancerLoginFormProps {
@@ -41,12 +40,7 @@ const FreelancerLoginForm: React.FC<FreelancerLoginFormProps> = ({
         description: "Bem-vindo de volta ao HelpAqui!"
       });
       
-      // Aguarda um pouco para o estado de autenticação ser atualizado
-      setTimeout(async () => {
-        const redirectPath = await handlePostLoginRedirect();
-        navigate(redirectPath, { replace: true });
-      }, 1000);
-      
+      navigate('/');
     } catch (error) {
       console.error("Login error:", error);
       let errorMessage = "Email ou senha incorretos. Por favor, tente novamente.";
@@ -68,7 +62,6 @@ const FreelancerLoginForm: React.FC<FreelancerLoginFormProps> = ({
     setGoogleLoading(true);
     try {
       await signInWithGoogle();
-      // O redirecionamento será tratado pelo hook useAuth
     } catch (error) {
       console.error("Google login error:", error);
       toast({

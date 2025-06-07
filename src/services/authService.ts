@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
 
@@ -22,11 +21,27 @@ const sanitizeInput = (input: string): string => {
 
 // Enhanced user validation function
 export const validateUserData = (user: User | null): boolean => {
-  if (!user || !user.id || !user.email) {
+  if (!user) {
+    console.error('User validation failed: No user provided');
     return false;
   }
   
-  return validateEmail(user.email);
+  if (!user.id) {
+    console.error('User validation failed: Missing user ID');
+    return false;
+  }
+  
+  if (!user.email) {
+    console.error('User validation failed: Missing email');
+    return false;
+  }
+  
+  if (!validateEmail(user.email)) {
+    console.error('User validation failed: Invalid email format', user.email);
+    return false;
+  }
+  
+  return true;
 };
 
 // Enhanced session validation
@@ -34,21 +49,24 @@ export const validateSession = async (): Promise<boolean> => {
   try {
     const session = await getCurrentSession();
     if (!session) {
+      console.warn('Session validation failed: No active session');
       return false;
     }
     
     if (!session.user || !validateUserData(session.user)) {
+      console.error('Session validation failed: Invalid user data in session');
       return false;
     }
     
     // Check if session is expired
     if (session.expires_at && new Date(session.expires_at * 1000) <= new Date()) {
+      console.warn('Session validation failed: Session expired');
       return false;
     }
     
     return true;
   } catch (error) {
-    console.error("Session validation error:", error);
+    console.error('Session validation error:', error);
     return false;
   }
 };
@@ -56,27 +74,28 @@ export const validateSession = async (): Promise<boolean> => {
 export const signIn = async (email: string, password: string) => {
   // Enhanced validation
   const cleanEmail = sanitizeInput(email).toLowerCase();
+  const cleanPassword = password; // Don't modify password
   
-  if (!cleanEmail || !password) {
+  if (!cleanEmail || !cleanPassword) {
     throw new Error("Email e senha são obrigatórios");
   }
   
   if (!validateEmail(cleanEmail)) {
-    throw new Error("Email inválido");
+    throw new Error("Formato de e-mail inválido");
   }
   
-  if (password.length < 6) {
+  if (cleanPassword.length < 6) {
     throw new Error("Senha deve ter pelo menos 6 caracteres");
   }
   
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email: cleanEmail,
-      password: password
+      password: cleanPassword
     });
     
     if (error) {
-      console.error("Sign in error:", error);
+      console.error("Authentication error:", error);
       
       // More specific error handling
       switch (error.message) {
@@ -113,21 +132,27 @@ export const signUp = async (
   userType: 'solicitante' | 'freelancer',
   categories?: string[]
 ) => {
-  // Enhanced validation
+  // Enhanced validation and sanitization
   const cleanEmail = sanitizeInput(email).toLowerCase();
+  const cleanPassword = password; // Don't modify password
   const cleanFirstName = sanitizeInput(firstName);
   const cleanLastName = sanitizeInput(lastName);
   
-  if (!cleanEmail || !password || !cleanFirstName || !cleanLastName) {
+  if (!cleanEmail || !cleanPassword || !cleanFirstName || !cleanLastName) {
     throw new Error("Todos os campos são obrigatórios");
   }
   
   if (!validateEmail(cleanEmail)) {
-    throw new Error("Email inválido");
+    throw new Error("Formato de e-mail inválido");
   }
   
-  if (password.length < 8) {
+  // Enhanced password validation
+  if (cleanPassword.length < 8) {
     throw new Error("A senha deve ter pelo menos 8 caracteres");
+  }
+  
+  if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(cleanPassword)) {
+    throw new Error("A senha deve conter letras maiúsculas, minúsculas e números");
   }
   
   if (cleanFirstName.length < 2 || cleanLastName.length < 2) {
@@ -137,7 +162,7 @@ export const signUp = async (
   try {
     const { data, error } = await supabase.auth.signUp({
       email: cleanEmail,
-      password: password,
+      password: cleanPassword,
       options: {
         data: {
           first_name: cleanFirstName,
@@ -149,13 +174,13 @@ export const signUp = async (
     });
     
     if (error) {
-      console.error("Sign up error:", error);
+      console.error("Registration error:", error);
       
       switch (error.message) {
         case 'User already registered':
           throw new Error("Este email já está cadastrado. Faça login ou use outro email.");
         case 'Password should be at least 6 characters':
-          throw new Error("A senha deve ter pelo menos 8 caracteres");
+          throw new Error("A senha deve ter pelo menos 6 caracteres");
         case 'Signup is disabled':
           throw new Error("Novos cadastros estão temporariamente desabilitados");
         default:
@@ -180,7 +205,7 @@ export const resetPassword = async (email: string) => {
   }
   
   if (!validateEmail(cleanEmail)) {
-    throw new Error("Email inválido");
+    throw new Error("Formato de e-mail inválido");
   }
   
   try {
@@ -205,8 +230,13 @@ export const updatePassword = async (newPassword: string) => {
     throw new Error("Nova senha é obrigatória");
   }
   
+  // Enhanced password validation
   if (newPassword.length < 8) {
     throw new Error("A senha deve ter pelo menos 8 caracteres");
+  }
+  
+  if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
+    throw new Error("A senha deve conter letras maiúsculas, minúsculas e números");
   }
   
   try {

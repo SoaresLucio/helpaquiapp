@@ -9,33 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      administradores: {
-        Row: {
-          ativo: boolean | null
-          created_at: string | null
-          email: string
-          id: string
-          nome: string
-          role: string
-        }
-        Insert: {
-          ativo?: boolean | null
-          created_at?: string | null
-          email: string
-          id?: string
-          nome: string
-          role: string
-        }
-        Update: {
-          ativo?: boolean | null
-          created_at?: string | null
-          email?: string
-          id?: string
-          nome?: string
-          role?: string
-        }
-        Relationships: []
-      }
       app_settings: {
         Row: {
           created_at: string
@@ -96,39 +69,6 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      categorias: {
-        Row: {
-          ativo: boolean | null
-          cor: string | null
-          created_at: string | null
-          descricao: string | null
-          icone: string | null
-          id: string
-          nome: string
-          order_position: number | null
-        }
-        Insert: {
-          ativo?: boolean | null
-          cor?: string | null
-          created_at?: string | null
-          descricao?: string | null
-          icone?: string | null
-          id?: string
-          nome: string
-          order_position?: number | null
-        }
-        Update: {
-          ativo?: boolean | null
-          cor?: string | null
-          created_at?: string | null
-          descricao?: string | null
-          icone?: string | null
-          id?: string
-          nome?: string
-          order_position?: number | null
         }
         Relationships: []
       }
@@ -284,42 +224,33 @@ export type Database = {
           avatar_url: string | null
           cover_photo: string | null
           created_at: string
-          email: string | null
           first_name: string | null
           id: string
           last_name: string | null
           phone: string | null
           updated_at: string
-          user_type: string | null
-          verified: boolean | null
         }
         Insert: {
           address?: string | null
           avatar_url?: string | null
           cover_photo?: string | null
           created_at?: string
-          email?: string | null
           first_name?: string | null
           id: string
           last_name?: string | null
           phone?: string | null
           updated_at?: string
-          user_type?: string | null
-          verified?: boolean | null
         }
         Update: {
           address?: string | null
           avatar_url?: string | null
           cover_photo?: string | null
           created_at?: string
-          email?: string | null
           first_name?: string | null
           id?: string
           last_name?: string | null
           phone?: string | null
           updated_at?: string
-          user_type?: string | null
-          verified?: boolean | null
         }
         Relationships: []
       }
@@ -685,39 +616,7 @@ export type Database = {
       }
     }
     Views: {
-      verificacoes: {
-        Row: {
-          created_at: string | null
-          descricao: string | null
-          documentos: Json | null
-          id: string | null
-          status: string | null
-          submitted_at: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          descricao?: string | null
-          documentos?: Json | null
-          id?: string | null
-          status?: string | null
-          submitted_at?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          descricao?: string | null
-          documentos?: Json | null
-          id?: string | null
-          status?: string | null
-          submitted_at?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       check_request_limit: {

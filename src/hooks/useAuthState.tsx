@@ -1,8 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { setupAuthListener, getCurrentSession, getUserType } from '@/services/authService';
-import { handlePostLoginRedirect } from '@/services/loginRedirectService';
+import { setupAuthListener, getCurrentSession, getCurrentUser, getUserType } from '@/services/authService';
 
 interface AuthState {
   session: Session | null;
@@ -23,7 +22,7 @@ export const useAuthState = () => {
 
   useEffect(() => {
     const handleAuthChange = async (session: Session | null) => {
-      console.log('Auth state change detected:', session?.user?.id);
+      console.log('Auth state change:', session);
       
       let userType: 'solicitante' | 'freelancer' | null = null;
       
@@ -37,13 +36,10 @@ export const useAuthState = () => {
           
           if (userType) {
             localStorage.setItem('userType', userType);
-            console.log('User type confirmed:', userType, 'for user:', session.user.id);
-          } else {
-            console.warn('No user type found for authenticated user:', session.user.id);
           }
           
         } catch (error) {
-          console.error("Error during auth validation:", error);
+          console.error("Error getting user type:", error);
           userType = 'solicitante'; // Default fallback
         }
       } else {
@@ -61,8 +57,8 @@ export const useAuthState = () => {
 
     const checkInitialSession = async () => {
       try {
-        console.log('Checking initial session...');
         const currentSession = await getCurrentSession();
+        console.log('Current session on load:', currentSession);
         
         if (currentSession) {
           await handleAuthChange(currentSession);
@@ -70,7 +66,7 @@ export const useAuthState = () => {
           setAuthState(prev => ({ ...prev, loading: false }));
         }
       } catch (error) {
-        console.error("Error checking initial session:", error);
+        console.error("Error checking session:", error);
         setAuthState(prev => ({ ...prev, loading: false }));
       }
     };

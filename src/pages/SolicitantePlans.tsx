@@ -1,15 +1,11 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
 import SolicitanteSubscriptionPlans from '@/components/subscription/SolicitanteSubscriptionPlans';
 import BannerCarousel from '@/components/banners/BannerCarousel';
 import { useAccessControl } from '@/hooks/useAccessControl';
 import { usePromotionalBanners } from '@/hooks/usePromotionalBanners';
 
 const SolicitantePlans: React.FC = () => {
-  const navigate = useNavigate();
   const { hasAccess, userType, loading } = useAccessControl({ 
     requiredUserType: 'solicitante' 
   });
@@ -20,10 +16,6 @@ const SolicitantePlans: React.FC = () => {
     console.log('SolicitantePlans - Access check:', { hasAccess, userType, loading });
     console.log('SolicitantePlans - Banners:', { banners, bannersLoading, bannersError });
   }, [hasAccess, userType, loading, banners, bannersLoading, bannersError]);
-
-  const handleBackToHome = () => {
-    navigate('/', { replace: true });
-  };
 
   if (loading) {
     return (
@@ -50,18 +42,6 @@ const SolicitantePlans: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header com botão de voltar */}
-        <div className="mb-6">
-          <Button 
-            variant="ghost" 
-            onClick={handleBackToHome}
-            className="mb-4 flex items-center gap-2 text-helpaqui-blue hover:text-helpaqui-blue/80"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Voltar ao Início
-          </Button>
-        </div>
-
         {/* Banner promocional */}
         {!bannersLoading && banners.length > 0 && (
           <div className="mb-8">
