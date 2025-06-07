@@ -1,6 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
-import { securityService } from './securityService';
 
 export interface AuthUser {
   id: string;
@@ -20,145 +20,53 @@ const sanitizeInput = (input: string): string => {
   return input.trim().replace(/[<>]/g, '');
 };
 
-// Enhanced user validation function com verificações de segurança
+// Enhanced user validation function
 export const validateUserData = (user: User | null): boolean => {
-  if (!user) {
-    securityService.logSecurityEvent({
-      event_type: 'validation_error',
-      metadata: { reason: 'no_user_provided' },
-      risk_level: 'medium'
-    });
+  if (!user || !user.id || !user.email) {
     return false;
   }
   
-  if (!user.id) {
-    securityService.logSecurityEvent({
-      event_type: 'validation_error',
-      user_id: user.id,
-      metadata: { reason: 'missing_user_id' },
-      risk_level: 'high'
-    });
-    return false;
-  }
-  
-  if (!user.email) {
-    securityService.logSecurityEvent({
-      event_type: 'validation_error',
-      user_id: user.id,
-      metadata: { reason: 'missing_email' },
-      risk_level: 'high'
-    });
-    return false;
-  }
-  
-  const emailValidation = securityService.validateEmail(user.email);
-  if (!emailValidation.isValid) {
-    securityService.logSecurityEvent({
-      event_type: 'validation_error',
-      user_id: user.id,
-      metadata: { reason: 'invalid_email_format', errors: emailValidation.errors },
-      risk_level: 'high'
-    });
-    return false;
-  }
-  
-  return true;
+  return validateEmail(user.email);
 };
 
-// Enhanced session validation com verificações de segurança
+// Enhanced session validation
 export const validateSession = async (): Promise<boolean> => {
   try {
     const session = await getCurrentSession();
     if (!session) {
-      await securityService.logSecurityEvent({
-        event_type: 'suspicious_activity',
-        metadata: { reason: 'no_active_session' },
-        risk_level: 'medium'
-      });
       return false;
     }
     
     if (!session.user || !validateUserData(session.user)) {
-      await securityService.logSecurityEvent({
-        event_type: 'suspicious_activity',
-        user_id: session.user?.id,
-        metadata: { reason: 'invalid_user_data_in_session' },
-        risk_level: 'high'
-      });
       return false;
     }
     
     // Check if session is expired
     if (session.expires_at && new Date(session.expires_at * 1000) <= new Date()) {
-      await securityService.logSecurityEvent({
-        event_type: 'suspicious_activity',
-        user_id: session.user.id,
-        metadata: { reason: 'session_expired' },
-        risk_level: 'medium'
-      });
       return false;
     }
     
     return true;
   } catch (error) {
-    await securityService.logSecurityEvent({
-      event_type: 'suspicious_activity',
-      metadata: { reason: 'session_validation_error', error: String(error) },
-      risk_level: 'high'
-    });
+    console.error("Session validation error:", error);
     return false;
   }
 };
 
 export const signIn = async (email: string, password: string) => {
-  // Rate limiting check
-  const identifier = `${navigator.userAgent}_signin`;
-  const rateLimitResult = securityService.checkRateLimit(identifier, 'login');
-  if (!rateLimitResult.allowed) {
-    throw new Error(`Muitas tentativas de login. Tente novamente em ${rateLimitResult.retryAfter} segundos.`);
-  }
-
-  // Enhanced validation com sanitização
-  const cleanEmail = securityService.sanitizeInput(email).toLowerCase();
+  // Enhanced validation
+  const cleanEmail = sanitizeInput(email).toLowerCase();
   
   if (!cleanEmail || !password) {
-    await securityService.logSecurityEvent({
-      event_type: 'login_attempt',
-      metadata: { reason: 'missing_credentials', email: cleanEmail },
-      risk_level: 'medium'
-    });
     throw new Error("Email e senha são obrigatórios");
   }
   
-  const emailValidation = securityService.validateEmail(cleanEmail);
-  if (!emailValidation.isValid) {
-    await securityService.logSecurityEvent({
-      event_type: 'login_attempt',
-      metadata: { reason: 'invalid_email', email: cleanEmail, errors: emailValidation.errors },
-      risk_level: 'medium'
-    });
-    throw new Error(emailValidation.errors[0]);
+  if (!validateEmail(cleanEmail)) {
+    throw new Error("Email inválido");
   }
   
-  const passwordValidation = securityService.validatePassword(password);
-  if (!passwordValidation.isValid) {
-    await securityService.logSecurityEvent({
-      event_type: 'login_attempt',
-      metadata: { reason: 'weak_password', email: cleanEmail },
-      risk_level: 'medium'
-    });
-    throw new Error("Senha não atende aos critérios de segurança");
-  }
-
-  // Detectar atividade suspeita
-  const isSuspicious = securityService.detectSuspiciousActivity(navigator.userAgent);
-  if (isSuspicious) {
-    await securityService.logSecurityEvent({
-      event_type: 'suspicious_activity',
-      metadata: { reason: 'suspicious_login_attempt', email: cleanEmail },
-      risk_level: 'critical'
-    });
-    throw new Error("Atividade suspeita detectada. Contate o suporte.");
+  if (password.length < 6) {
+    throw new Error("Senha deve ter pelo menos 6 caracteres");
   }
   
   try {
@@ -168,16 +76,7 @@ export const signIn = async (email: string, password: string) => {
     });
     
     if (error) {
-      await securityService.logSecurityEvent({
-        event_type: 'login_attempt',
-        metadata: { 
-          reason: 'authentication_failed', 
-          email: cleanEmail, 
-          error: error.message,
-          userAgent: navigator.userAgent
-        },
-        risk_level: error.message.includes('Invalid') ? 'medium' : 'high'
-      });
+      console.error("Sign in error:", error);
       
       // More specific error handling
       switch (error.message) {
@@ -194,26 +93,8 @@ export const signIn = async (email: string, password: string) => {
     
     // Validate user data after successful login
     if (data.user && !validateUserData(data.user)) {
-      await securityService.logSecurityEvent({
-        event_type: 'suspicious_activity',
-        user_id: data.user.id,
-        metadata: { reason: 'invalid_user_data_post_login' },
-        risk_level: 'critical'
-      });
       throw new Error("Dados de usuário inválidos. Entre em contato com o suporte.");
     }
-    
-    // Log successful login
-    await securityService.logSecurityEvent({
-      event_type: 'login_attempt',
-      user_id: data.user?.id,
-      metadata: { 
-        email: cleanEmail, 
-        success: true,
-        userAgent: navigator.userAgent
-      },
-      risk_level: 'low'
-    });
     
     console.log("Login successful:", data.user?.email, "ID:", data.user?.id);
     return data;
@@ -232,62 +113,25 @@ export const signUp = async (
   userType: 'solicitante' | 'freelancer',
   categories?: string[]
 ) => {
-  // Rate limiting check
-  const identifier = `${navigator.userAgent}_signup`;
-  const rateLimitResult = securityService.checkRateLimit(identifier, 'signup');
-  if (!rateLimitResult.allowed) {
-    throw new Error(`Muitas tentativas de cadastro. Tente novamente em ${rateLimitResult.retryAfter} segundos.`);
-  }
-
-  // Enhanced validation e sanitização
-  const cleanEmail = securityService.sanitizeInput(email).toLowerCase();
-  const cleanFirstName = securityService.sanitizeInput(firstName);
-  const cleanLastName = securityService.sanitizeInput(lastName);
+  // Enhanced validation
+  const cleanEmail = sanitizeInput(email).toLowerCase();
+  const cleanFirstName = sanitizeInput(firstName);
+  const cleanLastName = sanitizeInput(lastName);
   
   if (!cleanEmail || !password || !cleanFirstName || !cleanLastName) {
-    await securityService.logSecurityEvent({
-      event_type: 'suspicious_activity',
-      metadata: { reason: 'missing_required_fields', email: cleanEmail },
-      risk_level: 'medium'
-    });
     throw new Error("Todos os campos são obrigatórios");
   }
   
-  const emailValidation = securityService.validateEmail(cleanEmail);
-  if (!emailValidation.isValid) {
-    await securityService.logSecurityEvent({
-      event_type: 'suspicious_activity',
-      metadata: { reason: 'invalid_email_signup', email: cleanEmail, errors: emailValidation.errors },
-      risk_level: 'medium'
-    });
-    throw new Error(emailValidation.errors[0]);
+  if (!validateEmail(cleanEmail)) {
+    throw new Error("Email inválido");
   }
   
-  // Enhanced password validation
-  const passwordValidation = securityService.validatePassword(password);
-  if (!passwordValidation.isValid) {
-    await securityService.logSecurityEvent({
-      event_type: 'suspicious_activity',
-      metadata: { reason: 'weak_password_signup', email: cleanEmail },
-      risk_level: 'medium'
-    });
-    throw new Error(passwordValidation.errors[0]);
+  if (password.length < 8) {
+    throw new Error("A senha deve ter pelo menos 8 caracteres");
   }
   
   if (cleanFirstName.length < 2 || cleanLastName.length < 2) {
     throw new Error("Nome e sobrenome devem ter pelo menos 2 caracteres");
-  }
-
-  // Verificar nomes suspeitos
-  const suspiciousNames = ['test', 'admin', 'root', 'user', 'null', 'undefined'];
-  if (suspiciousNames.includes(cleanFirstName.toLowerCase()) || 
-      suspiciousNames.includes(cleanLastName.toLowerCase())) {
-    await securityService.logSecurityEvent({
-      event_type: 'suspicious_activity',
-      metadata: { reason: 'suspicious_name', email: cleanEmail, firstName: cleanFirstName, lastName: cleanLastName },
-      risk_level: 'high'
-    });
-    throw new Error("Nome suspeito detectado. Use seu nome real.");
   }
   
   try {
@@ -305,41 +149,19 @@ export const signUp = async (
     });
     
     if (error) {
-      await securityService.logSecurityEvent({
-        event_type: 'suspicious_activity',
-        metadata: { 
-          reason: 'registration_failed', 
-          email: cleanEmail, 
-          error: error.message,
-          userType 
-        },
-        risk_level: 'medium'
-      });
+      console.error("Sign up error:", error);
       
       switch (error.message) {
         case 'User already registered':
           throw new Error("Este email já está cadastrado. Faça login ou use outro email.");
         case 'Password should be at least 6 characters':
-          throw new Error("A senha deve ter pelo menos 12 caracteres");
+          throw new Error("A senha deve ter pelo menos 8 caracteres");
         case 'Signup is disabled':
           throw new Error("Novos cadastros estão temporariamente desabilitados");
         default:
           throw new Error("Erro ao criar conta. Tente novamente mais tarde.");
       }
     }
-    
-    // Log successful registration
-    await securityService.logSecurityEvent({
-      event_type: 'login_attempt',
-      user_id: data.user?.id,
-      metadata: { 
-        email: cleanEmail, 
-        success: true, 
-        userType,
-        action: 'registration'
-      },
-      risk_level: 'low'
-    });
     
     console.log("Registration successful:", data.user?.email);
     return data;
@@ -351,22 +173,14 @@ export const signUp = async (
 };
 
 export const resetPassword = async (email: string) => {
-  // Rate limiting check
-  const identifier = `${navigator.userAgent}_reset`;
-  const rateLimitResult = securityService.checkRateLimit(identifier, 'password_reset');
-  if (!rateLimitResult.allowed) {
-    throw new Error(`Muitas tentativas de redefinição. Tente novamente em ${rateLimitResult.retryAfter} segundos.`);
-  }
-
-  const cleanEmail = securityService.sanitizeInput(email).toLowerCase();
+  const cleanEmail = sanitizeInput(email).toLowerCase();
   
   if (!cleanEmail) {
     throw new Error("Email é obrigatório");
   }
   
-  const emailValidation = securityService.validateEmail(cleanEmail);
-  if (!emailValidation.isValid) {
-    throw new Error(emailValidation.errors[0]);
+  if (!validateEmail(cleanEmail)) {
+    throw new Error("Email inválido");
   }
   
   try {
@@ -375,19 +189,9 @@ export const resetPassword = async (email: string) => {
     });
     
     if (error) {
-      await securityService.logSecurityEvent({
-        event_type: 'suspicious_activity',
-        metadata: { reason: 'password_reset_failed', email: cleanEmail, error: error.message },
-        risk_level: 'medium'
-      });
+      console.error("Reset password error:", error);
       throw new Error("Erro ao enviar email de redefinição. Verifique o endereço e tente novamente.");
     }
-    
-    await securityService.logSecurityEvent({
-      event_type: 'data_access',
-      metadata: { action: 'password_reset_requested', email: cleanEmail },
-      risk_level: 'low'
-    });
     
     return true;
   } catch (error: any) {
@@ -401,13 +205,8 @@ export const updatePassword = async (newPassword: string) => {
     throw new Error("Nova senha é obrigatória");
   }
   
-  // Enhanced password validation
   if (newPassword.length < 8) {
     throw new Error("A senha deve ter pelo menos 8 caracteres");
-  }
-  
-  if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
-    throw new Error("A senha deve conter letras maiúsculas, minúsculas e números");
   }
   
   try {
