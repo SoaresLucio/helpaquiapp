@@ -28,7 +28,6 @@ import Subscription from "./pages/Subscription";
 import SolicitantePlans from "./pages/SolicitantePlans";
 import FreelancerPlans from "./pages/FreelancerPlans";
 import NotFound from "./pages/NotFound";
-import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -48,9 +47,6 @@ function App() {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/new-password" element={<NewPassword />} />
                 <Route path="/user-type" element={<UserTypeSelection />} />
-                
-                {/* Admin routes */}
-                <Route path="/admin/*" element={<AdminDashboard />} />
                 
                 {/* Protected routes that require authentication */}
                 <Route path="/" element={
