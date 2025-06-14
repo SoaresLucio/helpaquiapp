@@ -20,6 +20,11 @@ interface BannerCarouselProps {
 const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners, className = '' }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // Debug log para verificar banners recebidos
+  useEffect(() => {
+    console.log('BannerCarousel received banners:', banners);
+  }, [banners]);
+
   // Auto-rotation para múltiplos banners
   useEffect(() => {
     if (banners.length <= 1) return;
@@ -31,22 +36,27 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners, className = ''
     return () => clearInterval(interval);
   }, [banners.length]);
 
-  if (banners.length === 0) return null;
+  if (banners.length === 0) {
+    console.log('No banners to display');
+    return null;
+  }
 
   // Se há apenas um banner, renderizar diretamente
   if (banners.length === 1) {
     const banner = banners[0];
+    console.log('Rendering single banner:', banner);
     return (
       <PromotionalBanner
         title={banner.title}
         imageUrl={banner.image_url}
         linkUrl={banner.link_url || undefined}
         ctaText={banner.cta_text || undefined}
-        className={`h-[400px] md:h-[500px] ${className}`}
+        className={`h-[300px] md:h-[400px] ${className}`}
       />
     );
   }
 
+  console.log('Rendering multiple banners carousel');
   return (
     <div className={className}>
       <Carousel className="w-full">
@@ -58,7 +68,7 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners, className = ''
                 imageUrl={banner.image_url}
                 linkUrl={banner.link_url || undefined}
                 ctaText={banner.cta_text || undefined}
-                className="h-[400px] md:h-[500px]"
+                className="h-[300px] md:h-[400px]"
               />
             </CarouselItem>
           ))}

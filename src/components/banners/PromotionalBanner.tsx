@@ -24,18 +24,23 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
     }
   };
 
+  console.log('PromotionalBanner rendering:', { title, imageUrl, linkUrl, ctaText });
+
   return (
     <div className={`relative rounded-xl overflow-hidden shadow-lg ${className}`}>
       <div 
         className="w-full h-full bg-cover bg-center bg-no-repeat cursor-pointer"
-        style={{ backgroundImage: `url(${imageUrl})` }}
-        onClick={handleClick}
+        style={{ 
+          backgroundImage: `url(${imageUrl})`,
+          minHeight: '300px'
+        }}
+        onClick={linkUrl ? handleClick : undefined}
       >
         {/* Overlay para melhor legibilidade */}
-        <div className="absolute inset-0 bg-black bg-opacity-20" />
+        <div className="absolute inset-0 bg-black bg-opacity-30" />
         
         {/* Conteúdo do banner */}
-        <div className="relative h-full flex items-center justify-between p-6 md:p-8">
+        <div className="relative h-full flex items-center justify-between p-6 md:p-8 min-h-[300px]">
           <div className="flex-1">
             <h2 className="text-white text-2xl md:text-3xl font-bold mb-2 drop-shadow-lg">
               {title}

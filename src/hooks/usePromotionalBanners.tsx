@@ -26,7 +26,8 @@ export const usePromotionalBanners = (targetAudience: 'solicitante' | 'freelance
         setLoading(true);
         setError(null);
 
-        console.log('Fetching banners for:', targetAudience);
+        console.log('Fetching banners for target audience:', targetAudience);
+        console.log('Current user type:', userType);
 
         const { data, error } = await supabase
           .from('promotional_banners')
@@ -41,7 +42,7 @@ export const usePromotionalBanners = (targetAudience: 'solicitante' | 'freelance
           return;
         }
 
-        console.log('Banners fetched:', data);
+        console.log('Banners fetched successfully:', data);
         setBanners(data || []);
       } catch (err) {
         console.error('Unexpected error fetching banners:', err);
@@ -51,12 +52,8 @@ export const usePromotionalBanners = (targetAudience: 'solicitante' | 'freelance
       }
     };
 
-    // Só buscar banners se o userType corresponder ao target
-    if (userType === targetAudience) {
-      fetchBanners();
-    } else {
-      setLoading(false);
-    }
+    // Buscar banners independente do userType para debugging
+    fetchBanners();
   }, [targetAudience, userType]);
 
   return { banners, loading, error };
