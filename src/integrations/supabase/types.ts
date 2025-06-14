@@ -300,7 +300,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           first_name?: string | null
-          id: string
+          id?: string
           last_name?: string | null
           phone?: string | null
           updated_at?: string
@@ -685,6 +685,51 @@ export type Database = {
       }
     }
     Views: {
+      admin_permissions: {
+        Row: {
+          ativo: boolean | null
+          can_access_payments: boolean | null
+          can_access_reports: boolean | null
+          can_access_support: boolean | null
+          can_manage_admins: boolean | null
+          can_manage_banners: boolean | null
+          can_manage_categories: boolean | null
+          created_at: string | null
+          email: string | null
+          id: string | null
+          nome: string | null
+          role: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          can_access_payments?: never
+          can_access_reports?: never
+          can_access_support?: never
+          can_manage_admins?: never
+          can_manage_banners?: never
+          can_manage_categories?: never
+          created_at?: string | null
+          email?: string | null
+          id?: string | null
+          nome?: string | null
+          role?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          can_access_payments?: never
+          can_access_reports?: never
+          can_access_support?: never
+          can_manage_admins?: never
+          can_manage_banners?: never
+          can_manage_categories?: never
+          created_at?: string | null
+          email?: string | null
+          id?: string | null
+          nome?: string | null
+          role?: string | null
+        }
+        Relationships: []
+      }
       verificacoes: {
         Row: {
           created_at: string | null
