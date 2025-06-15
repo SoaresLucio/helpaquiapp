@@ -8,7 +8,7 @@ import IndexMainContent from '@/components/index/IndexMainContent';
 import IndexNotifications from '@/components/index/IndexNotifications';
 import { useJobNotifications } from '@/hooks/useJobNotifications';
 import { useAuth } from '@/hooks/useAuth';
-import { useUserData } from '@/hooks/useUserData';
+import { useUserData } from '@/hooks/user/useUserData';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ const Index = () => {
     dismissNotification
   } = useJobNotifications();
 
-  const currentUser = useUserData(authUser, userType);
+  const { currentUser } = useUserData(authUser, userType);
 
   const handleChatRedirect = () => {
     navigate('/chat');
@@ -38,7 +38,6 @@ const Index = () => {
     return <LoadingScreen />;
   }
 
-  // Redirect if no user type is defined
   if (!userType) {
     navigate('/user-type');
     return null;

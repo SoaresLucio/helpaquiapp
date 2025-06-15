@@ -1,46 +1,41 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
-export const useProfilePhotoPreview = (
-  onProfilePhotoUpload: (e: React.ChangeEvent<HTMLInputElement>) => void,
-  onCoverPhotoUpload: (e: React.ChangeEvent<HTMLInputElement>) => void
-) => {
+interface UseProfilePhotoPreviewProps {
+  onProfilePhotoUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onCoverPhotoUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+export const useProfilePhotoPreview = ({
+  onProfilePhotoUpload,
+  onCoverPhotoUpload
+}: UseProfilePhotoPreviewProps) => {
   const [previewProfile, setPreviewProfile] = useState<string | null>(null);
   const [previewCover, setPreviewCover] = useState<string | null>(null);
   
-  // Enhanced profile photo handler with preview
-  const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      
-      // Create a preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewProfile(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      
-      // Call the parent handler
+  const createPreview = useCallback((file: File, setPreview: (url: string) => void) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  }, []);
+  
+  const handleProfilePhotoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      createPreview(file, setPreviewProfile);
       onProfilePhotoUpload(e);
     }
-  };
+  }, [createPreview, onProfilePhotoUpload]);
   
-  // Enhanced cover photo handler with preview
-  const handleCoverPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      
-      // Create a preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewCover(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      
-      // Call the parent handler
+  const handleCoverPhotoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      createPreview(file, setPreviewCover);
       onCoverPhotoUpload(e);
     }
-  };
+  }, [createPreview, onCoverPhotoUpload]);
 
   return {
     previewProfile,

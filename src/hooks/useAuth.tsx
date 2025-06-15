@@ -4,7 +4,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { useLocation } from 'react-router-dom';
 import { signOut } from '@/services/authService';
 import { useToast } from '@/components/ui/use-toast';
-import { useAuthState } from './useAuthState';
+import { useAuthSession } from './auth/useAuthSession';
 
 interface AuthContextType {
   session: Session | null;
@@ -26,7 +26,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
-  const authState = useAuthState();
+  const authState = useAuthSession();
 
   const logout = async () => {
     try {
