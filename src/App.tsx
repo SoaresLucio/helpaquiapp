@@ -62,6 +62,11 @@ function App() {
           <FreelancerProfile />
         </ProtectedRoute>
       } />
+      <Route path="/freelancer/:id" element={
+        <ProtectedRoute>
+          <FreelancerProfile />
+        </ProtectedRoute>
+      } />
       <Route path="/jobs" element={
         <ProtectedRoute>
           <Jobs />

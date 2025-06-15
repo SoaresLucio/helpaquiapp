@@ -30,7 +30,6 @@ export const useSecureDataAccess = () => {
     setLoading(true);
 
     try {
-      // Validar acesso antes da operação
       const validation = await validateDataAccess(user.id, resourceType, resourceId);
       
       if (!validation.isValid) {
@@ -49,7 +48,6 @@ export const useSecureDataAccess = () => {
         };
       }
 
-      // Executar operação se validação passou
       const data = await operation();
 
       await logSecurityEvent(
@@ -99,7 +97,6 @@ export const useSecureDataAccess = () => {
     setLoading(true);
 
     try {
-      // Validar acesso para escrita
       const validation = await validateDataAccess(user.id, resourceType, resourceId);
       
       if (!validation.isValid) {
@@ -124,7 +121,6 @@ export const useSecureDataAccess = () => {
         };
       }
 
-      // Verificar nível de segurança para operações sensíveis
       if (validation.securityScore < 70 && ['bank_details', 'payment'].includes(resourceType)) {
         toast({
           title: "Segurança Insuficiente",
@@ -140,7 +136,6 @@ export const useSecureDataAccess = () => {
         };
       }
 
-      // Executar operação
       const data = await operation();
 
       await logSecurityEvent(

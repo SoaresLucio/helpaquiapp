@@ -95,7 +95,7 @@ export const useFreelancerOffers = () => {
         const allCategories = [...(offer.categories || []), ...(offer.custom_categories || [])];
 
         const convertedOffer = {
-          id: `offer-${offer.id}`,
+          id: `${offer.freelancer_id}/${offer.id}`,
           name: fullName,
           description: offer.description,
           categories: allCategories,

@@ -24,7 +24,8 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional }) => 
   const responseRate = professional.responseRate || 95;
 
   const handleViewProfile = () => {
-    navigate(`/freelancer/${professional.id}`);
+    const freelancerId = professional.id.split('/')[0];
+    navigate(`/freelancer/${freelancerId}`);
   };
 
   const handleContact = () => {
