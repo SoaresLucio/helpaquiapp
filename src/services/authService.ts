@@ -1,5 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
+import { 
+  validateEmail, 
+  validatePassword, 
+  validateRegistrationData, 
+  validateUserData,
+  sanitizeInput 
+} from "@/utils/authValidation";
 
 export interface AuthUser {
   id: string;
@@ -8,41 +15,6 @@ export interface AuthUser {
   lastName?: string;
   userType?: 'solicitante' | 'freelancer';
 }
-
-// Enhanced input validation and sanitization
-const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email.trim().toLowerCase());
-};
-
-const sanitizeInput = (input: string): string => {
-  return input.trim().replace(/[<>]/g, '');
-};
-
-// Enhanced user validation function
-export const validateUserData = (user: User | null): boolean => {
-  if (!user) {
-    console.error('User validation failed: No user provided');
-    return false;
-  }
-  
-  if (!user.id) {
-    console.error('User validation failed: Missing user ID');
-    return false;
-  }
-  
-  if (!user.email) {
-    console.error('User validation failed: Missing email');
-    return false;
-  }
-  
-  if (!validateEmail(user.email)) {
-    console.error('User validation failed: Invalid email format', user.email);
-    return false;
-  }
-  
-  return true;
-};
 
 // Enhanced session validation
 export const validateSession = async (): Promise<boolean> => {
@@ -53,8 +25,9 @@ export const validateSession = async (): Promise<boolean> => {
       return false;
     }
     
-    if (!session.user || !validateUserData(session.user)) {
-      console.error('Session validation failed: Invalid user data in session');
+    const userValidation = validateUserData(session.user);
+    if (!userValidation.isValid) {
+      console.error('Session validation failed:', userValidation.error);
       return false;
     }
     
@@ -72,20 +45,18 @@ export const validateSession = async (): Promise<boolean> => {
 };
 
 export const signIn = async (email: string, password: string) => {
-  // Enhanced validation
+  // Enhanced validation using centralized validators
   const cleanEmail = sanitizeInput(email).toLowerCase();
   const cleanPassword = password; // Don't modify password
   
-  if (!cleanEmail || !cleanPassword) {
-    throw new Error("Email e senha são obrigatórios");
+  const emailValidation = validateEmail(cleanEmail);
+  if (!emailValidation.isValid) {
+    throw new Error(emailValidation.error);
   }
   
-  if (!validateEmail(cleanEmail)) {
-    throw new Error("Formato de e-mail inválido");
-  }
-  
-  if (cleanPassword.length < 6) {
-    throw new Error("Senha deve ter pelo menos 6 caracteres");
+  const passwordValidation = validatePassword(cleanPassword);
+  if (!passwordValidation.isValid) {
+    throw new Error(passwordValidation.error);
   }
   
   try {
@@ -111,7 +82,8 @@ export const signIn = async (email: string, password: string) => {
     }
     
     // Validate user data after successful login
-    if (data.user && !validateUserData(data.user)) {
+    const userValidation = validateUserData(data.user);
+    if (!userValidation.isValid) {
       throw new Error("Dados de usuário inválidos. Entre em contato com o suporte.");
     }
     
@@ -132,31 +104,22 @@ export const signUp = async (
   userType: 'solicitante' | 'freelancer',
   categories?: string[]
 ) => {
-  // Enhanced validation and sanitization
+  // Enhanced validation using centralized validators
   const cleanEmail = sanitizeInput(email).toLowerCase();
   const cleanPassword = password; // Don't modify password
   const cleanFirstName = sanitizeInput(firstName);
   const cleanLastName = sanitizeInput(lastName);
   
-  if (!cleanEmail || !cleanPassword || !cleanFirstName || !cleanLastName) {
-    throw new Error("Todos os campos são obrigatórios");
-  }
+  const registrationValidation = validateRegistrationData(
+    cleanEmail, 
+    cleanPassword, 
+    cleanFirstName, 
+    cleanLastName, 
+    userType
+  );
   
-  if (!validateEmail(cleanEmail)) {
-    throw new Error("Formato de e-mail inválido");
-  }
-  
-  // Enhanced password validation
-  if (cleanPassword.length < 8) {
-    throw new Error("A senha deve ter pelo menos 8 caracteres");
-  }
-  
-  if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(cleanPassword)) {
-    throw new Error("A senha deve conter letras maiúsculas, minúsculas e números");
-  }
-  
-  if (cleanFirstName.length < 2 || cleanLastName.length < 2) {
-    throw new Error("Nome e sobrenome devem ter pelo menos 2 caracteres");
+  if (!registrationValidation.isValid) {
+    throw new Error(registrationValidation.error);
   }
   
   try {
@@ -200,12 +163,9 @@ export const signUp = async (
 export const resetPassword = async (email: string) => {
   const cleanEmail = sanitizeInput(email).toLowerCase();
   
-  if (!cleanEmail) {
-    throw new Error("Email é obrigatório");
-  }
-  
-  if (!validateEmail(cleanEmail)) {
-    throw new Error("Formato de e-mail inválido");
+  const emailValidation = validateEmail(cleanEmail);
+  if (!emailValidation.isValid) {
+    throw new Error(emailValidation.error);
   }
   
   try {
@@ -226,17 +186,9 @@ export const resetPassword = async (email: string) => {
 };
 
 export const updatePassword = async (newPassword: string) => {
-  if (!newPassword) {
-    throw new Error("Nova senha é obrigatória");
-  }
-  
-  // Enhanced password validation
-  if (newPassword.length < 8) {
-    throw new Error("A senha deve ter pelo menos 8 caracteres");
-  }
-  
-  if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
-    throw new Error("A senha deve conter letras maiúsculas, minúsculas e números");
+  const passwordValidation = validatePassword(newPassword);
+  if (!passwordValidation.isValid) {
+    throw new Error(passwordValidation.error);
   }
   
   try {
@@ -283,9 +235,12 @@ export const getCurrentSession = async (): Promise<Session | null> => {
     }
     
     // Validate session user data
-    if (session?.user && !validateUserData(session.user)) {
-      console.error("Invalid user data in session");
-      return null;
+    if (session?.user) {
+      const userValidation = validateUserData(session.user);
+      if (!userValidation.isValid) {
+        console.error("Invalid user data in session:", userValidation.error);
+        return null;
+      }
     }
     
     return session;
@@ -304,9 +259,12 @@ export const getCurrentUser = async (): Promise<User | null> => {
     }
     
     // Validate user data
-    if (user && !validateUserData(user)) {
-      console.error("Invalid user data received");
-      return null;
+    if (user) {
+      const userValidation = validateUserData(user);
+      if (!userValidation.isValid) {
+        console.error("Invalid user data received:", userValidation.error);
+        return null;
+      }
     }
     
     return user;
@@ -324,10 +282,13 @@ export const verifySession = async (): Promise<boolean> => {
 export const setupAuthListener = (callback: (session: Session | null) => void) => {
   const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
     // Validate session before passing to callback
-    if (session?.user && !validateUserData(session.user)) {
-      console.error("Invalid user data in auth state change");
-      callback(null);
-      return;
+    if (session?.user) {
+      const userValidation = validateUserData(session.user);
+      if (!userValidation.isValid) {
+        console.error("Invalid user data in auth state change:", userValidation.error);
+        callback(null);
+        return;
+      }
     }
     
     callback(session);
