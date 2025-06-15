@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import CategorySelector from '@/components/CategorySelector';
@@ -9,8 +8,10 @@ import UserProfile from '@/components/UserProfile';
 import SolicitanteHome from '@/components/solicitante/SolicitanteHome';
 import FreelancerHome from '@/components/freelancer/FreelancerHome';
 import PushNotification from '@/components/notifications/PushNotification';
+import SubscriptionIncentiveModal from '@/components/subscription/SubscriptionIncentiveModal';
 import { useJobNotifications } from '@/hooks/useJobNotifications';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { MapPin, MessageCircle, PhoneCall, User } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -33,11 +34,19 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<RealUser | null>(null);
   const [activeTab, setActiveTab] = useState('actions');
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+
   const {
     userType,
     loading,
     user: authUser
   } = useAuth();
+
+  const {
+    hasActiveSubscription,
+    loading: subscriptionLoading
+  } = useSubscriptionStatus();
+
   const {
     currentNotification,
     acceptJob,
@@ -77,6 +86,27 @@ const Index = () => {
     fetchUserData();
   }, [authUser, userType]);
 
+  // Verificar se deve mostrar o modal de assinatura
+  useEffect(() => {
+    const hasSkippedThisSession = localStorage.getItem('subscription-modal-skipped');
+    
+    if (
+      !loading && 
+      !subscriptionLoading && 
+      authUser && 
+      userType && 
+      hasActiveSubscription === false && 
+      !hasSkippedThisSession
+    ) {
+      // Mostrar modal após um pequeno delay para melhor UX
+      const timer = setTimeout(() => {
+        setShowSubscriptionModal(true);
+      }, 1500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [loading, subscriptionLoading, authUser, userType, hasActiveSubscription]);
+
   const handleChatRedirect = () => {
     navigate('/chat');
   };
@@ -89,7 +119,7 @@ const Index = () => {
     }
   };
 
-  if (loading) {
+  if (loading || subscriptionLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -109,6 +139,15 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <Header />
+      
+      {/* Modal de incentivo à assinatura */}
+      {userType && (
+        <SubscriptionIncentiveModal
+          isOpen={showSubscriptionModal}
+          onClose={() => setShowSubscriptionModal(false)}
+          userType={userType}
+        />
+      )}
       
       {/* Push Notification Overlay */}
       {currentNotification && (

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
 
@@ -192,4 +191,20 @@ export const cancelSubscription = async (): Promise<boolean> => {
     console.error('Error cancelling subscription:', error);
     return false;
   }
+};
+
+// Nova função para verificar se o usuário tem assinatura ativa
+export const hasActiveSubscription = async (): Promise<boolean> => {
+  try {
+    const currentSub = await getCurrentSubscription();
+    return currentSub?.status === 'active';
+  } catch (error) {
+    console.error('Error checking active subscription:', error);
+    return false;
+  }
+};
+
+// Função para limpar o cache de "modal pulado" (útil para testes)
+export const clearSubscriptionModalSkip = (): void => {
+  localStorage.removeItem('subscription-modal-skipped');
 };
