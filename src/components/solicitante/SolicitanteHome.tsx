@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { MapPin, Star, Filter, Clock, Search, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -46,7 +45,23 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
     setLoadingOffers(true);
     try {
       console.log('🔄 Carregando ofertas de freelancers...');
+      console.log('👤 Usuário autenticado:', user?.id);
       
+      // Primeiro, vamos testar uma query simples sem JOIN para verificar RLS
+      const { data: simpleOffers, error: simpleError } = await supabase
+        .from('freelancer_service_offers')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      console.log('🔍 Query simples - Resultado:', { simpleOffers, simpleError });
+
+      if (simpleError) {
+        console.error('❌ Erro na query simples:', simpleError);
+        // Continuamos mesmo com erro para tentar a query com JOIN
+      }
+
+      // Agora tentamos a query com JOIN
       const { data: offers, error } = await supabase
         .from('freelancer_service_offers')
         .select(`
@@ -60,13 +75,42 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
+      console.log('📊 Query com JOIN - Resultado:', { offers, error });
+      console.log('📊 Total de ofertas encontradas:', offers?.length || 0);
+
       if (error) {
         console.error('❌ Erro ao carregar ofertas:', error);
+        
+        // Se houver erro, vamos usar os dados da query simples
+        if (simpleOffers && simpleOffers.length > 0) {
+          console.log('🔄 Usando dados da query simples como fallback');
+          const fallbackOffers = simpleOffers.map((offer: any) => ({
+            id: `offer-${offer.id}`,
+            name: 'Freelancer',
+            description: offer.description,
+            categories: [...(offer.categories || []), ...(offer.custom_categories || [])],
+            rating: 4.5 + Math.random() * 0.5,
+            ratingCount: Math.floor(Math.random() * 50) + 10,
+            price: offer.rate,
+            distance: `${(Math.random() * 10 + 1).toFixed(1)}km`,
+            avatar: '/placeholder.svg',
+            verified: true,
+            location: offer.location || 'São Paulo, SP',
+            available: true,
+            portfolio: []
+          }));
+          
+          console.log('✅ Ofertas convertidas (fallback):', fallbackOffers);
+          setAllProfessionals(fallbackOffers);
+          return;
+        }
+        
+        // Se não temos dados, continuamos com array vazio
+        setAllProfessionals([]);
         return;
       }
 
       console.log('✅ Ofertas carregadas do Supabase:', offers);
-      console.log('📊 Total de ofertas encontradas:', offers?.length || 0);
 
       // Convert freelancer offers to professional format
       const convertedOffers = offers?.map((offer: any) => {
@@ -79,11 +123,11 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
         const allCategories = [...(offer.categories || []), ...(offer.custom_categories || [])];
 
         const convertedOffer = {
-          id: `offer-${offer.id}`, // Prefixo para distinguir de mock data
+          id: `offer-${offer.id}`,
           name: fullName,
           description: offer.description,
           categories: allCategories,
-          rating: 4.5 + Math.random() * 0.5, // Random rating between 4.5-5.0 for now
+          rating: 4.5 + Math.random() * 0.5,
           ratingCount: Math.floor(Math.random() * 50) + 10,
           price: offer.rate,
           distance: `${(Math.random() * 10 + 1).toFixed(1)}km`,
@@ -98,19 +142,20 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
         return convertedOffer;
       }) || [];
 
-      console.log('✅ Ofertas convertidas:', convertedOffers);
-
-      // Replace all professionals with converted offers (removing mock data to avoid conflicts)
+      console.log('✅ Ofertas convertidas finais:', convertedOffers);
       setAllProfessionals(convertedOffers);
       
     } catch (error) {
       console.error('💥 Erro inesperado ao carregar ofertas:', error);
+      // Em caso de erro, manter dados vazios mas não quebrar a aplicação
+      setAllProfessionals([]);
     } finally {
       setLoadingOffers(false);
     }
   };
 
   useEffect(() => {
+    console.log('🚀 SolicitanteHome montado, carregando ofertas...');
     loadFreelancerOffers();
   }, []);
 
@@ -364,17 +409,19 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
               <Search className="h-12 w-12 mx-auto" />
             </div>
             <p className="text-gray-500 mb-4">
-              Nenhuma oferta de Help encontrada com os filtros aplicados.
+              Nenhuma oferta de Help encontrada.
+            </p>
+            <p className="text-gray-400 text-sm mb-4">
+              Dados de debug: {allProfessionals.length} ofertas carregadas
             </p>
             <Button 
               variant="outline" 
               onClick={() => {
-                onSelectCategory(null);
-                setSearchTerm('');
-                setFilterRating('all');
+                console.log('🔄 Recarregando ofertas manualmente...');
+                loadFreelancerOffers();
               }}
             >
-              Limpar filtros
+              Recarregar ofertas
             </Button>
           </div>
         )}

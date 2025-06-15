@@ -31,7 +31,11 @@ const OfferHelp: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('🚀 Iniciando submissão de oferta de Help...');
+    console.log('👤 Usuário logado:', user);
+    
     if (!user) {
+      console.error('❌ Usuário não logado');
       toast({
         title: "Erro",
         description: "Você precisa estar logado para oferecer serviços.",
@@ -42,6 +46,7 @@ const OfferHelp: React.FC = () => {
     
     // Validação básica
     if (!title || !description || categories.length === 0 || !rate) {
+      console.error('❌ Campos obrigatórios não preenchidos:', { title, description, categories, rate });
       toast({
         title: "Atenção",
         description: "Por favor, preencha todos os campos obrigatórios.",
@@ -65,6 +70,8 @@ const OfferHelp: React.FC = () => {
         !serviceCategories.some(c => c.id === cat)
       );
       
+      console.log('📂 Categorias separadas:', { standardCategories, customCategories });
+      
       const offerData = {
         freelancer_id: user.id,
         title,
@@ -79,6 +86,14 @@ const OfferHelp: React.FC = () => {
 
       console.log('📤 Dados finais para inserção:', offerData);
 
+      // Primeiro vamos testar se conseguimos acessar a tabela
+      const { data: testQuery, error: testError } = await supabase
+        .from('freelancer_service_offers')
+        .select('count(*)')
+        .single();
+      
+      console.log('🧪 Teste de acesso à tabela:', { testQuery, testError });
+
       const { data, error } = await supabase
         .from('freelancer_service_offers')
         .insert([offerData])
@@ -86,6 +101,7 @@ const OfferHelp: React.FC = () => {
 
       if (error) {
         console.error('❌ Erro ao inserir oferta:', error);
+        console.error('❌ Detalhes do erro:', JSON.stringify(error, null, 2));
         throw error;
       }
 
@@ -110,11 +126,17 @@ const OfferHelp: React.FC = () => {
       console.log('📢 Disparando evento customizado...');
       window.dispatchEvent(new CustomEvent('newOfferCreated', { detail: data[0] }));
       
+      // Force page reload para garantir que as ofertas apareçam
+      console.log('🔄 Forçando reload da página em 2 segundos...');
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+      
     } catch (error) {
       console.error('💥 Erro ao salvar oferta:', error);
       toast({
         title: "Erro",
-        description: "Erro ao publicar oferta. Tente novamente.",
+        description: `Erro ao publicar oferta: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
         variant: "destructive",
       });
     } finally {
