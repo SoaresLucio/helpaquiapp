@@ -1,0 +1,135 @@
+
+// Utilitários para criptografia do lado cliente (dados não sensíveis)
+export class ClientEncryption {
+  private static encoder = new TextEncoder();
+  private static decoder = new TextDecoder();
+
+  // Gerar uma chave derivada do user ID para dados locais
+  static async deriveKey(userId: string, purpose: string): Promise<CryptoKey> {
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      this.encoder.encode(userId + purpose),
+      { name: 'PBKDF2' },
+      false,
+      ['deriveBits', 'deriveKey']
+    );
+
+    return crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: this.encoder.encode('helpaqui-salt-2024'),
+        iterations: 100000,
+        hash: 'SHA-256'
+      },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  }
+
+  // Criptografar dados para localStorage
+  static async encryptForStorage(data: string, userId: string): Promise<string> {
+    try {
+      const key = await this.deriveKey(userId, 'storage');
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const encodedData = this.encoder.encode(data);
+
+      const encrypted = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        encodedData
+      );
+
+      const combined = new Uint8Array(iv.length + encrypted.byteLength);
+      combined.set(iv);
+      combined.set(new Uint8Array(encrypted), iv.length);
+
+      return btoa(String.fromCharCode(...combined));
+    } catch (error) {
+      console.error('Encryption error:', error);
+      return data; // Fallback para dados não criptografados
+    }
+  }
+
+  // Descriptografar dados do localStorage
+  static async decryptFromStorage(encryptedData: string, userId: string): Promise<string> {
+    try {
+      const key = await this.deriveKey(userId, 'storage');
+      const combined = new Uint8Array(
+        atob(encryptedData).split('').map(char => char.charCodeAt(0))
+      );
+
+      const iv = combined.slice(0, 12);
+      const encrypted = combined.slice(12);
+
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        encrypted
+      );
+
+      return this.decoder.decode(decrypted);
+    } catch (error) {
+      console.error('Decryption error:', error);
+      return encryptedData; // Fallback para dados não criptografados
+    }
+  }
+
+  // Hash seguro para comparações (ex: verificar integridade)
+  static async hashData(data: string): Promise<string> {
+    const encoded = this.encoder.encode(data);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // Gerar token seguro para sessões temporárias
+  static generateSecureToken(length: number = 32): string {
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  }
+}
+
+// Gerenciador de armazenamento seguro
+export class SecureStorage {
+  private static keyPrefix = 'helpaqui_secure_';
+
+  static async setItem(key: string, value: string, userId: string): Promise<void> {
+    try {
+      const encrypted = await ClientEncryption.encryptForStorage(value, userId);
+      localStorage.setItem(this.keyPrefix + key, encrypted);
+    } catch (error) {
+      console.error('Secure storage set error:', error);
+      // Fallback para storage normal em caso de erro
+      localStorage.setItem(this.keyPrefix + key, value);
+    }
+  }
+
+  static async getItem(key: string, userId: string): Promise<string | null> {
+    try {
+      const encrypted = localStorage.getItem(this.keyPrefix + key);
+      if (!encrypted) return null;
+
+      return await ClientEncryption.decryptFromStorage(encrypted, userId);
+    } catch (error) {
+      console.error('Secure storage get error:', error);
+      // Fallback para storage normal em caso de erro
+      return localStorage.getItem(this.keyPrefix + key);
+    }
+  }
+
+  static removeItem(key: string): void {
+    localStorage.removeItem(this.keyPrefix + key);
+  }
+
+  static clear(): void {
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+      if (key.startsWith(this.keyPrefix)) {
+        localStorage.removeItem(key);
+      }
+    });
+  }
+}
