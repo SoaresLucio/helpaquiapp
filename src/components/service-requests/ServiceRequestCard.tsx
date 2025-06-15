@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { MapPin, User, Calendar, DollarSign, Clock, FileText } from 'lucide-react';
+import ServiceProposalDialog from './ServiceProposalDialog';
 
 interface ServiceRequest {
   id: string;
@@ -61,11 +62,11 @@ const ServiceRequestCard: React.FC<ServiceRequestCardProps> = ({ request }) => {
 
   const formatBudget = (min: number, max: number) => {
     if (min && max) {
-      return `R$ ${min.toLocaleString()} - R$ ${max.toLocaleString()}`;
+      return `R$ ${(min / 100).toLocaleString()} - R$ ${(max / 100).toLocaleString()}`;
     } else if (min) {
-      return `A partir de R$ ${min.toLocaleString()}`;
+      return `A partir de R$ ${(min / 100).toLocaleString()}`;
     } else if (max) {
-      return `Até R$ ${max.toLocaleString()}`;
+      return `Até R$ ${(max / 100).toLocaleString()}`;
     }
     return 'A negociar';
   };
@@ -76,11 +77,6 @@ const ServiceRequestCard: React.FC<ServiceRequestCardProps> = ({ request }) => {
       return `${first_name} ${last_name}`.trim() || 'Cliente';
     }
     return 'Cliente';
-  };
-
-  const handleSendProposal = () => {
-    // TODO: Implementar funcionalidade de envio de proposta
-    console.log('Enviar proposta para:', request.id);
   };
 
   return (
@@ -120,9 +116,14 @@ const ServiceRequestCard: React.FC<ServiceRequestCardProps> = ({ request }) => {
               </div>
             </div>
           </div>
-          <Button onClick={handleSendProposal}>
-            Enviar Proposta
-          </Button>
+          <ServiceProposalDialog 
+            serviceRequestId={request.id}
+            serviceTitle={request.title}
+          >
+            <Button>
+              Enviar Proposta
+            </Button>
+          </ServiceProposalDialog>
         </div>
       </CardHeader>
       
