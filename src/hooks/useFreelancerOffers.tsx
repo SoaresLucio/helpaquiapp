@@ -41,6 +41,25 @@ export const useFreelancerOffers = () => {
     };
   }, []);
 
+  // Atualização automática a cada 55 segundos
+  useEffect(() => {
+    console.log('⏰ useFreelancerOffers: Configurando atualização automática a cada 55 segundos');
+    
+    const interval = setInterval(() => {
+      console.log('🔄 useFreelancerOffers: Atualização automática das ofertas (55s)');
+      setRefreshKey(prev => {
+        const newKey = prev + 1;
+        console.log('⏰ useFreelancerOffers: Auto-refresh: atualizando refresh key de', prev, 'para', newKey);
+        return newKey;
+      });
+    }, 55000); // 55 segundos
+
+    return () => {
+      console.log('🧹 useFreelancerOffers: Removendo interval de atualização automática');
+      clearInterval(interval);
+    };
+  }, []);
+
   // Log quando as ofertas mudarem
   useEffect(() => {
     console.log('📊 useFreelancerOffers: Estado das ofertas atualizado:', {
