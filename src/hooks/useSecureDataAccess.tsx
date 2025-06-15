@@ -44,7 +44,7 @@ export const useSecureDataAccess = () => {
           data: null,
           success: false,
           error: validation.errors.join(', '),
-          securityScore: validation.securityScore
+          securityScore: validation.securityScore,
         };
       }
 
@@ -61,7 +61,7 @@ export const useSecureDataAccess = () => {
       return {
         data,
         success: true,
-        securityScore: validation.securityScore
+        securityScore: validation.securityScore,
       };
 
     } catch (error) {
@@ -77,7 +77,7 @@ export const useSecureDataAccess = () => {
       return {
         data: null,
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     } finally {
       setLoading(false);
@@ -110,14 +110,14 @@ export const useSecureDataAccess = () => {
         toast({
           title: "Acesso Negado",
           description: validation.errors.join(', '),
-          variant: "destructive"
+          variant: "destructive",
         });
 
         return {
           data: null,
           success: false,
           error: validation.errors.join(', '),
-          securityScore: validation.securityScore
+          securityScore: validation.securityScore,
         };
       }
 
@@ -125,14 +125,14 @@ export const useSecureDataAccess = () => {
         toast({
           title: "Segurança Insuficiente",
           description: "Complete e verifique seu perfil para realizar esta operação",
-          variant: "destructive"
+          variant: "destructive",
         });
 
         return {
           data: null,
           success: false,
           error: 'Nível de segurança insuficiente',
-          securityScore: validation.securityScore
+          securityScore: validation.securityScore,
         };
       }
 
@@ -145,14 +145,14 @@ export const useSecureDataAccess = () => {
         undefined,
         { 
           security_score: validation.securityScore,
-          validation_data: validationData 
+          validation_data: validationData, 
         }
       );
 
       return {
         data,
         success: true,
-        securityScore: validation.securityScore
+        securityScore: validation.securityScore,
       };
 
     } catch (error) {
@@ -168,13 +168,13 @@ export const useSecureDataAccess = () => {
       toast({
         title: "Erro na Operação",
         description: errorMessage,
-        variant: "destructive"
+        variant: "destructive",
       });
 
       return {
         data: null,
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     } finally {
       setLoading(false);
@@ -184,6 +184,6 @@ export const useSecureDataAccess = () => {
   return {
     secureAccess,
     secureWrite,
-    loading
+    loading,
   };
 };

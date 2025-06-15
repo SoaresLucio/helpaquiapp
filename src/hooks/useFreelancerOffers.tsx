@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Professional } from '@/data/mockData';
@@ -9,111 +9,70 @@ export const useFreelancerOffers = () => {
   const [offers, setOffers] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const loadFreelancerOffers = async () => {
+  const loadFreelancerOffers = useCallback(async () => {
     setLoading(true);
     try {
       console.log('🔄 Carregando ofertas de freelancers...');
-      console.log('👤 Usuário autenticado:', user?.id);
       
-      // Primeiro, vamos testar uma query simples sem JOIN para verificar RLS
-      const { data: simpleOffers, error: simpleError } = await supabase
-        .from('freelancer_service_offers')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      console.log('🔍 Query simples - Resultado:', { simpleOffers, simpleError });
-
-      if (simpleError) {
-        console.error('❌ Erro na query simples:', simpleError);
-      }
-
-      // Agora tentamos a query com JOIN
-      const { data: offers, error } = await supabase
+      const { data, error } = await supabase
         .from('freelancer_service_offers')
         .select(`
           *,
-          profiles!freelancer_id (
+          profiles:profiles!inner(
             first_name,
             last_name,
-            avatar_url
+            avatar_url,
+            verified
+          ),
+          freelancer_ratings!left(
+            avg_rating,
+            rating_count
           )
         `)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
-      console.log('📊 Query com JOIN - Resultado:', { offers, error });
-      console.log('📊 Total de ofertas encontradas:', offers?.length || 0);
-
       if (error) {
-        console.error('❌ Erro ao carregar ofertas:', error);
-        
-        // Se houver erro, vamos usar os dados da query simples
-        if (simpleOffers && simpleOffers.length > 0) {
-          console.log('🔄 Usando dados da query simples como fallback');
-          const fallbackOffers = simpleOffers.map((offer: any) => ({
-            id: `offer-${offer.id}`,
-            name: 'Freelancer',
-            description: offer.description,
-            categories: [...(offer.categories || []), ...(offer.custom_categories || [])],
-            rating: 4.5 + Math.random() * 0.5,
-            ratingCount: Math.floor(Math.random() * 50) + 10,
-            price: offer.rate,
-            distance: `${(Math.random() * 10 + 1).toFixed(1)}km`,
-            avatar: '/placeholder.svg',
-            verified: true,
-            location: {
-              lat: -23.5505 + (Math.random() - 0.5) * 0.1,
-              lng: -46.6333 + (Math.random() - 0.5) * 0.1
-            },
-            available: true,
-            portfolio: [],
-            isVerified: true,
-            responseTime: '30min',
-            responseRate: 95
-          }));
-          
-          console.log('✅ Ofertas convertidas (fallback):', fallbackOffers);
-          setOffers(fallbackOffers);
-          return;
-        }
-        
+        console.error('❌ Erro ao carregar ofertas com detalhes:', error);
         setOffers([]);
         return;
       }
 
-      console.log('✅ Ofertas carregadas do Supabase:', offers);
+      console.log('✅ Ofertas carregadas do Supabase:', data);
 
-      // Convert freelancer offers to professional format
-      const convertedOffers = offers?.map((offer: any) => {
+      const convertedOffers = data?.map((offer: any) => {
         const profile = offer.profiles;
         const fullName = profile?.first_name && profile?.last_name 
           ? `${profile.first_name} ${profile.last_name}`.trim()
           : 'Freelancer';
 
-        // Combine standard and custom categories
         const allCategories = [...(offer.categories || []), ...(offer.custom_categories || [])];
 
-        const convertedOffer = {
+        const ratingsData = offer.freelancer_ratings;
+        const rating = ratingsData ? parseFloat(ratingsData.avg_rating) : 0;
+        const ratingCount = ratingsData ? ratingsData.rating_count : 0;
+        
+        const convertedOffer: Professional = {
           id: `${offer.freelancer_id}/${offer.id}`,
           name: fullName,
           description: offer.description,
           categories: allCategories,
-          rating: 4.5 + Math.random() * 0.5,
-          ratingCount: Math.floor(Math.random() * 50) + 10,
+          rating: rating,
+          ratingCount: ratingCount,
           price: offer.rate,
-          distance: `${(Math.random() * 10 + 1).toFixed(1)}km`,
+          distance: `${(Math.random() * 10 + 1).toFixed(1)}km`, // Mock
           avatar: profile?.avatar_url || '/placeholder.svg',
-          verified: true,
-          location: {
+          isVerified: profile?.verified || false,
+          location: { // Mock
             lat: -23.5505 + (Math.random() - 0.5) * 0.1,
             lng: -46.6333 + (Math.random() - 0.5) * 0.1
           },
-          available: true,
-          portfolio: [],
-          isVerified: true,
-          responseTime: '30min',
-          responseRate: 95
+          available: true, // Mock
+          portfolio: [], // Mock
+          responseTime: '30min', // Mock
+          responseRate: 95, // Mock
+          rating_count: ratingCount, // for compatibility
+          reviews: [] // for compatibility
         };
 
         console.log('🔄 Oferta convertida:', convertedOffer);
@@ -129,12 +88,12 @@ export const useFreelancerOffers = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     console.log('🚀 Hook de ofertas montado, carregando ofertas...');
     loadFreelancerOffers();
-  }, []);
+  }, [loadFreelancerOffers]);
 
   // Listen for new offers created via custom events
   useEffect(() => {
@@ -148,7 +107,7 @@ export const useFreelancerOffers = () => {
     return () => {
       window.removeEventListener('newOfferCreated', handleNewOffer as EventListener);
     };
-  }, []);
+  }, [loadFreelancerOffers]);
 
   // Real-time updates from Supabase
   useEffect(() => {
@@ -159,52 +118,44 @@ export const useFreelancerOffers = () => {
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'freelancer_service_offers'
         },
         (payload) => {
-          console.log('🆕 Nova oferta inserida via realtime:', payload);
+          console.log('🔄 Alteração em ofertas via realtime:', payload);
           loadFreelancerOffers();
         }
       )
-      .on(
+       .on(
         'postgres_changes',
         {
-          event: 'UPDATE',
+          event: '*',
           schema: 'public',
-          table: 'freelancer_service_offers'
+          table: 'reviews'
         },
         (payload) => {
-          console.log('🔄 Oferta atualizada via realtime:', payload);
-          loadFreelancerOffers();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'freelancer_service_offers'
-        },
-        (payload) => {
-          console.log('🗑️ Oferta deletada via realtime:', payload);
+          console.log('🔄 Alteração em reviews via realtime:', payload);
           loadFreelancerOffers();
         }
       )
       .subscribe((status) => {
         console.log('📡 Status da conexão realtime:', status);
+        if (status === 'SUBSCRIBED') {
+          // Initial load on successful subscription
+          loadFreelancerOffers();
+        }
       });
 
     return () => {
       console.log('🔌 Removendo channel realtime...');
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [loadFreelancerOffers]);
 
   return {
     offers,
     loading,
-    reloadOffers: loadFreelancerOffers
+    reloadOffers: loadFreelancerOffers,
   };
 };

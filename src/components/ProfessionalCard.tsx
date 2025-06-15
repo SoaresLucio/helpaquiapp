@@ -15,10 +15,9 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional }) => 
   const navigate = useNavigate();
   
   const categoryNames = professional.categories.map(
-    catId => serviceCategories.find(cat => cat.id === catId)?.name || ''
+    catId => serviceCategories.find(cat => cat.id === catId)?.name || catId
   ).join(', ');
 
-  // Add these properties to the Professional type in mockData.ts or handle undefined
   const isVerified = professional.isVerified || false;
   const responseTime = professional.responseTime || "1h";
   const responseRate = professional.responseRate || 95;
@@ -80,9 +79,15 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional }) => 
               )}
             </div>
             <div className="flex items-center">
-              <Star className="h-4 w-4 text-yellow-500 mr-1 fill-yellow-500" />
-              <span className="text-sm font-medium">{professional.rating}</span>
-              <span className="text-xs text-gray-500 ml-1">({professional.ratingCount})</span>
+              {professional.ratingCount > 0 ? (
+                <>
+                  <Star className="h-4 w-4 text-yellow-500 mr-1 fill-yellow-500" />
+                  <span className="text-sm font-medium">{professional.rating.toFixed(1)}</span>
+                  <span className="text-xs text-gray-500 ml-1">({professional.ratingCount})</span>
+                </>
+              ) : (
+                <span className="text-xs text-gray-500">Sem avaliações</span>
+              )}
             </div>
           </div>
           
@@ -139,7 +144,7 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional }) => 
       </div>
       
       {/* Portfólio (se houver) */}
-      {professional.portfolio.length > 0 && (
+      {professional.portfolio && professional.portfolio.length > 0 && (
         <div className="mt-3 pt-3 border-t">
           <p className="text-sm font-medium mb-2">Portfólio</p>
           <div className="flex space-x-2 overflow-x-auto pb-2">
