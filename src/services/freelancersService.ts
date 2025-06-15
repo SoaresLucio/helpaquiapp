@@ -31,10 +31,10 @@ export const fetchRecommendedFreelancers = async (options: FetchFreelancersOptio
   // Ordenação
   switch (sortBy) {
     case 'price_low':
-      query = query.order('hourly_rate', { ascending: true, nullsLast: true });
+      query = query.order('hourly_rate', { ascending: true, nullsFirst: true });
       break;
     case 'price_high':
-      query = query.order('hourly_rate', { ascending: false, nullsLast: true });
+      query = query.order('hourly_rate', { ascending: false, nullsFirst: true });
       break;
     case 'recent':
       query = query.order('created_at', { ascending: false });
@@ -53,7 +53,13 @@ export const fetchRecommendedFreelancers = async (options: FetchFreelancersOptio
     throw error;
   }
 
-  return data || [];
+  // Transform the data to match our interface
+  const transformedData = (data || []).map(item => ({
+    ...item,
+    portfolio_photos: Array.isArray(item.portfolio_photos) ? item.portfolio_photos : []
+  })) as FreelancerProfile[];
+
+  return transformedData;
 };
 
 export const fetchFreelancerById = async (id: string): Promise<FreelancerProfile | null> => {
@@ -78,13 +84,21 @@ export const fetchFreelancerById = async (id: string): Promise<FreelancerProfile
     throw error;
   }
 
-  return data;
+  if (!data) return null;
+
+  // Transform the data to match our interface
+  const transformedData = {
+    ...data,
+    portfolio_photos: Array.isArray(data.portfolio_photos) ? data.portfolio_photos : []
+  } as FreelancerProfile;
+
+  return transformedData;
 };
 
 export const createFreelancerProfile = async (profileData: Partial<FreelancerProfile>): Promise<FreelancerProfile> => {
   const { data, error } = await supabase
     .from('freelancer_profiles')
-    .insert([profileData])
+    .insert(profileData)
     .select()
     .single();
 
@@ -93,7 +107,13 @@ export const createFreelancerProfile = async (profileData: Partial<FreelancerPro
     throw error;
   }
 
-  return data;
+  // Transform the data to match our interface
+  const transformedData = {
+    ...data,
+    portfolio_photos: Array.isArray(data.portfolio_photos) ? data.portfolio_photos : []
+  } as FreelancerProfile;
+
+  return transformedData;
 };
 
 export const updateFreelancerProfile = async (id: string, profileData: Partial<FreelancerProfile>): Promise<FreelancerProfile> => {
@@ -109,5 +129,11 @@ export const updateFreelancerProfile = async (id: string, profileData: Partial<F
     throw error;
   }
 
-  return data;
+  // Transform the data to match our interface
+  const transformedData = {
+    ...data,
+    portfolio_photos: Array.isArray(data.portfolio_photos) ? data.portfolio_photos : []
+  } as FreelancerProfile;
+
+  return transformedData;
 };
