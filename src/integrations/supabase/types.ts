@@ -383,6 +383,41 @@ export type Database = {
         }
         Relationships: []
       }
+      offer_interests: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          offer_id: string
+          solicitante_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          offer_id: string
+          solicitante_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          offer_id?: string
+          solicitante_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_interests_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "freelancer_service_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_logs: {
         Row: {
           action: string
@@ -666,6 +701,50 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      service_applications: {
+        Row: {
+          created_at: string
+          estimated_time: string | null
+          freelancer_id: string
+          id: string
+          message: string | null
+          proposed_price: number | null
+          service_request_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          estimated_time?: string | null
+          freelancer_id: string
+          id?: string
+          message?: string | null
+          proposed_price?: number | null
+          service_request_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          estimated_time?: string | null
+          freelancer_id?: string
+          id?: string
+          message?: string | null
+          proposed_price?: number | null
+          service_request_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_applications_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_proposals: {
         Row: {

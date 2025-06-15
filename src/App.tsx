@@ -28,6 +28,8 @@ import AIChat from "./pages/AIChat";
 import Subscription from "./pages/Subscription";
 import SolicitantePlans from "./pages/SolicitantePlans";
 import FreelancerPlans from "./pages/FreelancerPlans";
+import MyOffers from "./pages/MyOffers";
+import MyRequests from "./pages/MyRequests";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -122,6 +124,18 @@ function App() {
                 <Route path="/freelancer-plans" element={
                   <ProtectedRoute requiredUserType="freelancer">
                     <FreelancerPlans />
+                  </ProtectedRoute>
+                } />
+                
+                {/* New management pages */}
+                <Route path="/my-offers" element={
+                  <ProtectedRoute requiredUserType="freelancer">
+                    <MyOffers />
+                  </ProtectedRoute>
+                } />
+                <Route path="/my-requests" element={
+                  <ProtectedRoute requiredUserType="solicitante">
+                    <MyRequests />
                   </ProtectedRoute>
                 } />
                 

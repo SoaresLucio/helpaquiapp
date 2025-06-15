@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Star, Clock, DollarSign, Calendar, TrendingUp, Users, Briefcase, CreditCard } from 'lucide-react';
+import { Star, Clock, DollarSign, Calendar, TrendingUp, Users, Briefcase, CreditCard, Settings } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -128,11 +128,11 @@ const FreelancerHome: React.FC = () => {
             </Button>
             <Button 
               variant="outline"
-              onClick={() => navigate('/chat')}
-              className="h-16 flex flex-col gap-1"
+              onClick={() => navigate('/my-offers')}
+              className="h-16 flex flex-col gap-1 bg-green-50 hover:bg-green-100 border-green-200"
             >
-              <Calendar className="h-5 w-5" />
-              Mensagens
+              <Settings className="h-5 w-5" />
+              Minhas Ofertas
             </Button>
             <Button 
               variant="outline"
