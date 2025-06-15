@@ -7,6 +7,8 @@ import PaymentMethodsTab from '@/components/payment/PaymentMethodsTab';
 import BankAccountTab from '@/components/payment/BankAccountTab';
 import TransactionHistoryTab from '@/components/payment/TransactionHistoryTab';
 import PaymentSidebar from '@/components/payment/PaymentSidebar';
+import PaymentSettingsHeader from '@/components/payment/PaymentSettingsHeader';
+import PaymentSettingsLoading from '@/components/payment/PaymentSettingsLoading';
 
 const PaymentSettings = () => {
   const [activeTab, setActiveTab] = useState("payment-methods");
@@ -26,14 +28,7 @@ const PaymentSettings = () => {
   } = usePaymentSettings();
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-helpaqui-blue mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando...</p>
-        </div>
-      </div>
-    );
+    return <PaymentSettingsLoading />;
   }
 
   return (
@@ -41,22 +36,15 @@ const PaymentSettings = () => {
       <Header />
       
       <main className="flex-1 helpaqui-container py-4">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-2">Pagamentos</h1>
-          <p className="text-gray-600">
-            Gerencie seus métodos de pagamento e configure suas preferências
-          </p>
-        </div>
+        <PaymentSettingsHeader />
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Sidebar */}
           <PaymentSidebar 
             activeTab={activeTab}
             onTabChange={setActiveTab}
             bankDetails={bankDetails}
           />
           
-          {/* Main Content */}
           <div className="md:col-span-3">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsContent value="payment-methods">
