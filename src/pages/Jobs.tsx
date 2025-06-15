@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import Header from '@/components/Header';
+import BackButton from '@/components/ui/back-button';
 import JobApplicationDialog from '@/components/jobs/JobApplicationDialog';
 import JobsHeader from '@/components/jobs/JobsHeader';
 import JobsLoading from '@/components/jobs/JobsLoading';
@@ -95,30 +97,38 @@ const Jobs = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <JobsHeader userType={userType} />
+    <div className="min-h-screen bg-gray-100">
+      <Header />
+      
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <BackButton to="/" label="Voltar ao Início" />
+        </div>
 
-      {jobs.length === 0 ? (
-        <JobsEmpty />
-      ) : (
-        <JobsList 
-          jobs={jobs}
-          onApplyClick={handleApplyClick}
-          canApply={canApply}
-        />
-      )}
+        <JobsHeader userType={userType} />
 
-      {selectedJob && (
-        <JobApplicationDialog
-          job={selectedJob}
-          isOpen={isApplicationDialogOpen}
-          onClose={() => {
-            setIsApplicationDialogOpen(false);
-            setSelectedJob(null);
-          }}
-          onSuccess={handleApplicationSuccess}
-        />
-      )}
+        {jobs.length === 0 ? (
+          <JobsEmpty />
+        ) : (
+          <JobsList 
+            jobs={jobs}
+            onApplyClick={handleApplyClick}
+            canApply={canApply}
+          />
+        )}
+
+        {selectedJob && (
+          <JobApplicationDialog
+            job={selectedJob}
+            isOpen={isApplicationDialogOpen}
+            onClose={() => {
+              setIsApplicationDialogOpen(false);
+              setSelectedJob(null);
+            }}
+            onSuccess={handleApplicationSuccess}
+          />
+        )}
+      </div>
     </div>
   );
 };
