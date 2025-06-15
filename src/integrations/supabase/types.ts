@@ -1108,6 +1108,28 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: boolean
       }
+      decrypt_sensitive_data: {
+        Args: { encrypted_data: string }
+        Returns: string
+      }
+      encrypt_sensitive_data: {
+        Args: { data: string }
+        Returns: string
+      }
+      get_bank_details_decrypted: {
+        Args: { p_user_id: string }
+        Returns: {
+          id: string
+          user_id: string
+          bank_name: string
+          account_type: string
+          account_number: string
+          branch: string
+          document: string
+          created_at: string
+          updated_at: string
+        }[]
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -1123,6 +1145,17 @@ export type Database = {
         Returns: boolean
       }
       insert_bank_details: {
+        Args: {
+          p_user_id: string
+          p_bank_name: string
+          p_account_type: string
+          p_account_number: string
+          p_branch: string
+          p_document: string
+        }
+        Returns: boolean
+      }
+      insert_bank_details_encrypted: {
         Args: {
           p_user_id: string
           p_bank_name: string

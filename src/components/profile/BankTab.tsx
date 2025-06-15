@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { CreditCard, Plus, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { saveBankDetails } from '@/services/paymentService';
+import { saveBankDetails, getBankDetails } from '@/services/paymentService';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -51,16 +50,9 @@ const BankTab: React.FC = () => {
       try {
         setInitialLoading(true);
         
-        // Load bank details
-        const { data: bankData, error: bankError } = await supabase
-          .from('bank_details')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (bankError && bankError.code !== 'PGRST116') {
-          console.error('Error loading bank details:', bankError);
-        } else if (bankData) {
+        // Load bank details using the new decrypted function
+        const bankData = await getBankDetails();
+        if (bankData) {
           setBankDetails(bankData);
           setFormData({
             bankName: bankData.bank_name,
@@ -126,13 +118,8 @@ const BankTab: React.FC = () => {
           description: "Seus dados bancários foram atualizados com sucesso."
         });
         
-        // Reload bank details
-        const { data: bankData } = await supabase
-          .from('bank_details')
-          .select('*')
-          .eq('user_id', user?.id)
-          .maybeSingle();
-        
+        // Reload bank details using the new decrypted function
+        const bankData = await getBankDetails();
         if (bankData) {
           setBankDetails(bankData);
         }

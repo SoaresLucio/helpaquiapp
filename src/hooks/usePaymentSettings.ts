@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { saveBankDetails } from '@/services/paymentService';
+import { saveBankDetails, getBankDetails } from '@/services/paymentService';
 
 interface PaymentMethod {
   id: string;
@@ -82,16 +82,9 @@ export const usePaymentSettings = () => {
         setPaymentMethods(methodsData || []);
       }
 
-      // Load bank details
-      const { data: bankData, error: bankError } = await supabase
-        .from('bank_details')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (bankError && bankError.code !== 'PGRST116') {
-        console.error('Error loading bank details:', bankError);
-      } else if (bankData) {
+      // Load bank details using the new decrypted function
+      const bankData = await getBankDetails();
+      if (bankData) {
         setBankDetails(bankData);
         setBankInfo({
           accountName: bankData.bank_name,
@@ -255,13 +248,8 @@ export const usePaymentSettings = () => {
           description: "Suas informações de pagamento foram atualizadas com sucesso.",
         });
 
-        // Reload bank details
-        const { data: bankData } = await supabase
-          .from('bank_details')
-          .select('*')
-          .eq('user_id', user?.id)
-          .maybeSingle();
-        
+        // Reload bank details using the new decrypted function
+        const bankData = await getBankDetails();
         if (bankData) {
           setBankDetails(bankData);
         }

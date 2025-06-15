@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { getBankDetails } from '@/services/paymentService';
 
 interface ProfileData {
   first_name?: string;
@@ -42,17 +43,16 @@ export const useProfileData = () => {
           setProfileData(profile);
         }
 
-        // Fetch bank data
-        const { data: bank, error: bankError } = await supabase
-          .from('bank_details')
-          .select('bank_name, account_number, account_type, branch, document')
-          .eq('user_id', authUser.id)
-          .maybeSingle();
-
-        if (bankError) {
-          console.error('Error fetching bank data:', bankError);
-        } else if (bank) {
-          setBankData(bank);
+        // Fetch bank data using the new decrypted function
+        const bankDetails = await getBankDetails();
+        if (bankDetails) {
+          setBankData({
+            bank_name: bankDetails.bank_name,
+            account_number: bankDetails.account_number,
+            account_type: bankDetails.account_type,
+            branch: bankDetails.branch,
+            document: bankDetails.document
+          });
         }
 
       } catch (error) {

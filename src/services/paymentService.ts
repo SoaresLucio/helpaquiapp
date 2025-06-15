@@ -89,7 +89,7 @@ export const checkPaymentStatus = async (sessionId: string): Promise<boolean> =>
   }
 };
 
-// Save bank details for freelancer payouts
+// Save bank details for freelancer payouts using encrypted function
 export const saveBankDetails = async (bankDetails: BankDetails): Promise<boolean> => {
   try {
     const { data: userData } = await supabase.auth.getUser();
@@ -98,7 +98,7 @@ export const saveBankDetails = async (bankDetails: BankDetails): Promise<boolean
       throw new Error('User not authenticated');
     }
 
-    const { error } = await supabase.rpc('insert_bank_details', {
+    const { data, error } = await supabase.rpc('insert_bank_details_encrypted', {
       p_user_id: userData.user.id,
       p_bank_name: bankDetails.bankName,
       p_account_type: bankDetails.accountType,
@@ -108,10 +108,31 @@ export const saveBankDetails = async (bankDetails: BankDetails): Promise<boolean
     });
 
     if (error) throw error;
-    return true;
+    return data === true;
   } catch (error) {
     console.error('Bank details save error:', error);
     return false;
+  }
+};
+
+// Get decrypted bank details
+export const getBankDetails = async (): Promise<any> => {
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    
+    if (!userData?.user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { data, error } = await supabase.rpc('get_bank_details_decrypted', {
+      p_user_id: userData.user.id
+    });
+
+    if (error) throw error;
+    return data && data.length > 0 ? data[0] : null;
+  } catch (error) {
+    console.error('Bank details retrieval error:', error);
+    return null;
   }
 };
 
