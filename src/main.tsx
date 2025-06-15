@@ -1,33 +1,37 @@
 
-import React from "react";
-import ReactDOM from "react-dom/client";
-import { GoogleOAuthProvider } from '@react-oauth/google';
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { AuthProvider } from "./hooks/useAuth";
-import { ThemeProvider } from "./hooks/useTheme";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { SecureAuthProvider } from "@/hooks/useSecureAuth";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import App from "./App";
 import "./index.css";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+const rootElement = document.getElementById("root");
+if (!rootElement) throw new Error("Root element not found");
+
+createRoot(rootElement).render(
+  <StrictMode>
+    <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <AuthProvider>
-            <TooltipProvider>
-              <Toaster />
-              <BrowserRouter>
-                <App />
-              </BrowserRouter>
-            </TooltipProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <BrowserRouter>
+          <SecureAuthProvider>
+            <App />
+            <Toaster />
+          </SecureAuthProvider>
+        </BrowserRouter>
       </QueryClientProvider>
-    </GoogleOAuthProvider>
-  </React.StrictMode>
+    </ErrorBoundary>
+  </StrictMode>
 );

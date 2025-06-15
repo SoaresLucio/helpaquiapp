@@ -1,14 +1,19 @@
 
 import { useUserProfile } from './user/useUserProfile';
 import { useRealUser } from './user/useRealUser';
-import { User } from '@supabase/supabase-js';
+import { useSecureAuth } from './useSecureAuth';
 
-export const useUserData = (authUser: User | null, userType: 'solicitante' | 'freelancer' | null) => {
-  const profile = useUserProfile(authUser);
-  const realUser = useRealUser(authUser, userType, profile);
+export const useUserData = (authUser?: any, userType?: any) => {
+  // Use the secure auth hook to get the actual user data
+  const { user: actualUser, userType: actualUserType } = useSecureAuth();
+  
+  // Use the actual authenticated user, not the passed parameters
+  const profile = useUserProfile(actualUser);
+  const realUser = useRealUser(actualUser, actualUserType, profile);
 
   return {
     currentUser: realUser,
-    loading: false // Add loading state if needed by the consuming components
+    profile,
+    loading: false
   };
 };
