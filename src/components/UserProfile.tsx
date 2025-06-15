@@ -9,7 +9,7 @@ import BankTab from './profile/BankTab';
 import IncomeTab from './profile/IncomeTab';
 import SettingsTab from './profile/SettingsTab';
 import ProfileActions from './profile/ProfileActions';
-import ProfilePhotoUpload from './profile/ProfilePhotoUpload';
+import { useProfilePhotoUpload } from './profile/ProfilePhotoUpload';
 
 interface UserProfile {
   id: string;
@@ -41,7 +41,8 @@ interface UserProfileProps {
 const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
   const { user: authUser, userType } = useAuth();
   const [realUserData, setRealUserData] = useState<UserProfile | null>(null);
-  const photoUpload = ProfilePhotoUpload({
+  
+  const { handlePhotoUpload } = useProfilePhotoUpload({
     onPhotoUpdate: (type, url) => {
       if (realUserData) {
         setRealUserData({
@@ -108,8 +109,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     <div className="helpaqui-card overflow-hidden dark:bg-gray-800 dark:text-white">
       <ProfileHeader 
         user={realUserData}
-        onProfilePhotoUpload={(e) => photoUpload.handlePhotoUpload(e, 'profile')}
-        onCoverPhotoUpload={(e) => photoUpload.handlePhotoUpload(e, 'cover')}
+        onProfilePhotoUpload={(e) => handlePhotoUpload(e, 'profile')}
+        onCoverPhotoUpload={(e) => handlePhotoUpload(e, 'cover')}
       />
       
       <ProfileActions />

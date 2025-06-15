@@ -8,7 +8,7 @@ interface ProfilePhotoUploadProps {
   onPhotoUpdate: (type: 'profile' | 'cover', url: string) => void;
 }
 
-const ProfilePhotoUpload: React.FC<ProfilePhotoUploadProps> = ({ onPhotoUpdate }) => {
+export const useProfilePhotoUpload = ({ onPhotoUpdate }: ProfilePhotoUploadProps) => {
   const { toast } = useToast();
   const { user: authUser } = useAuth();
 
@@ -75,5 +75,3 @@ const ProfilePhotoUpload: React.FC<ProfilePhotoUploadProps> = ({ onPhotoUpdate }
 
   return { handlePhotoUpload };
 };
-
-export default ProfilePhotoUpload;
