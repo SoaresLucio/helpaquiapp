@@ -18,6 +18,7 @@ import Jobs from "./pages/Jobs";
 import Chat from "./pages/Chat";
 import Notes from "./pages/Notes";
 import PaymentSettings from "./pages/PaymentSettings";
+import PaymentFreelancerSettings from "./pages/PaymentFreelancerSettings";
 import ProfileVerification from "./pages/ProfileVerification";
 import UserTypeSelection from "./pages/UserTypeSelection";
 import ResetPassword from "./pages/ResetPassword";
@@ -89,6 +90,11 @@ function App() {
                 <Route path="/payment-settings" element={
                   <ProtectedRoute>
                     <PaymentSettings />
+                  </ProtectedRoute>
+                } />
+                <Route path="/payment-freelancer-settings" element={
+                  <ProtectedRoute requiredUserType="freelancer">
+                    <PaymentFreelancerSettings />
                   </ProtectedRoute>
                 } />
                 <Route path="/profile-verification" element={

@@ -66,6 +66,19 @@ const NavLinks: React.FC<NavLinksProps> = ({ currentPath }) => {
         </Link>
       )}
       
+      {userType === 'freelancer' && (
+        <Link
+          to="/payment-freelancer-settings"
+          className={cn(
+            navigationMenuTriggerStyle(),
+            "bg-transparent hover:bg-gray-100 transition-colors",
+            currentPath === "/payment-freelancer-settings" && "text-helpaqui-blue font-medium bg-blue-50"
+          )}
+        >
+          Pagamentos
+        </Link>
+      )}
+      
       <Link
         to="/chat"
         className={cn(
