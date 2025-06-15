@@ -46,8 +46,18 @@ const ServiceRequests = () => {
       let query = supabase
         .from('service_requests')
         .select(`
-          *,
-          profiles!service_requests_client_id_fkey(first_name, last_name)
+          id,
+          title,
+          description,
+          category,
+          location_address,
+          budget_min,
+          budget_max,
+          status,
+          urgency,
+          created_at,
+          client_id,
+          profiles!inner(first_name, last_name)
         `)
         .eq('status', 'open')
         .order('created_at', { ascending: false });
@@ -77,14 +87,15 @@ const ServiceRequests = () => {
         urgency: item.urgency,
         created_at: item.created_at,
         client_id: item.client_id,
-        client_profile: item.profiles ? {
+        client_profile: {
           first_name: item.profiles.first_name || '',
           last_name: item.profiles.last_name || ''
-        } : undefined
+        }
       }));
 
       setRequests(transformedData);
     } catch (error: any) {
+      console.log('Error fetching service requests:', error);
       toast({
         title: "Erro ao carregar solicitações",
         description: error.message,
