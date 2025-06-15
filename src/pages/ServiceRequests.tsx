@@ -47,7 +47,7 @@ const ServiceRequests = () => {
         .from('service_requests')
         .select(`
           *,
-          client_profile:profiles!client_id(first_name, last_name)
+          profiles!service_requests_client_id_fkey(first_name, last_name)
         `)
         .eq('status', 'open')
         .order('created_at', { ascending: false });
@@ -63,7 +63,27 @@ const ServiceRequests = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setRequests((data || []) as ServiceRequest[]);
+      
+      // Transform the data to match our interface
+      const transformedData: ServiceRequest[] = (data || []).map(item => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        location_address: item.location_address,
+        budget_min: item.budget_min,
+        budget_max: item.budget_max,
+        status: item.status,
+        urgency: item.urgency,
+        created_at: item.created_at,
+        client_id: item.client_id,
+        client_profile: item.profiles ? {
+          first_name: item.profiles.first_name || '',
+          last_name: item.profiles.last_name || ''
+        } : undefined
+      }));
+
+      setRequests(transformedData);
     } catch (error: any) {
       toast({
         title: "Erro ao carregar solicitações",
