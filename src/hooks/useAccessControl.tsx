@@ -1,60 +1,63 @@
 
-import { useAuth } from './useAuth';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
-interface UseAccessControlOptions {
+interface AccessControlOptions {
   requiredUserType?: 'solicitante' | 'freelancer';
-  redirectOnMismatch?: boolean;
+  requireAuth?: boolean;
 }
 
-export const useAccessControl = (options: UseAccessControlOptions = {}) => {
-  const { isAuthenticated, userType, loading, user } = useAuth();
-  const navigate = useNavigate();
-  const { requiredUserType, redirectOnMismatch = true } = options;
-
-  // Verify user authentication and type
-  const hasAccess = isAuthenticated && 
-    (!requiredUserType || userType === requiredUserType);
-
-  // Verify user ID consistency
-  const isUserValid = user?.id && user.email;
+/**
+ * Hook para controle de acesso a páginas e funcionalidades
+ * Verifica se o usuário tem permissão para acessar determinado recurso
+ * 
+ * @param options - Opções de controle de acesso
+ * @returns Estado de acesso, tipo de usuário e carregamento
+ */
+export const useAccessControl = (options: AccessControlOptions = {}) => {
+  const { isAuthenticated, userType, loading: authLoading } = useAuth();
+  const [hasAccess, setHasAccess] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      console.warn('User not authenticated, redirecting to login');
-      navigate('/login');
+    console.log('🔐 Verificando controle de acesso:', { 
+      isAuthenticated, 
+      userType, 
+      requiredUserType: options.requiredUserType,
+      requireAuth: options.requireAuth 
+    });
+
+    // Se ainda está carregando a autenticação, aguardar
+    if (authLoading) {
       return;
     }
 
-    if (!loading && isAuthenticated && !isUserValid) {
-      console.error('Invalid user data detected:', { userId: user?.id, email: user?.email });
-      navigate('/login');
+    // Verificar se autenticação é necessária
+    if (options.requireAuth !== false && !isAuthenticated) {
+      console.log('❌ Acesso negado: usuário não autenticado');
+      setHasAccess(false);
+      setLoading(false);
       return;
     }
 
-    if (!loading && isAuthenticated && requiredUserType && !hasAccess) {
-      console.warn(`Access control: User type '${userType}' cannot access '${requiredUserType}' content`);
-      
-      if (redirectOnMismatch) {
-        // Redirect to appropriate home based on user type
-        if (userType === 'solicitante') {
-          navigate('/solicitante-plans');
-        } else if (userType === 'freelancer') {
-          navigate('/freelancer-plans');
-        } else {
-          navigate('/');
-        }
-      }
+    // Verificar tipo de usuário específico
+    if (options.requiredUserType && userType !== options.requiredUserType) {
+      console.log('❌ Acesso negado: tipo de usuário incorreto');
+      setHasAccess(false);
+      setLoading(false);
+      return;
     }
-  }, [isAuthenticated, userType, loading, requiredUserType, user, navigate, redirectOnMismatch, isUserValid, hasAccess]);
+
+    // Acesso liberado
+    console.log('✅ Acesso permitido');
+    setHasAccess(true);
+    setLoading(false);
+  }, [isAuthenticated, userType, authLoading, options.requiredUserType, options.requireAuth]);
 
   return {
     hasAccess,
-    isAuthenticated,
     userType,
     loading,
-    isUserValid,
-    userId: user?.id
+    isAuthenticated
   };
 };
