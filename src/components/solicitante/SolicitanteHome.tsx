@@ -42,65 +42,117 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
   }, [banners, bannersLoading, bannersError]);
 
   // Load freelancer offers from Supabase
-  useEffect(() => {
-    const loadFreelancerOffers = async () => {
-      setLoadingOffers(true);
-      try {
-        const { data: offers, error } = await supabase
-          .from('freelancer_service_offers')
-          .select(`
-            *,
-            profiles!freelancer_id (
-              first_name,
-              last_name,
-              avatar_url
-            )
-          `)
-          .eq('is_active', true)
-          .order('created_at', { ascending: false });
+  const loadFreelancerOffers = async () => {
+    setLoadingOffers(true);
+    try {
+      const { data: offers, error } = await supabase
+        .from('freelancer_service_offers')
+        .select(`
+          *,
+          profiles!freelancer_id (
+            first_name,
+            last_name,
+            avatar_url
+          )
+        `)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Erro ao carregar ofertas:', error);
-          return;
-        }
-
-        // Convert freelancer offers to professional format
-        const convertedOffers = offers?.map((offer: any) => {
-          const profile = offer.profiles;
-          const fullName = profile?.first_name && profile?.last_name 
-            ? `${profile.first_name} ${profile.last_name}`.trim()
-            : 'Freelancer';
-
-          // Combine standard and custom categories
-          const allCategories = [...(offer.categories || []), ...(offer.custom_categories || [])];
-
-          return {
-            id: offer.id,
-            name: fullName,
-            description: offer.description,
-            categories: allCategories,
-            rating: 4.5 + Math.random() * 0.5, // Random rating between 4.5-5.0 for now
-            ratingCount: Math.floor(Math.random() * 50) + 10,
-            price: offer.rate,
-            distance: `${(Math.random() * 10 + 1).toFixed(1)}km`,
-            avatar: profile?.avatar_url || '/placeholder.svg',
-            verified: true,
-            location: offer.location || 'São Paulo, SP',
-            available: true, // Add missing required property
-            portfolio: [] // Add missing required property
-          };
-        }) || [];
-
-        // Combine mock professionals with real freelancer offers
-        setAllProfessionals([...mockProfessionals, ...convertedOffers]);
-      } catch (error) {
+      if (error) {
         console.error('Erro ao carregar ofertas:', error);
-      } finally {
-        setLoadingOffers(false);
+        return;
       }
+
+      console.log('Ofertas carregadas:', offers);
+
+      // Convert freelancer offers to professional format
+      const convertedOffers = offers?.map((offer: any) => {
+        const profile = offer.profiles;
+        const fullName = profile?.first_name && profile?.last_name 
+          ? `${profile.first_name} ${profile.last_name}`.trim()
+          : 'Freelancer';
+
+        // Combine standard and custom categories
+        const allCategories = [...(offer.categories || []), ...(offer.custom_categories || [])];
+
+        return {
+          id: offer.id,
+          name: fullName,
+          description: offer.description,
+          categories: allCategories,
+          rating: 4.5 + Math.random() * 0.5, // Random rating between 4.5-5.0 for now
+          ratingCount: Math.floor(Math.random() * 50) + 10,
+          price: offer.rate,
+          distance: `${(Math.random() * 10 + 1).toFixed(1)}km`,
+          avatar: profile?.avatar_url || '/placeholder.svg',
+          verified: true,
+          location: offer.location || 'São Paulo, SP',
+          available: true,
+          portfolio: []
+        };
+      }) || [];
+
+      // Combine mock professionals with real freelancer offers
+      setAllProfessionals([...mockProfessionals, ...convertedOffers]);
+    } catch (error) {
+      console.error('Erro ao carregar ofertas:', error);
+    } finally {
+      setLoadingOffers(false);
+    }
+  };
+
+  useEffect(() => {
+    loadFreelancerOffers();
+  }, []);
+
+  // Listen for new offers created
+  useEffect(() => {
+    const handleNewOffer = (event: CustomEvent) => {
+      console.log('Nova oferta detectada:', event.detail);
+      // Recarregar as ofertas quando uma nova for criada
+      loadFreelancerOffers();
     };
 
-    loadFreelancerOffers();
+    window.addEventListener('newOfferCreated', handleNewOffer as EventListener);
+
+    return () => {
+      window.removeEventListener('newOfferCreated', handleNewOffer as EventListener);
+    };
+  }, []);
+
+  // Real-time updates from Supabase
+  useEffect(() => {
+    const channel = supabase
+      .channel('freelancer-offers-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'freelancer_service_offers'
+        },
+        (payload) => {
+          console.log('Nova oferta inserida via realtime:', payload);
+          loadFreelancerOffers();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'freelancer_service_offers'
+        },
+        (payload) => {
+          console.log('Oferta atualizada via realtime:', payload);
+          loadFreelancerOffers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Filtrar freelancers por categoria, pesquisa e rating

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Camera, 
@@ -62,7 +61,7 @@ const OfferHelp: React.FC = () => {
         !serviceCategories.some(c => c.id === cat)
       );
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('freelancer_service_offers')
         .insert([
           {
@@ -76,15 +75,18 @@ const OfferHelp: React.FC = () => {
             photos,
             is_active: true
           }
-        ]);
+        ])
+        .select();
 
       if (error) {
         throw error;
       }
 
+      console.log('Oferta criada com sucesso:', data);
+
       toast({
-        title: "Oferta publicada",
-        description: "Sua oferta de serviço foi publicada com sucesso!",
+        title: "Oferta publicada! 🎉",
+        description: "Sua oferta de serviço foi publicada e já está visível para os clientes!",
       });
       
       // Resetar o formulário
@@ -96,6 +98,10 @@ const OfferHelp: React.FC = () => {
       setPhotos([]);
       setCustomCategory('');
       setAddingCustom(false);
+      
+      // Trigger a custom event to notify other components
+      window.dispatchEvent(new CustomEvent('newOfferCreated', { detail: data[0] }));
+      
     } catch (error) {
       console.error('Erro ao salvar oferta:', error);
       toast({
