@@ -8,15 +8,15 @@ export const useFreelancerOffers = () => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    console.log('🚀 Hook de ofertas montado, carregando ofertas...');
-    console.log('🔍 Refresh key atual:', refreshKey);
+    console.log('🚀 useFreelancerOffers: Hook montado, carregando ofertas...');
+    console.log('🔍 useFreelancerOffers: Refresh key atual:', refreshKey);
     loadOffers();
   }, [loadOffers, refreshKey]);
 
   // Escutar mudanças em tempo real
   useOffersRealtime({ 
     onOffersChange: () => {
-      console.log('🔄 Recarregando ofertas devido a mudança em tempo real...');
+      console.log('🔄 useFreelancerOffers: Recarregando ofertas devido a mudança em tempo real...');
       loadOffers();
     }
   });
@@ -24,35 +24,45 @@ export const useFreelancerOffers = () => {
   // Escutar evento customizado para novas ofertas
   useEffect(() => {
     const handleNewOffer = () => {
-      console.log('🆕 Nova oferta detectada, recarregando...');
+      console.log('🆕 useFreelancerOffers: Nova oferta detectada, recarregando...');
       setRefreshKey(prev => {
         const newKey = prev + 1;
-        console.log('🔄 Atualizando refresh key de', prev, 'para', newKey);
+        console.log('🔄 useFreelancerOffers: Atualizando refresh key de', prev, 'para', newKey);
         return newKey;
       });
     };
 
+    console.log('👂 useFreelancerOffers: Configurando listener para newOfferCreated');
     window.addEventListener('newOfferCreated', handleNewOffer);
-    return () => window.removeEventListener('newOfferCreated', handleNewOffer);
+    
+    return () => {
+      console.log('🧹 useFreelancerOffers: Removendo listener para newOfferCreated');
+      window.removeEventListener('newOfferCreated', handleNewOffer);
+    };
   }, []);
 
   // Log quando as ofertas mudarem
   useEffect(() => {
-    console.log('📊 Estado das ofertas atualizado:', {
+    console.log('📊 useFreelancerOffers: Estado das ofertas atualizado:', {
       count: offers.length,
       loading,
       offers: offers.map(o => ({ id: o.id, name: o.name, title: o.offerDetails?.title }))
     });
   }, [offers, loading]);
 
+  // Debug: detectar re-renders excessivos
+  useEffect(() => {
+    console.log('🔄 useFreelancerOffers: Component re-rendered');
+  });
+
   return {
     offers,
     loading,
     reloadOffers: () => {
-      console.log('🔄 Recarregamento manual das ofertas...');
+      console.log('🔄 useFreelancerOffers: Recarregamento manual das ofertas...');
       setRefreshKey(prev => {
         const newKey = prev + 1;
-        console.log('🔄 Manual reload: atualizando refresh key de', prev, 'para', newKey);
+        console.log('🔄 useFreelancerOffers: Manual reload: atualizando refresh key de', prev, 'para', newKey);
         return newKey;
       });
     },
