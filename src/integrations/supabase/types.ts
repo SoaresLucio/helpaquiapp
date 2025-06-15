@@ -132,6 +132,95 @@ export type Database = {
         }
         Relationships: []
       }
+      job_applications: {
+        Row: {
+          candidate_email: string
+          candidate_name: string
+          candidate_phone: string | null
+          created_at: string
+          id: string
+          job_listing_id: string | null
+          message: string | null
+          resume_url: string
+        }
+        Insert: {
+          candidate_email: string
+          candidate_name: string
+          candidate_phone?: string | null
+          created_at?: string
+          id?: string
+          job_listing_id?: string | null
+          message?: string | null
+          resume_url: string
+        }
+        Update: {
+          candidate_email?: string
+          candidate_name?: string
+          candidate_phone?: string | null
+          created_at?: string
+          id?: string
+          job_listing_id?: string | null
+          message?: string | null
+          resume_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_job_listing_id_fkey"
+            columns: ["job_listing_id"]
+            isOneToOne: false
+            referencedRelation: "job_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_listings: {
+        Row: {
+          benefits: string | null
+          company_email: string
+          company_name: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          job_type: string
+          location: string | null
+          requirements: string | null
+          salary_range: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          benefits?: string | null
+          company_email: string
+          company_name: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          job_type: string
+          location?: string | null
+          requirements?: string | null
+          salary_range?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          benefits?: string | null
+          company_email?: string
+          company_name?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          job_type?: string
+          location?: string | null
+          requirements?: string | null
+          salary_range?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notes: {
         Row: {
           content: string | null
