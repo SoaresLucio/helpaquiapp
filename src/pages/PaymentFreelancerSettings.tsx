@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
+import BackButton from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -197,6 +198,10 @@ const PaymentFreelancerSettings = () => {
       <Header />
       
       <main className="flex-1 helpaqui-container py-4">
+        <div className="mb-4">
+          <BackButton to="/" label="Voltar ao Início" />
+        </div>
+        
         <div className="mb-6">
           <h1 className="text-2xl font-bold mb-2">Configurações de Pagamento - Freelancer</h1>
           <p className="text-gray-600">

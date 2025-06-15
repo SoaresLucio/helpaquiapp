@@ -1,5 +1,7 @@
+
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import BackButton from '@/components/ui/back-button';
 import FreelancerSubscriptionPlans from '@/components/subscription/FreelancerSubscriptionPlans';
 import BannerCarousel from '@/components/banners/BannerCarousel';
 import { useAccessControl } from '@/hooks/useAccessControl';
@@ -42,6 +44,10 @@ const FreelancerPlans: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <BackButton to="/" label="Voltar ao Início" />
+        </div>
+        
         {/* Banner promocional */}
         {!bannersLoading && banners.length > 0 && (
           <div className="mb-8">

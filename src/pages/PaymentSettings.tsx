@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import Header from '@/components/Header';
+import BackButton from '@/components/ui/back-button';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { usePaymentSettings } from '@/hooks/usePaymentSettings';
 import PaymentMethodsTab from '@/components/payment/PaymentMethodsTab';
@@ -36,6 +37,10 @@ const PaymentSettings = () => {
       <Header />
       
       <main className="flex-1 helpaqui-container py-4">
+        <div className="mb-4">
+          <BackButton to="/" label="Voltar ao Início" />
+        </div>
+        
         <PaymentSettingsHeader />
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
