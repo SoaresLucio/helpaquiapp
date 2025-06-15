@@ -28,7 +28,7 @@ interface User {
   coverPhoto?: string;
 }
 
-export type VerificationStatus = 'unverified' | 'partial' | 'verified';
+export type VerificationStatus = 'verified' | 'pending' | 'incomplete';
 
 export const useVerificationStatus = (
   profileData: ProfileData, 
@@ -58,18 +58,18 @@ export const useVerificationStatus = (
       if (hasBasicProfile && hasEmailVerification && hasBankDetails) {
         return 'verified';
       } else if (hasBasicProfile || hasEmailVerification || hasBankDetails) {
-        return 'partial';
+        return 'pending';
       }
-      return 'unverified';
+      return 'incomplete';
     }
 
     // For client users, bank details not required
     if (hasBasicProfile && hasEmailVerification) {
       return 'verified';
     } else if (hasBasicProfile || hasEmailVerification) {
-      return 'partial';
+      return 'pending';
     }
 
-    return 'unverified';
+    return 'incomplete';
   }, [profileData, bankData, user]);
 };
