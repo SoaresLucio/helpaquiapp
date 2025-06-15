@@ -5,8 +5,8 @@ import { validateDataAccess } from '@/utils/securityEnhancement';
 import { useSecurityMonitor } from '@/hooks/useSecurityMonitor';
 import { useToast } from '@/components/ui/use-toast';
 
-interface SecureAccessResult<T> {
-  data: T | null;
+interface SecureAccessResult {
+  data: any | null;
   success: boolean;
   error?: string;
   securityScore?: number;
@@ -18,11 +18,11 @@ export const useSecureDataAccess = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
-  const secureAccess = useCallback(async <T>(
-    operation: () => Promise<T>,
+  const secureAccess = useCallback(async (
+    operation: () => Promise<any>,
     resourceType: string,
     resourceId?: string
-  ): Promise<SecureAccessResult<T>> => {
+  ): Promise<SecureAccessResult> => {
     if (!user?.id) {
       return { data: null, success: false, error: 'Usuário não autenticado' };
     }
@@ -84,12 +84,12 @@ export const useSecureDataAccess = () => {
     }
   }, [user?.id, logSecurityEvent]);
 
-  const secureWrite = useCallback(async <T>(
-    operation: () => Promise<T>,
+  const secureWrite = useCallback(async (
+    operation: () => Promise<any>,
     resourceType: string,
     resourceId?: string,
     validationData?: any
-  ): Promise<SecureAccessResult<T>> => {
+  ): Promise<SecureAccessResult> => {
     if (!user?.id) {
       return { data: null, success: false, error: 'Usuário não autenticado' };
     }
