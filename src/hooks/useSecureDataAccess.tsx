@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { validateDataAccess } from '@/utils/securityEnhancement';
 import { useSecurityMonitor } from '@/hooks/useSecurityMonitor';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 
 interface SecureAccessResult<T> {
   data: T | null;
