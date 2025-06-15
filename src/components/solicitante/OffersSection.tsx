@@ -2,7 +2,7 @@
 import React from 'react';
 import { MapPin, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import ProfessionalCardWithInterest from '@/components/ProfessionalCardWithInterest';
+import ProfessionalCard from '@/components/ProfessionalCard';
 import { Professional } from '@/data/mockData';
 
 interface OffersSectionProps {
@@ -45,7 +45,7 @@ const OffersSection: React.FC<OffersSectionProps> = ({
       ) : professionals.length > 0 ? (
         <div className="space-y-4">
           {professionals.map(professional => (
-            <ProfessionalCardWithInterest 
+            <ProfessionalCard 
               key={professional.id} 
               professional={professional}
             />
