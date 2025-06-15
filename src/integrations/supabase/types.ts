@@ -73,7 +73,7 @@ export type Database = {
           document: string
           id: string
           updated_at: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           account_number: string
@@ -84,7 +84,7 @@ export type Database = {
           document: string
           id?: string
           updated_at?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           account_number?: string
@@ -95,7 +95,7 @@ export type Database = {
           document?: string
           id?: string
           updated_at?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -190,6 +190,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      payment_methods: {
+        Row: {
+          card_brand: string | null
+          card_last_four: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          method_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_brand?: string | null
+          card_last_four?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          method_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          card_brand?: string | null
+          card_last_four?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          method_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       payments: {
         Row: {
