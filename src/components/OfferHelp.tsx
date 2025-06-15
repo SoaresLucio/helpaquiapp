@@ -20,9 +20,14 @@ import { serviceCategories } from '@/data/mockData';
 import { useToast } from '@/components/ui/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/hooks/useAuth';
+import { createFreelancerProfile } from '@/services/freelancersService';
 
 const OfferHelp: React.FC = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
@@ -31,44 +36,76 @@ const OfferHelp: React.FC = () => {
   const [customCategory, setCustomCategory] = useState('');
   const [addingCustom, setAddingCustom] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
+  const [observations, setObservations] = useState('');
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validação básica
-    if (!title || !description || categories.length === 0 || !location) {
+    if (!description || categories.length === 0) {
       toast({
         title: "Atenção",
-        description: "Por favor, preencha todos os campos obrigatórios.",
+        description: "Por favor, preencha a descrição e selecione pelo menos uma categoria.",
         variant: "destructive",
       });
       return;
     }
-    
-    // Aqui seria o envio para a API
-    console.log({
-      title,
-      description,
-      categories,
-      location,
-      rate,
-      photos
-    });
-    
-    toast({
-      title: "Oferta publicada",
-      description: "Sua oferta de serviço foi publicada com sucesso!",
-    });
-    
-    // Resetar o formulário
-    setTitle('');
-    setDescription('');
-    setCategories([]);
-    setLocation('');
-    setRate('');
-    setPhotos([]);
-    setCustomCategory('');
-    setAddingCustom(false);
+
+    if (!user?.id) {
+      toast({
+        title: "Erro de autenticação",
+        description: "Você precisa estar logado para criar uma oferta",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Usar a primeira categoria selecionada (pode ser melhorado para suportar múltiplas)
+      const primaryCategory = categories[0];
+      
+      // Preparar dados para inserção no banco
+      const profileData = {
+        user_id: user.id,
+        category: primaryCategory,
+        description: description,
+        portfolio_photos: photos,
+        observations: observations || `Localização: ${location}`,
+        hourly_rate: rate ? Math.round(parseFloat(rate) * 100) : null, // Converter para centavos
+        available: true
+      };
+
+      // Criar perfil no banco de dados
+      await createFreelancerProfile(profileData);
+
+      toast({
+        title: "Oferta publicada com sucesso!",
+        description: "Sua oferta de serviço foi publicada e já aparece para os clientes!",
+      });
+
+      // Resetar o formulário
+      setTitle('');
+      setDescription('');
+      setCategories([]);
+      setLocation('');
+      setRate('');
+      setPhotos([]);
+      setObservations('');
+      setCustomCategory('');
+      setAddingCustom(false);
+
+    } catch (error: any) {
+      console.error('Error creating freelancer profile:', error);
+      toast({
+        title: "Erro ao publicar oferta",
+        description: error.message || "Ocorreu um erro inesperado",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
   const toggleCategory = (categoryId: string) => {
@@ -108,7 +145,7 @@ const OfferHelp: React.FC = () => {
           {/* Título */}
           <div>
             <label htmlFor="title" className="block text-sm font-medium mb-1">
-              Título do serviço <span className="text-red-500">*</span>
+              Título do serviço
             </label>
             <Input
               id="title"
@@ -116,7 +153,6 @@ const OfferHelp: React.FC = () => {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ex: Eletricista especializado em residências"
               className="helpaqui-input"
-              required
             />
           </div>
           
@@ -215,7 +251,7 @@ const OfferHelp: React.FC = () => {
           {/* Localização */}
           <div>
             <label htmlFor="location" className="block text-sm font-medium mb-1">
-              Área de atendimento <span className="text-red-500">*</span>
+              Área de atendimento
             </label>
             <div className="relative">
               <Input
@@ -224,7 +260,6 @@ const OfferHelp: React.FC = () => {
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="Ex: Bairros Oeste de São Paulo"
                 className="helpaqui-input pl-10"
-                required
               />
               <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
@@ -233,19 +268,35 @@ const OfferHelp: React.FC = () => {
           {/* Valor/Taxa */}
           <div>
             <label htmlFor="rate" className="block text-sm font-medium mb-1">
-              Valor/Hora ou Taxa <span className="text-red-500">*</span>
+              Valor/Hora (R$)
             </label>
             <div className="relative">
               <Input
                 id="rate"
+                type="number"
+                step="0.01"
+                min="0"
                 value={rate}
                 onChange={(e) => setRate(e.target.value)}
-                placeholder="Ex: R$ 80/hora ou A combinar"
+                placeholder="Ex: 80.00"
                 className="helpaqui-input pl-10"
-                required
               />
               <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
+          </div>
+
+          {/* Observações */}
+          <div>
+            <label htmlFor="observations" className="block text-sm font-medium mb-1">
+              Observações Adicionais
+            </label>
+            <Textarea
+              id="observations"
+              value={observations}
+              onChange={(e) => setObservations(e.target.value)}
+              placeholder="Informações extras sobre disponibilidade, experiência, etc..."
+              className="helpaqui-input min-h-[80px]"
+            />
           </div>
           
           {/* Fotos */}
@@ -285,8 +336,19 @@ const OfferHelp: React.FC = () => {
             </p>
           </div>
           
-          <Button type="submit" className="helpaqui-button-green w-full">
-            Publicar Oferta de Help
+          <Button 
+            type="submit" 
+            className="helpaqui-button-green w-full"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Publicando...
+              </>
+            ) : (
+              'Publicar Oferta de Help'
+            )}
           </Button>
         </div>
       </form>
