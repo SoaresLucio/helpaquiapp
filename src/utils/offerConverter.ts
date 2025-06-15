@@ -32,15 +32,6 @@ export const convertOfferToProfessional = (offer: any): Professional => {
     portfolio: offer.photos || [],
     responseTime: '30min', // Mock - pode ser calculado baseado em histórico
     responseRate: 95, // Mock - pode ser calculado baseado em histórico
-    // Informações adicionais da oferta
-    offerDetails: {
-      title: offer.title,
-      fullDescription: offer.description,
-      location: offer.location,
-      customCategories: offer.custom_categories || [],
-      createdAt: offer.created_at,
-      isActive: offer.is_active
-    }
   };
 
   console.log('🔄 Oferta convertida para Professional:', {
