@@ -1,0 +1,113 @@
+
+import { supabase } from '@/integrations/supabase/client';
+import { FreelancerProfile } from '@/types/freelancer';
+
+interface FetchFreelancersOptions {
+  category?: string;
+  sortBy?: string;
+}
+
+export const fetchRecommendedFreelancers = async (options: FetchFreelancersOptions = {}): Promise<FreelancerProfile[]> => {
+  const { category, sortBy } = options;
+  
+  let query = supabase
+    .from('freelancer_profiles')
+    .select(`
+      *,
+      user_profile:profiles(
+        first_name,
+        last_name,
+        avatar_url,
+        verified
+      )
+    `)
+    .eq('available', true);
+
+  // Filtrar por categoria se especificado
+  if (category && category !== 'all') {
+    query = query.eq('category', category);
+  }
+
+  // Ordenação
+  switch (sortBy) {
+    case 'price_low':
+      query = query.order('hourly_rate', { ascending: true, nullsLast: true });
+      break;
+    case 'price_high':
+      query = query.order('hourly_rate', { ascending: false, nullsLast: true });
+      break;
+    case 'recent':
+      query = query.order('created_at', { ascending: false });
+      break;
+    case 'rating':
+    default:
+      // Por enquanto ordenar por data, posteriormente implementar por avaliação
+      query = query.order('created_at', { ascending: false });
+      break;
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching freelancers:', error);
+    throw error;
+  }
+
+  return data || [];
+};
+
+export const fetchFreelancerById = async (id: string): Promise<FreelancerProfile | null> => {
+  const { data, error } = await supabase
+    .from('freelancer_profiles')
+    .select(`
+      *,
+      user_profile:profiles(
+        first_name,
+        last_name,
+        avatar_url,
+        verified,
+        phone,
+        email
+      )
+    `)
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching freelancer:', error);
+    throw error;
+  }
+
+  return data;
+};
+
+export const createFreelancerProfile = async (profileData: Partial<FreelancerProfile>): Promise<FreelancerProfile> => {
+  const { data, error } = await supabase
+    .from('freelancer_profiles')
+    .insert([profileData])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating freelancer profile:', error);
+    throw error;
+  }
+
+  return data;
+};
+
+export const updateFreelancerProfile = async (id: string, profileData: Partial<FreelancerProfile>): Promise<FreelancerProfile> => {
+  const { data, error } = await supabase
+    .from('freelancer_profiles')
+    .update(profileData)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating freelancer profile:', error);
+    throw error;
+  }
+
+  return data;
+};
