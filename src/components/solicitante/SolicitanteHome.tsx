@@ -45,6 +45,8 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
   const loadFreelancerOffers = async () => {
     setLoadingOffers(true);
     try {
+      console.log('🔄 Carregando ofertas de freelancers...');
+      
       const { data: offers, error } = await supabase
         .from('freelancer_service_offers')
         .select(`
@@ -59,11 +61,12 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Erro ao carregar ofertas:', error);
+        console.error('❌ Erro ao carregar ofertas:', error);
         return;
       }
 
-      console.log('Ofertas carregadas:', offers);
+      console.log('✅ Ofertas carregadas do Supabase:', offers);
+      console.log('📊 Total de ofertas encontradas:', offers?.length || 0);
 
       // Convert freelancer offers to professional format
       const convertedOffers = offers?.map((offer: any) => {
@@ -75,8 +78,8 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
         // Combine standard and custom categories
         const allCategories = [...(offer.categories || []), ...(offer.custom_categories || [])];
 
-        return {
-          id: offer.id,
+        const convertedOffer = {
+          id: `offer-${offer.id}`, // Prefixo para distinguir de mock data
           name: fullName,
           description: offer.description,
           categories: allCategories,
@@ -90,12 +93,18 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
           available: true,
           portfolio: []
         };
+
+        console.log('🔄 Oferta convertida:', convertedOffer);
+        return convertedOffer;
       }) || [];
 
-      // Combine mock professionals with real freelancer offers
-      setAllProfessionals([...mockProfessionals, ...convertedOffers]);
+      console.log('✅ Ofertas convertidas:', convertedOffers);
+
+      // Replace all professionals with converted offers (removing mock data to avoid conflicts)
+      setAllProfessionals(convertedOffers);
+      
     } catch (error) {
-      console.error('Erro ao carregar ofertas:', error);
+      console.error('💥 Erro inesperado ao carregar ofertas:', error);
     } finally {
       setLoadingOffers(false);
     }
@@ -105,10 +114,10 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
     loadFreelancerOffers();
   }, []);
 
-  // Listen for new offers created
+  // Listen for new offers created via custom events
   useEffect(() => {
     const handleNewOffer = (event: CustomEvent) => {
-      console.log('Nova oferta detectada:', event.detail);
+      console.log('🆕 Nova oferta detectada via evento personalizado:', event.detail);
       // Recarregar as ofertas quando uma nova for criada
       loadFreelancerOffers();
     };
@@ -122,8 +131,10 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
 
   // Real-time updates from Supabase
   useEffect(() => {
+    console.log('🔴 Configurando listeners de realtime...');
+    
     const channel = supabase
-      .channel('freelancer-offers-changes')
+      .channel('freelancer-offers-realtime')
       .on(
         'postgres_changes',
         {
@@ -132,7 +143,7 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
           table: 'freelancer_service_offers'
         },
         (payload) => {
-          console.log('Nova oferta inserida via realtime:', payload);
+          console.log('🆕 Nova oferta inserida via realtime:', payload);
           loadFreelancerOffers();
         }
       )
@@ -144,13 +155,28 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
           table: 'freelancer_service_offers'
         },
         (payload) => {
-          console.log('Oferta atualizada via realtime:', payload);
+          console.log('🔄 Oferta atualizada via realtime:', payload);
           loadFreelancerOffers();
         }
       )
-      .subscribe();
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'freelancer_service_offers'
+        },
+        (payload) => {
+          console.log('🗑️ Oferta deletada via realtime:', payload);
+          loadFreelancerOffers();
+        }
+      )
+      .subscribe((status) => {
+        console.log('📡 Status da conexão realtime:', status);
+      });
 
     return () => {
+      console.log('🔌 Removendo channel realtime...');
       supabase.removeChannel(channel);
     };
   }, []);
@@ -305,13 +331,13 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
           <h2 className="text-xl font-semibold">
             {selectedCategoryName 
               ? `Freelancers de ${selectedCategoryName}` 
-              : 'Freelancers Recomendados'}
+              : 'Ofertas de Help Disponíveis'}
           </h2>
           
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <MapPin className="h-4 w-4" />
             <span>
-              {loadingOffers ? 'Carregando...' : `${sortedProfessionals.length} profissionais encontrados`}
+              {loadingOffers ? 'Carregando...' : `${sortedProfessionals.length} ofertas encontradas`}
             </span>
           </div>
         </div>
@@ -338,7 +364,7 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
               <Search className="h-12 w-12 mx-auto" />
             </div>
             <p className="text-gray-500 mb-4">
-              Nenhum freelancer encontrado com os filtros aplicados.
+              Nenhuma oferta de Help encontrada com os filtros aplicados.
             </p>
             <Button 
               variant="outline" 

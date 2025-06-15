@@ -53,6 +53,10 @@ const OfferHelp: React.FC = () => {
     setIsSubmitting(true);
     
     try {
+      console.log('🔄 Criando oferta de Help...');
+      console.log('👤 Usuário:', user.id);
+      console.log('📝 Dados da oferta:', { title, description, categories, location, rate, photos });
+      
       // Separar categorias padrão das personalizadas
       const standardCategories = categories.filter(cat => 
         serviceCategories.some(c => c.id === cat)
@@ -61,32 +65,35 @@ const OfferHelp: React.FC = () => {
         !serviceCategories.some(c => c.id === cat)
       );
       
+      const offerData = {
+        freelancer_id: user.id,
+        title,
+        description,
+        categories: standardCategories,
+        custom_categories: customCategories,
+        location: location || null,
+        rate,
+        photos,
+        is_active: true
+      };
+
+      console.log('📤 Dados finais para inserção:', offerData);
+
       const { data, error } = await supabase
         .from('freelancer_service_offers')
-        .insert([
-          {
-            freelancer_id: user.id,
-            title,
-            description,
-            categories: standardCategories,
-            custom_categories: customCategories,
-            location: location || null,
-            rate,
-            photos,
-            is_active: true
-          }
-        ])
+        .insert([offerData])
         .select();
 
       if (error) {
+        console.error('❌ Erro ao inserir oferta:', error);
         throw error;
       }
 
-      console.log('Oferta criada com sucesso:', data);
+      console.log('✅ Oferta criada com sucesso:', data);
 
       toast({
         title: "Oferta publicada! 🎉",
-        description: "Sua oferta de serviço foi publicada e já está visível para os clientes!",
+        description: "Sua oferta de Help foi publicada e já está visível para os solicitantes!",
       });
       
       // Resetar o formulário
@@ -100,10 +107,11 @@ const OfferHelp: React.FC = () => {
       setAddingCustom(false);
       
       // Trigger a custom event to notify other components
+      console.log('📢 Disparando evento customizado...');
       window.dispatchEvent(new CustomEvent('newOfferCreated', { detail: data[0] }));
       
     } catch (error) {
-      console.error('Erro ao salvar oferta:', error);
+      console.error('💥 Erro ao salvar oferta:', error);
       toast({
         title: "Erro",
         description: "Erro ao publicar oferta. Tente novamente.",
