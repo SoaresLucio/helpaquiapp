@@ -62,7 +62,7 @@ const IndexMainContent: React.FC<IndexMainContentProps> = ({
           </p>
           <div className="flex gap-3">
             <Button 
-              onClick={() => navigate('/subscription-flow')}
+              onClick={() => navigate('/subscription')}
               className="bg-purple-600 hover:bg-purple-700"
             >
               <Crown className="h-4 w-4 mr-2" />

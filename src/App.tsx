@@ -24,8 +24,6 @@ import PaymentFreelancerSettings from "./pages/PaymentFreelancerSettings";
 import SolicitantePlans from "./pages/SolicitantePlans";
 import FreelancerPlans from "./pages/FreelancerPlans";
 import Subscription from "./pages/Subscription";
-import SubscriptionFlow from "./pages/SubscriptionFlow";
-import SubscriptionPixPayment from "./pages/SubscriptionPixPayment";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import SubscriptionHistory from "./pages/SubscriptionHistory";
 import CategoryManagement from "./pages/CategoryManagement";
@@ -140,18 +138,6 @@ function App() {
         <Route path="/subscription" element={
           <ProtectedRoute>
             <Subscription />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/subscription-flow" element={
-          <ProtectedRoute>
-            <SubscriptionFlow />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/subscription-pix-payment" element={
-          <ProtectedRoute>
-            <SubscriptionPixPayment />
           </ProtectedRoute>
         } />
         

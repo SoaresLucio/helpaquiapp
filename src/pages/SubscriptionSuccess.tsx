@@ -19,7 +19,7 @@ const SubscriptionSuccess: React.FC = () => {
     if (!subscription) {
       console.error('Missing subscription data in location.state:', { subscription });
       toast.error('Dados da assinatura não encontrados. Redirecionando...');
-      navigate('/subscription-flow');
+      navigate('/subscription');
     }
   }, [subscription, navigate]);
 
