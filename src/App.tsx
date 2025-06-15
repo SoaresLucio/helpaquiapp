@@ -25,6 +25,7 @@ import SolicitantePlans from "./pages/SolicitantePlans";
 import FreelancerPlans from "./pages/FreelancerPlans";
 import MyOffers from "./pages/MyOffers";
 import MyRequests from "./pages/MyRequests";
+import OffersPage from "./pages/OffersPage";
 import NotFound from "./pages/NotFound";
 
 function App() {
@@ -123,6 +124,11 @@ function App() {
       <Route path="/my-requests" element={
         <ProtectedRoute requiredUserType="solicitante">
           <MyRequests />
+        </ProtectedRoute>
+      } />
+      <Route path="/offers" element={
+        <ProtectedRoute requiredUserType="solicitante">
+          <OffersPage />
         </ProtectedRoute>
       } />
       

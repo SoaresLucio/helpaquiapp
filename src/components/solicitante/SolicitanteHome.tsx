@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ServiceMap from '@/components/ServiceMap';
 import BannerCarousel from '@/components/banners/BannerCarousel';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,6 +10,7 @@ import { useProfessionalFiltering } from '@/hooks/useProfessionalFiltering';
 import WelcomeSection from './WelcomeSection';
 import QuickActions from './QuickActions';
 import OffersSection from './OffersSection';
+import { Button } from '@/components/ui/button';
 
 interface SolicitanteHomeProps {
   selectedCategory: string | null;
@@ -20,6 +22,7 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({
   onSelectCategory 
 }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('rating');
   const [filterRating, setFilterRating] = useState('all');
@@ -86,10 +89,18 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({
       {/* Freelancers List */}
       <OffersSection
         selectedCategoryName={selectedCategoryName}
-        professionals={filteredProfessionals}
+        professionals={filteredProfessionals.slice(0, 5)}
         loading={loadingOffers}
         onReload={reloadOffers}
       />
+
+      {filteredProfessionals.length > 5 && (
+        <div className="text-center">
+          <Button onClick={() => navigate('/offers')}>
+            Ver todas as ofertas
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
