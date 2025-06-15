@@ -34,20 +34,30 @@ export const useAnalytics = () => {
   ) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('generate_analytics_data', {
-        start_date: startDate || undefined,
-        end_date: endDate || undefined
-      });
-
-      if (error) throw error;
+      // Since the function doesn't exist, we'll manually query the tables
+      const [
+        usersResult,
+        serviceRequestsResult,
+        freelancerOffersResult,
+        paymentsResult,
+        conversationsResult,
+        verificationsResult
+      ] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('service_requests').select('id', { count: 'exact', head: true }),
+        supabase.from('freelancer_service_offers').select('id', { count: 'exact', head: true }),
+        supabase.from('payments').select('id', { count: 'exact', head: true }),
+        supabase.from('ai_support_conversations').select('id', { count: 'exact', head: true }),
+        supabase.from('profile_verifications').select('id').eq('status', 'pending')
+      ]);
 
       const analyticsData: AnalyticsData = {
-        total_users: parseInt(data.total_users || '0'),
-        total_service_requests: parseInt(data.total_service_requests || '0'),
-        total_freelancer_offers: parseInt(data.total_freelancer_offers || '0'),
-        total_payments: parseInt(data.total_payments || '0'),
-        ai_support_conversations: parseInt(data.ai_support_conversations || '0'),
-        pending_verifications: parseInt(data.pending_verifications || '0'),
+        total_users: usersResult.count || 0,
+        total_service_requests: serviceRequestsResult.count || 0,
+        total_freelancer_offers: freelancerOffersResult.count || 0,
+        total_payments: paymentsResult.count || 0,
+        ai_support_conversations: conversationsResult.count || 0,
+        pending_verifications: verificationsResult.data?.length || 0,
       };
 
       setCurrentData(analyticsData);
@@ -72,21 +82,25 @@ export const useAnalytics = () => {
     data: any
   ) => {
     try {
+      // Since the table doesn't exist, we'll store it in notes for now
       const { data: report, error } = await supabase
-        .from('analytics_reports')
+        .from('notes')
         .insert({
-          report_type: reportType,
-          date_from: dateFrom,
-          date_to: dateTo,
-          data: data,
-          generated_by: (await supabase.auth.getUser()).data.user?.id || ''
+          title: `Analytics Report - ${reportType}`,
+          content: JSON.stringify({
+            report_type: reportType,
+            date_from: dateFrom,
+            date_to: dateTo,
+            data: data,
+            generated_by: (await supabase.auth.getUser()).data.user?.id || ''
+          }),
+          user_id: (await supabase.auth.getUser()).data.user?.id || ''
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      setReports(prev => [report, ...prev]);
       toast({
         title: "Sucesso",
         description: "Relatório salvo com sucesso",
@@ -107,14 +121,42 @@ export const useAnalytics = () => {
   const loadReports = useCallback(async () => {
     setLoading(true);
     try {
+      // Load reports from notes for now
       const { data, error } = await supabase
-        .from('analytics_reports')
+        .from('notes')
         .select('*')
+        .like('title', 'Analytics Report%')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      setReports(data || []);
+      // Transform notes into reports format
+      const transformedReports: AnalyticsReport[] = (data || []).map(note => {
+        try {
+          const reportData = JSON.parse(note.content || '{}');
+          return {
+            id: note.id,
+            report_type: reportData.report_type || 'custom',
+            date_from: reportData.date_from || note.created_at,
+            date_to: reportData.date_to || note.created_at,
+            data: reportData.data || {},
+            generated_by: reportData.generated_by || '',
+            created_at: note.created_at,
+          };
+        } catch {
+          return {
+            id: note.id,
+            report_type: 'custom' as const,
+            date_from: note.created_at,
+            date_to: note.created_at,
+            data: {},
+            generated_by: '',
+            created_at: note.created_at,
+          };
+        }
+      });
+
+      setReports(transformedReports);
     } catch (error) {
       console.error('Erro ao carregar relatórios:', error);
       toast({

@@ -59,8 +59,14 @@ export const useAISupport = () => {
 
       if (error) throw error;
 
-      setCurrentConversation(data);
-      return data;
+      // Type assertion to ensure proper typing
+      const conversation: AIConversation = {
+        ...data,
+        status: data.status as 'active' | 'transferred_to_human' | 'closed'
+      };
+
+      setCurrentConversation(conversation);
+      return conversation;
     } catch (error) {
       console.error('Erro ao criar conversa:', error);
       toast({
@@ -96,8 +102,14 @@ export const useAISupport = () => {
 
       if (error) throw error;
 
-      setMessages(prev => [...prev, data]);
-      return data;
+      // Type assertion to ensure proper typing
+      const message: AIMessage = {
+        ...data,
+        sender_type: data.sender_type as 'user' | 'ai' | 'admin'
+      };
+
+      setMessages(prev => [...prev, message]);
+      return message;
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
       toast({
@@ -122,7 +134,13 @@ export const useAISupport = () => {
 
       if (error) throw error;
 
-      setConversations(data || []);
+      // Type assertion to ensure proper typing
+      const typedConversations: AIConversation[] = (data || []).map(conv => ({
+        ...conv,
+        status: conv.status as 'active' | 'transferred_to_human' | 'closed'
+      }));
+
+      setConversations(typedConversations);
     } catch (error) {
       console.error('Erro ao carregar conversas:', error);
     } finally {
@@ -141,7 +159,13 @@ export const useAISupport = () => {
 
       if (error) throw error;
 
-      setMessages(data || []);
+      // Type assertion to ensure proper typing
+      const typedMessages: AIMessage[] = (data || []).map(msg => ({
+        ...msg,
+        sender_type: msg.sender_type as 'user' | 'ai' | 'admin'
+      }));
+
+      setMessages(typedMessages);
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
     } finally {
@@ -151,9 +175,14 @@ export const useAISupport = () => {
 
   const transferToHuman = useCallback(async (conversationId: string) => {
     try {
-      const { error } = await supabase.rpc('transfer_to_human_support', {
-        conversation_id: conversationId
-      });
+      // Since the function doesn't exist, we'll update the status directly
+      const { error } = await supabase
+        .from('ai_support_conversations')
+        .update({ 
+          status: 'transferred_to_human',
+          transferred_to_human_at: new Date().toISOString()
+        })
+        .eq('id', conversationId);
 
       if (error) throw error;
 
