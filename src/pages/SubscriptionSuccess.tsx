@@ -4,18 +4,21 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Calendar, CreditCard, Home } from 'lucide-react';
+import { toast } from 'sonner';
 import type { UserSubscriptionFlow } from '@/services/subscriptionFlowService';
 
 const SubscriptionSuccess: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { subscription } = location.state as {
-    subscription: UserSubscriptionFlow;
-  };
+  // Safely destructure with fallback to null
+  const state = location.state as { subscription?: UserSubscriptionFlow } | null;
+  const subscription = state?.subscription || null;
 
   useEffect(() => {
     if (!subscription) {
+      console.error('Missing subscription data in location.state:', { subscription });
+      toast.error('Dados da assinatura não encontrados. Redirecionando...');
       navigate('/subscription-flow');
     }
   }, [subscription, navigate]);
@@ -40,8 +43,15 @@ const SubscriptionSuccess: React.FC = () => {
     }
   };
 
+  // Show loading or redirect if data is missing
   if (!subscription) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Carregando dados da assinatura...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
