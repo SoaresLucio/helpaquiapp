@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +33,7 @@ const PushNotification: React.FC<PushNotificationProps> = ({
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleAccept = async () => {
     setIsProcessing(true);
@@ -40,16 +41,21 @@ const PushNotification: React.FC<PushNotificationProps> = ({
       await onAccept(job.id);
       toast({
         title: "Trabalho aceito!",
-        description: "Você aceitou o trabalho. Entre em contato com o cliente.",
+        description: "Redirecionando para o chat com o cliente...",
       });
-      onClose();
+      
+      // Redirecionar para o chat após aceitar o trabalho
+      setTimeout(() => {
+        navigate('/chat');
+        onClose();
+      }, 1500);
+      
     } catch (error) {
       toast({
         title: "Erro",
         description: "Não foi possível aceitar o trabalho. Tente novamente.",
         variant: "destructive"
       });
-    } finally {
       setIsProcessing(false);
     }
   };
