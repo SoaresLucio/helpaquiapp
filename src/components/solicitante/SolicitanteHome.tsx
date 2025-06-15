@@ -79,7 +79,7 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({
                 Limpar filtro
               </Button>
             </div>
-          </div>
+          </CardContent>
         </Card>
       )}
 
