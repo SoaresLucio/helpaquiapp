@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -181,36 +181,38 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
   const messageGroups = groupMessagesByDate();
 
   return (
-    <div className="flex-1 p-4 overflow-y-auto bg-gray-50 space-y-4">
-      {/* Resumo do serviço - sempre visível */}
-      <div className="bg-white rounded-lg p-4 border-l-4 border-helpaqui-blue shadow-sm">
-        <div className="flex items-center gap-2 mb-2">
-          <DollarSign className="h-4 w-4 text-helpaqui-blue" />
-          <span className="font-medium text-sm">Resumo do Serviço</span>
-        </div>
-        <div className="space-y-1 text-sm text-gray-600">
-          <p><strong>Serviço:</strong> {conversation.jobTitle}</p>
-          <p><strong>Categoria:</strong> {conversation.jobCategory}</p>
-          <p><strong>Valor Acordado:</strong> {formatCurrency(conversation.agreedValue)}</p>
-          <p><strong>Local:</strong> {conversation.location.address}</p>
-        </div>
-      </div>
-
-      {/* Mensagens agrupadas por data */}
-      {Object.entries(messageGroups).map(([date, msgs]) => (
-        <div key={date}>
-          <div className="flex justify-center mb-4">
-            <span className="text-xs bg-gray-200 text-gray-600 px-3 py-1 rounded-full">
-              {date === new Date().toLocaleDateString() ? 'Hoje' : date}
-            </span>
+    <ScrollArea className="flex-1 h-full">
+      <div className="p-4 space-y-4">
+        {/* Resumo do serviço - sempre visível */}
+        <div className="bg-white rounded-lg p-4 border-l-4 border-helpaqui-blue shadow-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <DollarSign className="h-4 w-4 text-helpaqui-blue" />
+            <span className="font-medium text-sm">Resumo do Serviço</span>
           </div>
-          
-          {msgs.map(renderMessage)}
+          <div className="space-y-1 text-sm text-gray-600">
+            <p><strong>Serviço:</strong> {conversation.jobTitle}</p>
+            <p><strong>Categoria:</strong> {conversation.jobCategory}</p>
+            <p><strong>Valor Acordado:</strong> {formatCurrency(conversation.agreedValue)}</p>
+            <p><strong>Local:</strong> {conversation.location.address}</p>
+          </div>
         </div>
-      ))}
-      
-      <div ref={messagesEndRef} />
-    </div>
+
+        {/* Mensagens agrupadas por data */}
+        {Object.entries(messageGroups).map(([date, msgs]) => (
+          <div key={date}>
+            <div className="flex justify-center mb-4">
+              <span className="text-xs bg-gray-200 text-gray-600 px-3 py-1 rounded-full">
+                {date === new Date().toLocaleDateString() ? 'Hoje' : date}
+              </span>
+            </div>
+            
+            {msgs.map(renderMessage)}
+          </div>
+        ))}
+        
+        <div ref={messagesEndRef} />
+      </div>
+    </ScrollArea>
   );
 };
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import ChatHeader from './ChatHeader';
@@ -201,14 +200,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-full max-h-[calc(100vh-140px)] flex flex-col">
       <ChatHeader 
         conversation={conversation}
         userType={userType}
         onViewLocation={handleViewLocation}
       />
       
-      <CardContent className="flex-1 flex flex-col p-0">
+      <CardContent className="flex-1 flex flex-col p-0 min-h-0">
         <ChatMessages 
           messages={messages}
           conversation={conversation}

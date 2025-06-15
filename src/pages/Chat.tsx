@@ -121,7 +121,7 @@ const Chat = () => {
       <Header />
       
       <main className="flex-1 helpaqui-container py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 min-h-[600px] max-h-[calc(100vh-140px)]">
           {/* Sidebar com lista de conversas */}
           <div className="lg:col-span-1">
             <ChatSidebar 
