@@ -1,17 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
-import { CreditCard } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ProfileHeader from './profile/ProfileHeader';
 import ProfileTab from './profile/ProfileTab';
 import BankTab from './profile/BankTab';
 import IncomeTab from './profile/IncomeTab';
 import SettingsTab from './profile/SettingsTab';
+import ProfileActions from './profile/ProfileActions';
+import ProfilePhotoUpload from './profile/ProfilePhotoUpload';
 
 interface UserProfile {
   id: string;
@@ -41,10 +39,18 @@ interface UserProfileProps {
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
-  const { toast } = useToast();
   const { user: authUser, userType } = useAuth();
-  const navigate = useNavigate();
   const [realUserData, setRealUserData] = useState<UserProfile | null>(null);
+  const photoUpload = ProfilePhotoUpload({
+    onPhotoUpdate: (type, url) => {
+      if (realUserData) {
+        setRealUserData({
+          ...realUserData,
+          [type === 'profile' ? 'avatar' : 'coverPhoto']: url
+        });
+      }
+    }
+  });
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -87,73 +93,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     fetchUserData();
   }, [authUser, userType]);
 
-  const uploadFile = async (file: File, type: 'profile' | 'cover'): Promise<string | null> => {
-    if (!authUser?.id) return null;
-
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${authUser.id}/${type === 'profile' ? 'avatar' : 'cover'}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-
-      return data.publicUrl;
-    } catch (error) {
-      console.error(`Error uploading ${type} photo:`, error);
-      throw error;
-    }
-  };
-
-  const updateProfile = async (field: 'avatar_url' | 'cover_photo', value: string) => {
-    if (!authUser?.id) return;
-
-    const { error } = await supabase
-      .from('profiles')
-      .upsert({ id: authUser.id, [field]: value });
-
-    if (error) throw error;
-  };
-
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'profile' | 'cover') => {
-    if (!e.target.files?.[0]) return;
-
-    const file = e.target.files[0];
-    
-    try {
-      const url = await uploadFile(file, type);
-      
-      if (url) {
-        const field = type === 'profile' ? 'avatar_url' : 'cover_photo';
-        await updateProfile(field, url);
-
-        if (realUserData) {
-          setRealUserData({
-            ...realUserData,
-            [type === 'profile' ? 'avatar' : 'coverPhoto']: url
-          });
-        }
-      }
-      
-      toast({
-        title: `Foto de ${type === 'profile' ? 'perfil' : 'capa'} atualizada`,
-        description: "Sua foto foi atualizada com sucesso."
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro ao atualizar foto",
-        description: error.message || "Ocorreu um erro ao fazer upload da foto.",
-        variant: "destructive"
-      });
-    }
-  };
-
   if (!realUserData) {
     return (
       <div className="helpaqui-card p-4 text-center">
@@ -169,19 +108,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     <div className="helpaqui-card overflow-hidden dark:bg-gray-800 dark:text-white">
       <ProfileHeader 
         user={realUserData}
-        onProfilePhotoUpload={(e) => handlePhotoUpload(e, 'profile')}
-        onCoverPhotoUpload={(e) => handlePhotoUpload(e, 'cover')}
+        onProfilePhotoUpload={(e) => photoUpload.handlePhotoUpload(e, 'profile')}
+        onCoverPhotoUpload={(e) => photoUpload.handlePhotoUpload(e, 'cover')}
       />
       
-      <div className="px-4 pb-4">
-        <Button 
-          onClick={() => navigate('/payment-freelancer-settings')}
-          className="w-full bg-helpaqui-green hover:bg-helpaqui-green/90 flex items-center justify-center gap-2"
-        >
-          <CreditCard className="h-4 w-4" />
-          Configurações de Pagamento
-        </Button>
-      </div>
+      <ProfileActions />
       
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="w-full">
