@@ -100,17 +100,6 @@ const NavLinks: React.FC<NavLinksProps> = ({ currentPath }) => {
       >
         AI Chat
       </Link>
-      
-      <Link
-        to="/notes"
-        className={cn(
-          navigationMenuTriggerStyle(),
-          "bg-transparent hover:bg-gray-100 transition-colors",
-          currentPath === "/notes" && "text-helpaqui-blue font-medium bg-blue-50"
-        )}
-      >
-        Notas
-      </Link>
     </nav>
   );
 };
