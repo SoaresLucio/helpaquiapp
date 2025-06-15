@@ -1119,6 +1119,7 @@ export type Database = {
               _role: Database["public"]["Enums"]["user_role"]
             }
           | { _user_id: string; _role: string }
+          | { user_id: number; role_name: string }
         Returns: boolean
       }
       insert_bank_details: {
@@ -1133,17 +1134,19 @@ export type Database = {
         Returns: boolean
       }
       log_security_event: {
-        Args: {
-          p_user_id: string
-          p_action: string
-          p_resource_type: string
-          p_resource_id?: string
-          p_ip_address?: unknown
-          p_user_agent?: string
-          p_success?: boolean
-          p_error_message?: string
-          p_metadata?: Json
-        }
+        Args:
+          | Record<PropertyKey, never>
+          | {
+              p_user_id: string
+              p_action: string
+              p_resource_type: string
+              p_resource_id?: string
+              p_ip_address?: unknown
+              p_user_agent?: string
+              p_success?: boolean
+              p_error_message?: string
+              p_metadata?: Json
+            }
         Returns: undefined
       }
     }
