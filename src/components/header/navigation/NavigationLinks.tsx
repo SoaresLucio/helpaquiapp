@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
@@ -15,7 +16,7 @@ const NavigationLinks: React.FC<NavigationLinksProps> = ({
         Início
       </Link>
       
-      <Link to="/jobs" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-gray-100 transition-colors", currentPath === "/jobs" && "text-helpaqui-blue font-medium bg-blue-50")}>Ofertas de Help</Link>
+      <Link to="/offers" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-gray-100 transition-colors", currentPath === "/offers" && "text-helpaqui-blue font-medium bg-blue-50")}>Ofertas de Help</Link>
       
       {userType === 'solicitante' && <Link to="/solicitante-plans" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-gray-100 transition-colors", currentPath === "/solicitante-plans" && "text-helpaqui-blue font-medium bg-blue-50")}>
           Planos
