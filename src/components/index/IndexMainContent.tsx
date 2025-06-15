@@ -42,14 +42,7 @@ const IndexMainContent: React.FC<IndexMainContentProps> = ({
 
   if (userType === 'freelancer') {
     return (
-      <FreelancerHome 
-        selectedCategory={selectedCategory}
-        onSelectCategory={onSelectCategory}
-        activeTab={activeTab}
-        onTabChange={onTabChange}
-        onChatRedirect={onChatRedirect}
-        currentUser={currentUser}
-      />
+      <FreelancerHome />
     );
   }
 
@@ -87,7 +80,7 @@ const IndexMainContent: React.FC<IndexMainContentProps> = ({
       </Card>
 
       {/* Quick Actions Section */}
-      <QuickActions onChatRedirect={onChatRedirect} />
+      <QuickActions />
 
       {/* Actions Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
