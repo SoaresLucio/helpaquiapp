@@ -1,27 +1,29 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouteProtection } from '@/hooks/useRouteProtection';
 import Header from '@/components/Header';
 import BackButton from '@/components/ui/back-button';
-import { useAuth } from '@/hooks/useAuth';
-import { useMyOffers } from '@/hooks/useMyOffers';
 import MyOffersHeader from '@/components/offers/MyOffersHeader';
 import EmptyOffersState from '@/components/offers/EmptyOffersState';
 import OfferCard from '@/components/offers/OfferCard';
 import LoadingState from '@/components/offers/LoadingState';
+import { useMyOffers } from '@/hooks/useMyOffers';
 
 const MyOffers: React.FC = () => {
-  const navigate = useNavigate();
-  const { userType } = useAuth();
-  const { offers, loading, deleteOffer } = useMyOffers();
+  // Proteger a rota para apenas freelancers
+  const { hasAccess, loading: authLoading } = useRouteProtection({
+    requiredUserType: 'freelancer'
+  });
 
-  // Redirect if not freelancer
-  if (userType !== 'freelancer') {
-    navigate('/');
-    return null;
+  const { offers, loading: offersLoading, deleteOffer } = useMyOffers();
+
+  // Show loading while checking authentication/authorization
+  if (authLoading || !hasAccess) {
+    return <LoadingState />;
   }
 
-  if (loading) {
+  // Show loading while fetching offers
+  if (offersLoading) {
     return <LoadingState />;
   }
 

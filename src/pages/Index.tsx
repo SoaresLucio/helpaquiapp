@@ -7,8 +7,8 @@ import IndexHeader from '@/components/index/IndexHeader';
 import IndexMainContent from '@/components/index/IndexMainContent';
 import IndexNotifications from '@/components/index/IndexNotifications';
 import { useJobNotifications } from '@/hooks/useJobNotifications';
-import { useAuth } from '@/hooks/useAuth';
-import { useUserData } from '@/hooks/user/useUserData';
+import { useSecureAuth } from '@/hooks/useSecureAuth';
+import { useUserData } from '@/hooks/useUserData';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -18,8 +18,11 @@ const Index = () => {
   const {
     userType,
     loading,
-    user: authUser
-  } = useAuth();
+    user: authUser,
+    isAuthenticated,
+    isUserValid,
+    securityErrors
+  } = useSecureAuth();
   
   const {
     currentNotification,
@@ -36,21 +39,34 @@ const Index = () => {
     console.log('📊 Index state:', {
       userType,
       loading,
+      isAuthenticated,
+      isUserValid,
       authUser: authUser?.id,
       selectedCategory,
       activeTab,
       currentNotification: !!currentNotification,
-      currentUser: !!currentUser
+      currentUser: !!currentUser,
+      securityErrors
     });
   });
+
+  // Segurança: Verificar se há problemas de validação do usuário
+  useEffect(() => {
+    if (!loading && isAuthenticated && !isUserValid) {
+      console.error('🔒 Security issue detected, redirecting to login:', securityErrors);
+      navigate('/login');
+      return;
+    }
+  }, [loading, isAuthenticated, isUserValid, securityErrors, navigate]);
 
   // Debug: Log mudanças de userType
   useEffect(() => {
     console.log('👤 UserType changed:', userType);
-    if (!userType && !loading) {
+    if (!userType && !loading && isAuthenticated) {
       console.log('🔄 Redirecting to user-type selection...');
+      navigate('/user-type');
     }
-  }, [userType, loading]);
+  }, [userType, loading, isAuthenticated, navigate]);
 
   // Debug: Log mudanças de loading
   useEffect(() => {
@@ -67,18 +83,34 @@ const Index = () => {
     navigate('/chat');
   };
 
+  // Mostrar loading enquanto verifica autenticação
   if (loading) {
     console.log('⏳ Showing loading screen');
     return <LoadingScreen />;
   }
 
+  // Redirecionar para login se não autenticado
+  if (!isAuthenticated) {
+    console.log('🚫 Not authenticated, redirecting to login');
+    navigate('/login');
+    return null;
+  }
+
+  // Verificar problemas de segurança
+  if (!isUserValid) {
+    console.log('🔒 User validation failed, redirecting to login');
+    navigate('/login');
+    return null;
+  }
+
+  // Redirecionar para seleção de tipo se não tem userType
   if (!userType) {
     console.log('🚫 No userType, redirecting to user-type selection');
     navigate('/user-type');
     return null;
   }
 
-  console.log('✅ Rendering main Index content');
+  console.log('✅ Rendering main Index content for userType:', userType);
 
   return (
     <IndexLayoutWrapper userType={userType}>
