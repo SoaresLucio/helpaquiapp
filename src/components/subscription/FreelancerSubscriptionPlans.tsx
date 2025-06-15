@@ -1,19 +1,22 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, Zap, Gift, Users, TrendingUp } from 'lucide-react';
+import { Check, Star, Zap, Gift, Users, TrendingUp, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { 
   getSubscriptionPlans, 
   getCurrentSubscription, 
   subscribeToPlan,
+  cancelSubscription,
+  hasActivePaidSubscription,
   type SubscriptionPlan,
   type UserSubscription 
 } from '@/services/subscriptionService';
 import PlanSummaryModal from './PlanSummaryModal';
+import CancelSubscriptionModal from './CancelSubscriptionModal';
+import ActiveSubscriptionWarningModal from './ActiveSubscriptionWarningModal';
 
 const FreelancerSubscriptionPlans: React.FC = () => {
   const navigate = useNavigate();
@@ -21,8 +24,12 @@ const FreelancerSubscriptionPlans: React.FC = () => {
   const [currentSubscription, setCurrentSubscription] = useState<UserSubscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [showPlanSummary, setShowPlanSummary] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [warningPlanName, setWarningPlanName] = useState('');
 
   useEffect(() => {
     loadSubscriptionData();
@@ -47,8 +54,8 @@ const FreelancerSubscriptionPlans: React.FC = () => {
   };
 
   const handleSubscribe = async (plan: SubscriptionPlan) => {
+    // Check if it's a free plan
     if (plan.price_monthly === 0) {
-      // Plano gratuito - assinar diretamente
       setSubscribing(plan.id);
       
       try {
@@ -66,10 +73,25 @@ const FreelancerSubscriptionPlans: React.FC = () => {
       } finally {
         setSubscribing(null);
       }
-    } else {
-      // Plano pago - mostrar modal de resumo
+      return;
+    }
+
+    // For paid plans, check if user has an active paid subscription
+    try {
+      const hasActivePaid = await hasActivePaidSubscription();
+      
+      if (hasActivePaid && currentSubscription?.subscription_plans) {
+        setWarningPlanName(plan.name);
+        setShowWarningModal(true);
+        return;
+      }
+
+      // Show plan summary modal for paid plans
       setSelectedPlan(plan);
       setShowPlanSummary(true);
+    } catch (error) {
+      console.error('Error checking active subscription:', error);
+      toast.error('Erro ao verificar assinatura atual');
     }
   };
 
@@ -77,6 +99,27 @@ const FreelancerSubscriptionPlans: React.FC = () => {
     if (selectedPlan) {
       setShowPlanSummary(false);
       navigate('/pix-payment', { state: { plan: selectedPlan } });
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    setCancelling(true);
+    
+    try {
+      const success = await cancelSubscription();
+      
+      if (success) {
+        toast.success('Assinatura cancelada com sucesso!');
+        setShowCancelModal(false);
+        await loadSubscriptionData();
+      } else {
+        toast.error('Erro ao cancelar assinatura');
+      }
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      toast.error('Erro ao cancelar assinatura');
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -232,7 +275,7 @@ const FreelancerSubscriptionPlans: React.FC = () => {
         {currentSubscription && (
           <div className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
             <h3 className="font-semibold text-blue-900 mb-4">Status da Sua Assinatura</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-blue-800">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-blue-800 mb-4">
               <div className="flex flex-col">
                 <span className="font-medium mb-1">Plano Atual:</span>
                 <span>{currentSubscription.subscription_plans?.name}</span>
@@ -252,6 +295,19 @@ const FreelancerSubscriptionPlans: React.FC = () => {
                 </Badge>
               </div>
             </div>
+            
+            {currentSubscription.subscription_plans?.price_monthly && currentSubscription.subscription_plans.price_monthly > 0 && (
+              <div className="pt-4 border-t border-blue-200">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCancelModal(true)}
+                  className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancelar Assinatura
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -261,6 +317,21 @@ const FreelancerSubscriptionPlans: React.FC = () => {
         onClose={() => setShowPlanSummary(false)}
         plan={selectedPlan}
         onConfirm={handleConfirmPlan}
+      />
+
+      <CancelSubscriptionModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleCancelSubscription}
+        planName={currentSubscription?.subscription_plans?.name || ''}
+        isLoading={cancelling}
+      />
+
+      <ActiveSubscriptionWarningModal
+        isOpen={showWarningModal}
+        onClose={() => setShowWarningModal(false)}
+        currentPlanName={currentSubscription?.subscription_plans?.name || ''}
+        newPlanName={warningPlanName}
       />
     </>
   );
