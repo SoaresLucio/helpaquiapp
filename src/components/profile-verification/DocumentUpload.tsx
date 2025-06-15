@@ -36,10 +36,23 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
 }) => {
   const getStatusIcon = (status: DocumentStatus) => {
     switch (status) {
-      case 'validating': return <Clock className="h-5 w-5 text-blue-500 animate-pulse" />;
-      case 'valid': return <CheckCircle2 className="h-5 w-5 text-green-500" />;
-      case 'invalid': return <XCircle className="h-5 w-5 text-red-500" />;
-      default: return null;
+      case 'validating': 
+        return <Clock className="h-5 w-5 text-blue-500 animate-pulse" />;
+      case 'valid': 
+        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+      case 'invalid': 
+        return <XCircle className="h-5 w-5 text-red-500" />;
+      default: 
+        return null;
+    }
+  };
+
+  const getMessageColor = (status: DocumentStatus) => {
+    switch (status) {
+      case 'valid': return 'text-green-600';
+      case 'invalid': return 'text-red-600';
+      case 'validating': return 'text-blue-600';
+      default: return 'text-gray-500';
     }
   };
 
@@ -48,10 +61,11 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
       <div className="flex items-center justify-between">
         <Label htmlFor={id}>
           {label}
-          {required && <span className="text-red-500">*</span>}
+          {required && <span className="text-red-500 ml-1">*</span>}
         </Label>
         {getStatusIcon(document.status)}
       </div>
+      
       <div className="flex gap-2">
         <Input 
           id={id} 
@@ -68,22 +82,18 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
             onClick={onValidate}
             disabled={document.status === 'validating'}
           >
-            Validar
+            {document.status === 'validating' ? 'Validando...' : 'Validar'}
           </Button>
         )}
       </div>
+      
       {document.message && (
-        <p className={`text-xs ${
-          document.status === 'valid' 
-            ? 'text-green-600' 
-            : document.status === 'invalid' 
-            ? 'text-red-600' 
-            : 'text-blue-600'
-        }`}>
+        <p className={`text-xs ${getMessageColor(document.status)}`}>
           {document.message}
         </p>
       )}
-      {helpText && (
+      
+      {helpText && !document.message && (
         <p className="text-xs text-gray-500">{helpText}</p>
       )}
     </div>

@@ -1,7 +1,7 @@
 
 import { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { signOut } from '@/services/authService';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuthSession } from './auth/useAuthSession';
@@ -36,21 +36,19 @@ export const SecureAuthProvider = ({ children }: { children: ReactNode }) => {
   const [securityErrors, setSecurityErrors] = useState<string[]>([]);
   const [isUserValid, setIsUserValid] = useState(false);
 
-  // Enhanced security validation
   useEffect(() => {
     const errors: string[] = [];
 
-    if (authState.user) {
+    if (authState.user && authState.isAuthenticated) {
       const userValidation = validateUserSession(authState.user);
+      const userTypeValidation = validateUserType(authState.userType);
+      
       if (!userValidation.isValid) {
         errors.push(userValidation.error || 'Invalid user session');
-        console.error('User validation failed:', userValidation);
       }
-
-      const userTypeValidation = validateUserType(authState.userType);
+      
       if (!userTypeValidation.isValid) {
         errors.push(userTypeValidation.error || 'Invalid user type');
-        console.error('User type validation failed:', userTypeValidation);
       }
 
       setIsUserValid(userValidation.isValid && userTypeValidation.isValid);
@@ -60,10 +58,9 @@ export const SecureAuthProvider = ({ children }: { children: ReactNode }) => {
 
     setSecurityErrors(errors);
 
-    // Auto-logout on critical security issues
+    // Only auto-logout on critical security issues
     if (errors.length > 0 && authState.isAuthenticated) {
-      console.warn('Security issues detected, forcing logout:', errors);
-      logout();
+      console.warn('Security issues detected:', errors);
     }
   }, [authState.user, authState.userType, authState.isAuthenticated]);
 

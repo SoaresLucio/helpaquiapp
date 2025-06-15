@@ -20,7 +20,7 @@ export const validateUserSession = (user: User | null): ValidationResult => {
     return { isValid: false, error: 'Invalid user email', code: 'INVALID_EMAIL' };
   }
 
-  // Check if email is properly formatted
+  // Simplified email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(user.email)) {
     return { isValid: false, error: 'Malformed email', code: 'MALFORMED_EMAIL' };
@@ -47,8 +47,8 @@ export const sanitizeInput = (input: string): string => {
   
   return input
     .trim()
-    .replace(/[<>]/g, '') // Remove potential HTML tags
-    .slice(0, 1000); // Limit length
+    .replace(/[<>]/g, '')
+    .slice(0, 1000);
 };
 
 export const validateProfileData = (data: any): ValidationResult => {
@@ -56,7 +56,6 @@ export const validateProfileData = (data: any): ValidationResult => {
     return { isValid: false, error: 'Invalid profile data', code: 'INVALID_DATA' };
   }
 
-  // Validate names if present
   if (data.first_name && (typeof data.first_name !== 'string' || data.first_name.length > 50)) {
     return { isValid: false, error: 'Invalid first name', code: 'INVALID_FIRST_NAME' };
   }
@@ -65,7 +64,6 @@ export const validateProfileData = (data: any): ValidationResult => {
     return { isValid: false, error: 'Invalid last name', code: 'INVALID_LAST_NAME' };
   }
 
-  // Validate phone if present
   if (data.phone && (typeof data.phone !== 'string' || data.phone.length > 20)) {
     return { isValid: false, error: 'Invalid phone number', code: 'INVALID_PHONE' };
   }
