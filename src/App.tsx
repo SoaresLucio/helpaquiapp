@@ -119,7 +119,7 @@ function App() {
                   </ProtectedRoute>
                 } />
                 
-                {/* 404 route */}
+                {/* Catch-all 404 route - MUST be last */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
