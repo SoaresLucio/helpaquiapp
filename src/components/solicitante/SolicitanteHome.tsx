@@ -85,7 +85,9 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
             distance: `${(Math.random() * 10 + 1).toFixed(1)}km`,
             avatar: profile?.avatar_url || '/placeholder.svg',
             verified: true,
-            location: offer.location || 'São Paulo, SP'
+            location: offer.location || 'São Paulo, SP',
+            available: true, // Add missing required property
+            portfolio: [] // Add missing required property
           };
         }) || [];
 
