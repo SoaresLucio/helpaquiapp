@@ -12,10 +12,10 @@ interface AccessControlOptions {
  * Verifica se o usuário tem permissão para acessar determinado recurso
  * 
  * @param options - Opções de controle de acesso
- * @returns Estado de acesso, tipo de usuário e carregamento
+ * @returns Estado de acesso, tipo de usuário, ID do usuário e carregamento
  */
 export const useAccessControl = (options: AccessControlOptions = {}) => {
-  const { isAuthenticated, userType, loading: authLoading } = useAuth();
+  const { isAuthenticated, userType, loading: authLoading, user } = useAuth();
   const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -23,6 +23,7 @@ export const useAccessControl = (options: AccessControlOptions = {}) => {
     console.log('🔐 Verificando controle de acesso:', { 
       isAuthenticated, 
       userType, 
+      userId: user?.id,
       requiredUserType: options.requiredUserType,
       requireAuth: options.requireAuth 
     });
@@ -52,11 +53,12 @@ export const useAccessControl = (options: AccessControlOptions = {}) => {
     console.log('✅ Acesso permitido');
     setHasAccess(true);
     setLoading(false);
-  }, [isAuthenticated, userType, authLoading, options.requiredUserType, options.requireAuth]);
+  }, [isAuthenticated, userType, authLoading, user?.id, options.requiredUserType, options.requireAuth]);
 
   return {
     hasAccess,
     userType,
+    userId: user?.id,
     loading,
     isAuthenticated
   };

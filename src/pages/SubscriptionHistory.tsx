@@ -5,17 +5,17 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, CreditCard, AlertCircle, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useSubscriptionFlow } from '@/hooks/useSubscriptionFlow';
+import { useSubscriptionHistory } from '@/hooks/useSubscriptionHistory';
 import BackButton from '@/components/ui/back-button';
 import Header from '@/components/Header';
 
 const SubscriptionHistory: React.FC = () => {
   const navigate = useNavigate();
-  const { subscriptions, loading, loadSubscriptions } = useSubscriptionFlow();
+  const { subscriptions, loading, loadSubscriptions } = useSubscriptionHistory();
 
   useEffect(() => {
     loadSubscriptions();
-  }, []);
+  }, [loadSubscriptions]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
