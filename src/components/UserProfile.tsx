@@ -175,7 +175,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
       
       <div className="px-4 pb-4">
         <Button 
-          onClick={() => navigate('/payments')}
+          onClick={() => navigate('/payment-freelancer-settings')}
           className="w-full bg-helpaqui-green hover:bg-helpaqui-green/90 flex items-center justify-center gap-2"
         >
           <CreditCard className="h-4 w-4" />
