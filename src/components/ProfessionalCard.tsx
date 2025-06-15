@@ -53,7 +53,7 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional }) => 
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-xl">{professional.name}</h3>
               {isVerified && (
-                <BadgeCheck className="h-5 w-5 text-blue-500" title="Perfil Verificado" />
+                <BadgeCheck className="h-5 w-5 text-blue-500" />
               )}
             </div>
             <div className="flex items-center">

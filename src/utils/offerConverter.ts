@@ -32,7 +32,6 @@ export const convertOfferToProfessional = (offer: any): Professional => {
     portfolio: offer.photos || [],
     responseTime: '30min', // Mock - pode ser calculado baseado em histórico
     responseRate: 95, // Mock - pode ser calculado baseado em histórico
-    rating_count: ratingCount,
     reviews: [], // Pode ser expandido para incluir reviews reais
     // Informações adicionais da oferta
     offerDetails: {

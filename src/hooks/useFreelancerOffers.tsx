@@ -65,7 +65,11 @@ export const useFreelancerOffers = () => {
     console.log('📊 useFreelancerOffers: Estado das ofertas atualizado:', {
       count: offers.length,
       loading,
-      offers: offers.map(o => ({ id: o.id, name: o.name, title: o.offerDetails?.title }))
+      offers: offers.map(o => ({ 
+        id: o.id, 
+        name: o.name, 
+        description: o.description 
+      }))
     });
   }, [offers, loading]);
 
