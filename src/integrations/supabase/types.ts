@@ -132,6 +132,141 @@ export type Database = {
         }
         Relationships: []
       }
+      freelancer_offers: {
+        Row: {
+          availability: string | null
+          created_at: string
+          freelancer_id: string
+          id: string
+          message: string | null
+          offered_value: number
+          service_request_id: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          availability?: string | null
+          created_at?: string
+          freelancer_id: string
+          id?: string
+          message?: string | null
+          offered_value: number
+          service_request_id: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          availability?: string | null
+          created_at?: string
+          freelancer_id?: string
+          id?: string
+          message?: string | null
+          offered_value?: number
+          service_request_id?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "freelancer_offers_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "freelancer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelancer_offers_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      freelancer_profiles: {
+        Row: {
+          available: boolean | null
+          category: string
+          created_at: string
+          description: string | null
+          hourly_rate: number | null
+          id: string
+          observations: string | null
+          portfolio_photos: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          available?: boolean | null
+          category: string
+          created_at?: string
+          description?: string | null
+          hourly_rate?: number | null
+          id?: string
+          observations?: string | null
+          portfolio_photos?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          available?: boolean | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          hourly_rate?: number | null
+          id?: string
+          observations?: string | null
+          portfolio_photos?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      freelancer_service_offers: {
+        Row: {
+          categories: string[]
+          created_at: string
+          custom_categories: string[] | null
+          description: string
+          freelancer_id: string
+          id: string
+          is_active: boolean
+          location: string | null
+          photos: string[] | null
+          rate: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          categories: string[]
+          created_at?: string
+          custom_categories?: string[] | null
+          description: string
+          freelancer_id: string
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          photos?: string[] | null
+          rate: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          categories?: string[]
+          created_at?: string
+          custom_categories?: string[] | null
+          description?: string
+          freelancer_id?: string
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          photos?: string[] | null
+          rate?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       job_applications: {
         Row: {
           candidate_email: string

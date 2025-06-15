@@ -9,20 +9,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { serviceCategories } from '@/data/mockData';
 import { useToast } from '@/components/ui/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 const OfferHelp: React.FC = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
@@ -31,12 +27,22 @@ const OfferHelp: React.FC = () => {
   const [customCategory, setCustomCategory] = useState('');
   const [addingCustom, setAddingCustom] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para oferecer serviços.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Validação básica
-    if (!title || !description || categories.length === 0 || !location) {
+    if (!title || !description || categories.length === 0 || !rate) {
       toast({
         title: "Atenção",
         description: "Por favor, preencha todos os campos obrigatórios.",
@@ -45,30 +51,61 @@ const OfferHelp: React.FC = () => {
       return;
     }
     
-    // Aqui seria o envio para a API
-    console.log({
-      title,
-      description,
-      categories,
-      location,
-      rate,
-      photos
-    });
+    setIsSubmitting(true);
     
-    toast({
-      title: "Oferta publicada",
-      description: "Sua oferta de serviço foi publicada com sucesso!",
-    });
-    
-    // Resetar o formulário
-    setTitle('');
-    setDescription('');
-    setCategories([]);
-    setLocation('');
-    setRate('');
-    setPhotos([]);
-    setCustomCategory('');
-    setAddingCustom(false);
+    try {
+      // Separar categorias padrão das personalizadas
+      const standardCategories = categories.filter(cat => 
+        serviceCategories.some(c => c.id === cat)
+      );
+      const customCategories = categories.filter(cat => 
+        !serviceCategories.some(c => c.id === cat)
+      );
+      
+      const { error } = await supabase
+        .from('freelancer_service_offers')
+        .insert([
+          {
+            freelancer_id: user.id,
+            title,
+            description,
+            categories: standardCategories,
+            custom_categories: customCategories,
+            location: location || null,
+            rate,
+            photos,
+            is_active: true
+          }
+        ]);
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Oferta publicada",
+        description: "Sua oferta de serviço foi publicada com sucesso!",
+      });
+      
+      // Resetar o formulário
+      setTitle('');
+      setDescription('');
+      setCategories([]);
+      setLocation('');
+      setRate('');
+      setPhotos([]);
+      setCustomCategory('');
+      setAddingCustom(false);
+    } catch (error) {
+      console.error('Erro ao salvar oferta:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao publicar oferta. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   const toggleCategory = (categoryId: string) => {
@@ -215,7 +252,7 @@ const OfferHelp: React.FC = () => {
           {/* Localização */}
           <div>
             <label htmlFor="location" className="block text-sm font-medium mb-1">
-              Área de atendimento <span className="text-red-500">*</span>
+              Área de atendimento
             </label>
             <div className="relative">
               <Input
@@ -224,7 +261,6 @@ const OfferHelp: React.FC = () => {
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="Ex: Bairros Oeste de São Paulo"
                 className="helpaqui-input pl-10"
-                required
               />
               <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
@@ -285,8 +321,12 @@ const OfferHelp: React.FC = () => {
             </p>
           </div>
           
-          <Button type="submit" className="helpaqui-button-green w-full">
-            Publicar Oferta de Help
+          <Button 
+            type="submit" 
+            className="helpaqui-button-green w-full" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Publicando...' : 'Publicar Oferta de Help'}
           </Button>
         </div>
       </form>

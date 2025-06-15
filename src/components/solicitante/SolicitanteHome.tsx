@@ -12,6 +12,7 @@ import { mockProfessionals, serviceCategories } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { usePromotionalBanners } from '@/hooks/usePromotionalBanners';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SolicitanteHomeProps {
   selectedCategory: string | null;
@@ -25,6 +26,7 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
   const [sortBy, setSortBy] = useState('rating');
   const [filterRating, setFilterRating] = useState('all');
   const [allProfessionals, setAllProfessionals] = useState(mockProfessionals);
+  const [loadingOffers, setLoadingOffers] = useState(false);
   
   // Hook para buscar banners promocionais - SEMPRE buscar para solicitante
   const { banners, loading: bannersLoading, error: bannersError } = usePromotionalBanners('solicitante');
@@ -39,27 +41,64 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
     });
   }, [banners, bannersLoading, bannersError]);
 
-  // Load freelancer offers from localStorage
+  // Load freelancer offers from Supabase
   useEffect(() => {
-    const freelancerOffers = JSON.parse(localStorage.getItem('freelancerOffers') || '[]');
-    
-    // Convert freelancer offers to professional format
-    const convertedOffers = freelancerOffers.map((offer: any) => ({
-      id: offer.id,
-      name: offer.name,
-      description: offer.description,
-      categories: [offer.category],
-      rating: offer.rating,
-      ratingCount: offer.ratingCount,
-      price: offer.price,
-      distance: offer.distance,
-      avatar: offer.avatar,
-      verified: offer.verified,
-      location: offer.location
-    }));
+    const loadFreelancerOffers = async () => {
+      setLoadingOffers(true);
+      try {
+        const { data: offers, error } = await supabase
+          .from('freelancer_service_offers')
+          .select(`
+            *,
+            profiles!freelancer_id (
+              first_name,
+              last_name,
+              avatar_url
+            )
+          `)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
 
-    // Combine mock professionals with real freelancer offers
-    setAllProfessionals([...mockProfessionals, ...convertedOffers]);
+        if (error) {
+          console.error('Erro ao carregar ofertas:', error);
+          return;
+        }
+
+        // Convert freelancer offers to professional format
+        const convertedOffers = offers?.map((offer: any) => {
+          const profile = offer.profiles;
+          const fullName = profile?.first_name && profile?.last_name 
+            ? `${profile.first_name} ${profile.last_name}`.trim()
+            : 'Freelancer';
+
+          // Combine standard and custom categories
+          const allCategories = [...(offer.categories || []), ...(offer.custom_categories || [])];
+
+          return {
+            id: offer.id,
+            name: fullName,
+            description: offer.description,
+            categories: allCategories,
+            rating: 4.5 + Math.random() * 0.5, // Random rating between 4.5-5.0 for now
+            ratingCount: Math.floor(Math.random() * 50) + 10,
+            price: offer.rate,
+            distance: `${(Math.random() * 10 + 1).toFixed(1)}km`,
+            avatar: profile?.avatar_url || '/placeholder.svg',
+            verified: true,
+            location: offer.location || 'São Paulo, SP'
+          };
+        }) || [];
+
+        // Combine mock professionals with real freelancer offers
+        setAllProfessionals([...mockProfessionals, ...convertedOffers]);
+      } catch (error) {
+        console.error('Erro ao carregar ofertas:', error);
+      } finally {
+        setLoadingOffers(false);
+      }
+    };
+
+    loadFreelancerOffers();
   }, []);
 
   // Filtrar freelancers por categoria, pesquisa e rating
@@ -132,7 +171,6 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
           Encontre freelancers qualificados próximos a você
         </p>
         
-        {/* Search and Filters */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -168,7 +206,6 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
         </div>
       </div>
 
-      {/* Quick Actions Card */}
       <Card>
         <CardHeader>
           <CardTitle>Ações Rápidas</CardTitle>
@@ -206,7 +243,6 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
         </CardContent>
       </Card>
 
-      {/* Service Map */}
       <ServiceMap selectedCategory={selectedCategory} />
 
       {/* Freelancers List */}
@@ -220,11 +256,20 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onS
           
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <MapPin className="h-4 w-4" />
-            <span>{sortedProfessionals.length} profissionais encontrados</span>
+            <span>
+              {loadingOffers ? 'Carregando...' : `${sortedProfessionals.length} profissionais encontrados`}
+            </span>
           </div>
         </div>
         
-        {sortedProfessionals.length > 0 ? (
+        {loadingOffers ? (
+          <div className="text-center py-12">
+            <div className="text-gray-400 mb-4">
+              <Search className="h-12 w-12 mx-auto animate-spin" />
+            </div>
+            <p className="text-gray-500">Carregando ofertas de freelancers...</p>
+          </div>
+        ) : sortedProfessionals.length > 0 ? (
           <div className="space-y-4">
             {sortedProfessionals.map(professional => (
               <ProfessionalCard 
