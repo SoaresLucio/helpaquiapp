@@ -111,7 +111,15 @@ export const createSubscription = async (
       .select()
       .single();
 
-    return { data, error };
+    // Type assertion to ensure proper typing
+    return { 
+      data: data ? {
+        ...data,
+        status: data.status as 'active' | 'expired' | 'cancelled',
+        payment_method: data.payment_method as 'pix' | 'credit_card' | 'debit_card'
+      } : null, 
+      error 
+    };
   } catch (error) {
     console.error('Error creating subscription:', error);
     return { data: null, error };
@@ -148,7 +156,14 @@ export const createPixPayment = async (
       .select()
       .single();
 
-    return { data, error };
+    // Type assertion to ensure proper typing
+    return { 
+      data: data ? {
+        ...data,
+        status: data.status as 'pending' | 'paid' | 'expired'
+      } : null, 
+      error 
+    };
   } catch (error) {
     console.error('Error creating PIX payment:', error);
     return { data: null, error };
@@ -169,7 +184,15 @@ export const getUserSubscriptions = async (): Promise<{ data: UserSubscriptionFl
       .eq('user_id', user.user.id)
       .order('created_at', { ascending: false });
 
-    return { data, error };
+    // Type assertion to ensure proper typing
+    return { 
+      data: data ? data.map(item => ({
+        ...item,
+        status: item.status as 'active' | 'expired' | 'cancelled',
+        payment_method: item.payment_method as 'pix' | 'credit_card' | 'debit_card'
+      })) : null, 
+      error 
+    };
   } catch (error) {
     console.error('Error fetching subscriptions:', error);
     return { data: null, error };
@@ -184,7 +207,14 @@ export const getPixPayment = async (paymentId: string): Promise<{ data: PixPayme
       .eq('id', paymentId)
       .single();
 
-    return { data, error };
+    // Type assertion to ensure proper typing
+    return { 
+      data: data ? {
+        ...data,
+        status: data.status as 'pending' | 'paid' | 'expired'
+      } : null, 
+      error 
+    };
   } catch (error) {
     console.error('Error fetching PIX payment:', error);
     return { data: null, error };
@@ -203,7 +233,14 @@ export const updatePixPaymentStatus = async (
       .select()
       .single();
 
-    return { data, error };
+    // Type assertion to ensure proper typing
+    return { 
+      data: data ? {
+        ...data,
+        status: data.status as 'pending' | 'paid' | 'expired'
+      } : null, 
+      error 
+    };
   } catch (error) {
     console.error('Error updating PIX payment status:', error);
     return { data: null, error };

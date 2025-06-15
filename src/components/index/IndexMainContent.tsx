@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import QuickActions from '@/components/solicitante/QuickActions';
-import OffersSection from '@/components/solicitante/OffersSection';
 import FreelancerHome from '@/components/freelancer/FreelancerHome';
 
 interface IndexMainContentProps {
@@ -180,8 +179,19 @@ const IndexMainContent: React.FC<IndexMainContentProps> = ({
         </Card>
       </div>
 
-      {/* Offers Section */}
-      <OffersSection />
+      {/* Simple Offers Section - Removed OffersSection component for now */}
+      <div className="bg-white rounded-xl p-6 shadow-sm">
+        <h2 className="text-xl font-semibold mb-4">Ofertas Disponíveis</h2>
+        <div className="text-center py-8">
+          <Search className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <p className="text-gray-500 mb-4">
+            Explore ofertas de profissionais qualificados
+          </p>
+          <Button onClick={() => navigate('/offers')}>
+            Ver Todas as Ofertas
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
