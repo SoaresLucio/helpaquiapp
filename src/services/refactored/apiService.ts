@@ -1,57 +1,142 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+type TableName = keyof Database['public']['Tables'];
+type TableRow<T extends TableName> = Database['public']['Tables'][T]['Row'];
+type TableInsert<T extends TableName> = Database['public']['Tables'][T]['Insert'];
+type TableUpdate<T extends TableName> = Database['public']['Tables'][T]['Update'];
 
 export class ApiService {
+  /**
+   * Generic error handler for API requests
+   */
   static async handleRequest<T>(
-    requestFn: () => Promise<{ data: T; error: any }>
+    requestFn: () => Promise<{ data: T | null; error: any }>
   ): Promise<{ data: T | null; error: any }> {
     try {
-      const { data, error } = await requestFn();
+      const result = await requestFn();
       
-      if (error) {
-        console.error('API Error:', error);
-        return { data: null, error };
+      if (result.error) {
+        console.error('API Error:', result.error);
+        return { data: null, error: result.error };
       }
       
-      return { data, error: null };
+      return { data: result.data, error: null };
     } catch (error) {
       console.error('Unexpected error:', error);
       return { data: null, error };
     }
   }
 
-  static async get<T>(table: string, query?: any): Promise<{ data: T | null; error: any }> {
-    return this.handleRequest(() => {
-      let queryBuilder = supabase.from(table).select('*');
+  /**
+   * Get records from a table with optional filtering
+   */
+  static async get<T extends TableName>(
+    table: T, 
+    filters?: Record<string, any>
+  ): Promise<{ data: TableRow<T>[] | null; error: any }> {
+    return this.handleRequest(async () => {
+      let query = supabase.from(table).select('*');
       
-      if (query) {
-        Object.entries(query).forEach(([key, value]) => {
-          queryBuilder = queryBuilder.eq(key, value);
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          query = query.eq(key, value);
         });
       }
       
-      return queryBuilder;
+      return await query;
     });
   }
 
-  static async create<T>(table: string, data: any): Promise<{ data: T | null; error: any }> {
-    return this.handleRequest(() => 
-      supabase.from(table).insert(data).select().single()
-    );
+  /**
+   * Get a single record by ID
+   */
+  static async getById<T extends TableName>(
+    table: T, 
+    id: string
+  ): Promise<{ data: TableRow<T> | null; error: any }> {
+    return this.handleRequest(async () => {
+      return await supabase
+        .from(table)
+        .select('*')
+        .eq('id', id)
+        .single();
+    });
   }
 
-  static async update<T>(
-    table: string, 
+  /**
+   * Create a new record
+   */
+  static async create<T extends TableName>(
+    table: T, 
+    data: TableInsert<T>
+  ): Promise<{ data: TableRow<T> | null; error: any }> {
+    return this.handleRequest(async () => {
+      return await supabase
+        .from(table)
+        .insert(data)
+        .select()
+        .single();
+    });
+  }
+
+  /**
+   * Update a record by ID
+   */
+  static async update<T extends TableName>(
+    table: T, 
     id: string, 
-    data: any
-  ): Promise<{ data: T | null; error: any }> {
-    return this.handleRequest(() => 
-      supabase.from(table).update(data).eq('id', id).select().single()
-    );
+    data: TableUpdate<T>
+  ): Promise<{ data: TableRow<T> | null; error: any }> {
+    return this.handleRequest(async () => {
+      return await supabase
+        .from(table)
+        .update(data)
+        .eq('id', id)
+        .select()
+        .single();
+    });
   }
 
-  static async delete(table: string, id: string): Promise<{ error: any }> {
-    const { error } = await supabase.from(table).delete().eq('id', id);
-    return { error };
+  /**
+   * Delete a record by ID
+   */
+  static async delete<T extends TableName>(
+    table: T, 
+    id: string
+  ): Promise<{ error: any }> {
+    try {
+      const { error } = await supabase
+        .from(table)
+        .delete()
+        .eq('id', id);
+      
+      return { error };
+    } catch (error) {
+      console.error('Delete error:', error);
+      return { error };
+    }
+  }
+
+  /**
+   * Count records in a table with optional filtering
+   */
+  static async count<T extends TableName>(
+    table: T, 
+    filters?: Record<string, any>
+  ): Promise<{ data: number | null; error: any }> {
+    return this.handleRequest(async () => {
+      let query = supabase.from(table).select('*', { count: 'exact', head: true });
+      
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          query = query.eq(key, value);
+        });
+      }
+      
+      const result = await query;
+      return { data: result.count, error: result.error };
+    });
   }
 }

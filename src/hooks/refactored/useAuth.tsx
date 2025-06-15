@@ -3,7 +3,7 @@ import { createContext, useContext, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { signOut } from '@/services/authService';
 import { useToast } from '@/components/ui/use-toast';
-import { useAuthSession } from './auth/useAuthSession';
+import { useAuthSession } from '../auth/useAuthSession';
 
 interface AuthContextType {
   session: Session | null;
