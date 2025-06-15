@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -29,6 +28,7 @@ import SubscriptionHistory from "./pages/SubscriptionHistory";
 import CategoryManagement from "./pages/CategoryManagement";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import PixPayment from "./pages/PixPayment";
 
 const queryClient = new QueryClient();
 
@@ -138,6 +138,12 @@ function App() {
         <Route path="/subscription" element={
           <ProtectedRoute>
             <Subscription />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/pix-payment" element={
+          <ProtectedRoute>
+            <PixPayment />
           </ProtectedRoute>
         } />
         
