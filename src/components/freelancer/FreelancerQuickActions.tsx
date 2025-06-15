@@ -22,7 +22,7 @@ const FreelancerQuickActions: React.FC = () => {
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Button 
-            onClick={() => navigate('/service-requests')}
+            onClick={() => navigate('/jobs')}
             className="bg-helpaqui-green hover:bg-helpaqui-green/90 h-16 flex flex-col gap-1"
           >
             <Briefcase className="h-5 w-5" />
