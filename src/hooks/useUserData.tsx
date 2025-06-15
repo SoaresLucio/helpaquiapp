@@ -5,7 +5,10 @@ import { User } from '@supabase/supabase-js';
 
 export const useUserData = (authUser: User | null, userType: 'solicitante' | 'freelancer' | null) => {
   const profile = useUserProfile(authUser);
-  const currentUser = useRealUser(authUser, userType, profile);
+  const realUser = useRealUser(authUser, userType, profile);
 
-  return currentUser;
+  return {
+    currentUser: realUser,
+    loading: false // Add loading state if needed by the consuming components
+  };
 };
