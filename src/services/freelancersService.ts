@@ -1,10 +1,20 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { FreelancerProfile } from '@/types/freelancer';
 
 interface FetchFreelancersOptions {
   category?: string;
   sortBy?: string;
+}
+
+// Type for creating a new freelancer profile that matches Supabase requirements
+interface CreateFreelancerData {
+  user_id: string;
+  category: string;
+  description?: string;
+  portfolio_photos?: any[];
+  observations?: string;
+  hourly_rate?: number;
+  available?: boolean;
 }
 
 export const fetchRecommendedFreelancers = async (options: FetchFreelancersOptions = {}): Promise<FreelancerProfile[]> => {
@@ -95,7 +105,7 @@ export const fetchFreelancerById = async (id: string): Promise<FreelancerProfile
   return transformedData;
 };
 
-export const createFreelancerProfile = async (profileData: Partial<FreelancerProfile>): Promise<FreelancerProfile> => {
+export const createFreelancerProfile = async (profileData: CreateFreelancerData): Promise<FreelancerProfile> => {
   const { data, error } = await supabase
     .from('freelancer_profiles')
     .insert(profileData)
