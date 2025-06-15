@@ -61,7 +61,7 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners, className = ''
     <div className={className}>
       <Carousel className="w-full">
         <CarouselContent>
-          {banners.map((banner, index) => (
+          {banners.map((banner) => (
             <CarouselItem key={banner.id}>
               <PromotionalBanner
                 title={banner.title}

@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
 
 interface Banner {
   id: string;
@@ -18,7 +17,6 @@ export const usePromotionalBanners = (targetAudience: 'solicitante' | 'freelance
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { userType } = useAuth();
 
   useEffect(() => {
     const fetchBanners = async () => {
@@ -27,7 +25,6 @@ export const usePromotionalBanners = (targetAudience: 'solicitante' | 'freelance
         setError(null);
 
         console.log('Fetching banners for target audience:', targetAudience);
-        console.log('Current user type:', userType);
 
         const { data, error } = await supabase
           .from('promotional_banners')
@@ -52,9 +49,8 @@ export const usePromotionalBanners = (targetAudience: 'solicitante' | 'freelance
       }
     };
 
-    // Buscar banners independente do userType para debugging
     fetchBanners();
-  }, [targetAudience, userType]);
+  }, [targetAudience]);
 
   return { banners, loading, error };
 };
