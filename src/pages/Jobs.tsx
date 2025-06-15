@@ -45,7 +45,7 @@ const Jobs = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setJobs(data || []);
+      setJobs((data || []) as JobListing[]);
     } catch (error: any) {
       toast({
         title: "Erro ao carregar vagas",
