@@ -38,7 +38,10 @@ const ProfileHeaderContainer: React.FC<ProfileHeaderContainerProps> = ({
     previewCover,
     handleProfilePhotoChange,
     handleCoverPhotoChange
-  } = useProfilePhotoPreview(onProfilePhotoUpload, onCoverPhotoUpload);
+  } = useProfilePhotoPreview({
+    onProfilePhotoUpload,
+    onCoverPhotoUpload
+  });
   
   // Function to handle background style for cover
   const getCoverStyle = () => {

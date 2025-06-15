@@ -3,13 +3,7 @@ import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-
-interface ProfileFormData {
-  first_name: string;
-  last_name: string;
-  phone?: string;
-  address?: string;
-}
+import { ProfileFormData } from './useProfileForm';
 
 interface ProfileFormFieldsProps {
   form: UseFormReturn<ProfileFormData>;
