@@ -37,7 +37,7 @@ export class ApiService {
     filters?: Record<string, any>
   ): Promise<{ data: TableRow<T>[] | null; error: any }> {
     return this.handleRequest(async () => {
-      let query = supabase.from(table).select('*');
+      let query = supabase.from(table as any).select('*');
       
       if (filters) {
         Object.entries(filters).forEach(([key, value]) => {
@@ -45,7 +45,8 @@ export class ApiService {
         });
       }
       
-      return await query;
+      const result = await query;
+      return { data: result.data as TableRow<T>[] | null, error: result.error };
     });
   }
 
@@ -57,11 +58,13 @@ export class ApiService {
     id: string
   ): Promise<{ data: TableRow<T> | null; error: any }> {
     return this.handleRequest(async () => {
-      return await supabase
-        .from(table)
+      const result = await supabase
+        .from(table as any)
         .select('*')
         .eq('id', id)
         .single();
+      
+      return { data: result.data as TableRow<T> | null, error: result.error };
     });
   }
 
@@ -73,11 +76,13 @@ export class ApiService {
     data: TableInsert<T>
   ): Promise<{ data: TableRow<T> | null; error: any }> {
     return this.handleRequest(async () => {
-      return await supabase
-        .from(table)
-        .insert(data)
+      const result = await supabase
+        .from(table as any)
+        .insert(data as any)
         .select()
         .single();
+      
+      return { data: result.data as TableRow<T> | null, error: result.error };
     });
   }
 
@@ -90,12 +95,14 @@ export class ApiService {
     data: TableUpdate<T>
   ): Promise<{ data: TableRow<T> | null; error: any }> {
     return this.handleRequest(async () => {
-      return await supabase
-        .from(table)
-        .update(data)
+      const result = await supabase
+        .from(table as any)
+        .update(data as any)
         .eq('id', id)
         .select()
         .single();
+      
+      return { data: result.data as TableRow<T> | null, error: result.error };
     });
   }
 
@@ -108,7 +115,7 @@ export class ApiService {
   ): Promise<{ error: any }> {
     try {
       const { error } = await supabase
-        .from(table)
+        .from(table as any)
         .delete()
         .eq('id', id);
       
@@ -127,7 +134,7 @@ export class ApiService {
     filters?: Record<string, any>
   ): Promise<{ data: number | null; error: any }> {
     return this.handleRequest(async () => {
-      let query = supabase.from(table).select('*', { count: 'exact', head: true });
+      let query = supabase.from(table as any).select('*', { count: 'exact', head: true });
       
       if (filters) {
         Object.entries(filters).forEach(([key, value]) => {
