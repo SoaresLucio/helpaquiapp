@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
@@ -90,13 +89,6 @@ const PaymentFreelancerSettings = () => {
                     >
                       <Building className="h-4 w-4 mr-2" />
                       Dados Bancários
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="earnings"
-                      className="w-full justify-start px-4 py-3 border-l-2 border-transparent data-[state=active]:border-helpaqui-blue rounded-none"
-                    >
-                      <Wallet className="h-4 w-4 mr-2" />
-                      Ganhos e Saques
                     </TabsTrigger>
                     <TabsTrigger
                       value="transaction-history"
@@ -222,42 +214,6 @@ const PaymentFreelancerSettings = () => {
                         </div>
                       </div>
                     </form>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="earnings">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Ganhos e Saques</CardTitle>
-                    <CardDescription>
-                      Acompanhe seus ganhos e solicite saques
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="p-4 bg-green-50 rounded-lg">
-                          <p className="text-sm text-green-600 font-medium">Disponível para saque</p>
-                          <p className="text-2xl font-bold text-green-700">R$ 1.250,00</p>
-                        </div>
-                        <div className="p-4 bg-blue-50 rounded-lg">
-                          <p className="text-sm text-blue-600 font-medium">Ganhos este mês</p>
-                          <p className="text-2xl font-bold text-blue-700">R$ 3.420,00</p>
-                        </div>
-                        <div className="p-4 bg-gray-50 rounded-lg">
-                          <p className="text-sm text-gray-600 font-medium">Total ganho</p>
-                          <p className="text-2xl font-bold text-gray-700">R$ 12.580,00</p>
-                        </div>
-                      </div>
-                      
-                      <div className="pt-4">
-                        <Button className="w-full">
-                          <PlusCircle className="mr-2 h-4 w-4" />
-                          Solicitar Saque
-                        </Button>
-                      </div>
-                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
