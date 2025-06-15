@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import CategorySelector from '@/components/CategorySelector';
@@ -12,7 +11,7 @@ import PushNotification from '@/components/notifications/PushNotification';
 import { useJobNotifications } from '@/hooks/useJobNotifications';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, MessageCircle, PhoneCall, User } from 'lucide-react';
+import { MapPin, MessageCircle, PhoneCall } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
 
@@ -145,12 +144,11 @@ const Index = () => {
           {/* Sidebar */}
           <div className="w-full lg:w-[400px] space-y-4">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-3 mb-4">
+              <TabsList className="grid grid-cols-2 mb-4">
                 <TabsTrigger value="actions">
                   {userType === "freelancer" ? "Oferecer" : "Solicitar"}
                 </TabsTrigger>
                 <TabsTrigger value="chat" onClick={handleChatRedirect}>Chat</TabsTrigger>
-                <TabsTrigger value="profile">Perfil</TabsTrigger>
               </TabsList>
               
               <TabsContent value="actions">
@@ -166,11 +164,6 @@ const Index = () => {
                     recipientAvatar="/placeholder.svg" 
                   />
                 )}
-              </TabsContent>
-              
-              <TabsContent value="profile">
-                {/* Only show profile if we have real user data */}
-                {currentUser && <UserProfile user={currentUser} />}
               </TabsContent>
             </Tabs>
           </div>
@@ -200,14 +193,6 @@ const Index = () => {
         <button className="flex flex-col items-center p-2">
           <PhoneCall className="h-6 w-6 text-helpaqui-blue" />
           <span className="text-xs mt-1">Contatos</span>
-        </button>
-        
-        <button 
-          className="flex flex-col items-center p-2"
-          onClick={() => handleMobileNavigation('profile')}
-        >
-          <User className="h-6 w-6 text-helpaqui-blue" />
-          <span className="text-xs mt-1">Perfil</span>
         </button>
       </div>
     </div>
