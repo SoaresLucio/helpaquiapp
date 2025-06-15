@@ -3,8 +3,7 @@ import React from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import UserProfile from '@/components/UserProfile';
-import { currentUser } from '@/data/mockData';
+import ProfileContainer from '@/components/profile/ProfileContainer';
 import Header from '@/components/Header';
 
 const UserProfilePage: React.FC = () => {
@@ -25,7 +24,7 @@ const UserProfilePage: React.FC = () => {
         
         <div className="max-w-4xl mx-auto">
           <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Meu Perfil</h1>
-          <UserProfile user={currentUser} />
+          <ProfileContainer />
         </div>
       </div>
     </div>

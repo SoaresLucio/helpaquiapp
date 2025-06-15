@@ -3,9 +3,10 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { MapPin, User, Calendar, DollarSign, Clock, FileText } from 'lucide-react';
 import ServiceProposalDialog from './ServiceProposalDialog';
+import { formatBudget, formatDate, getClientName } from '@/utils/formatters';
+import { getUrgencyColor, getUrgencyLabel } from '@/utils/urgencyUtils';
 
 interface ServiceRequest {
   id: string;
@@ -30,55 +31,6 @@ interface ServiceRequestCardProps {
 }
 
 const ServiceRequestCard: React.FC<ServiceRequestCardProps> = ({ request }) => {
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency) {
-      case 'urgente':
-        return 'destructive';
-      case 'alta':
-        return 'destructive';
-      case 'normal':
-        return 'default';
-      case 'baixa':
-        return 'secondary';
-      default:
-        return 'default';
-    }
-  };
-
-  const getUrgencyLabel = (urgency: string) => {
-    switch (urgency) {
-      case 'urgente':
-        return 'Urgente';
-      case 'alta':
-        return 'Alta';
-      case 'normal':
-        return 'Normal';
-      case 'baixa':
-        return 'Baixa';
-      default:
-        return 'Normal';
-    }
-  };
-
-  const formatBudget = (min: number, max: number) => {
-    if (min && max) {
-      return `R$ ${(min / 100).toLocaleString()} - R$ ${(max / 100).toLocaleString()}`;
-    } else if (min) {
-      return `A partir de R$ ${(min / 100).toLocaleString()}`;
-    } else if (max) {
-      return `Até R$ ${(max / 100).toLocaleString()}`;
-    }
-    return 'A negociar';
-  };
-
-  const getClientName = () => {
-    if (request.client_profile) {
-      const { first_name, last_name } = request.client_profile;
-      return `${first_name} ${last_name}`.trim() || 'Cliente';
-    }
-    return 'Cliente';
-  };
-
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
@@ -98,13 +50,13 @@ const ServiceRequestCard: React.FC<ServiceRequestCardProps> = ({ request }) => {
               )}
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
-                <span>{new Date(request.created_at).toLocaleDateString('pt-BR')}</span>
+                <span>{formatDate(request.created_at)}</span>
               </div>
             </div>
             <div className="flex items-center gap-3 mb-3">
               <div className="flex items-center gap-1">
                 <User className="h-4 w-4 text-gray-500" />
-                <span className="text-sm font-medium">{getClientName()}</span>
+                <span className="text-sm font-medium">{getClientName(request.client_profile)}</span>
               </div>
               <Badge variant={getUrgencyColor(request.urgency)}>
                 <Clock className="h-3 w-3 mr-1" />
