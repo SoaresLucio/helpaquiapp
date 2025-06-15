@@ -16,7 +16,13 @@ const OffersPage = () => {
                     <BackButton to="/" label="Voltar ao Início" />
                 </div>
                 <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <h1 className="text-3xl font-bold mb-6">Ofertas de Help Disponíveis</h1>
+                    <div className="mb-6">
+                        <h1 className="text-3xl font-bold mb-2">Ofertas de Help Disponíveis</h1>
+                        <p className="text-gray-600">
+                            Encontre profissionais qualificados prontos para ajudar você
+                        </p>
+                    </div>
+                    
                     <OffersSection
                         selectedCategoryName={null}
                         professionals={offers}
