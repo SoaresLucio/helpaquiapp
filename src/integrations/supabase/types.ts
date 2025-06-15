@@ -599,6 +599,50 @@ export type Database = {
         }
         Relationships: []
       }
+      pix_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          expires_at: string
+          id: string
+          pix_code: string
+          qr_code_url: string | null
+          status: string
+          subscription_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          expires_at: string
+          id?: string
+          pix_code: string
+          qr_code_url?: string | null
+          status?: string
+          subscription_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          pix_code?: string
+          qr_code_url?: string | null
+          status?: string
+          subscription_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pix_payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "user_subscriptions_flow"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_verifications: {
         Row: {
           additional_data: Json | null
@@ -1131,6 +1175,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_subscriptions_flow: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          payment_method: string | null
+          payment_reference: string | null
+          plan_name: string
+          plan_price: number
+          start_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          payment_method?: string | null
+          payment_reference?: string | null
+          plan_name: string
+          plan_price: number
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          payment_method?: string | null
+          payment_reference?: string | null
+          plan_name?: string
+          plan_price?: number
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
