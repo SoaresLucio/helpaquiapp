@@ -29,7 +29,6 @@ import AIChat from "./pages/AIChat";
 import Subscription from "./pages/Subscription";
 import SolicitantePlans from "./pages/SolicitantePlans";
 import FreelancerPlans from "./pages/FreelancerPlans";
-import RecommendedFreelancers from "./pages/RecommendedFreelancers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -77,11 +76,6 @@ function App() {
                 <Route path="/jobs" element={
                   <ProtectedRoute>
                     <Jobs />
-                  </ProtectedRoute>
-                } />
-                <Route path="/recommended-freelancers" element={
-                  <ProtectedRoute requiredUserType="solicitante">
-                    <RecommendedFreelancers />
                   </ProtectedRoute>
                 } />
                 <Route path="/service-requests" element={

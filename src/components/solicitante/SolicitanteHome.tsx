@@ -1,149 +1,257 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { MapPin, Star, Filter, Clock, Search, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { MapPin, Star, Users, PlusCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import ProfessionalCard from '@/components/ProfessionalCard';
+import ServiceMap from '@/components/ServiceMap';
+import BannerCarousel from '@/components/banners/BannerCarousel';
+import { mockProfessionals, serviceCategories } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
-import FreelancerCard from '../freelancers/FreelancerCard';
-import { useFreelancersForHome } from '@/hooks/useFreelancersForHome';
+import { useAuth } from '@/hooks/useAuth';
+import { usePromotionalBanners } from '@/hooks/usePromotionalBanners';
 
 interface SolicitanteHomeProps {
   selectedCategory: string | null;
   onSelectCategory: (category: string | null) => void;
 }
 
-const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ 
-  selectedCategory, 
-  onSelectCategory 
-}) => {
+const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onSelectCategory }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('rating');
+  const [filterRating, setFilterRating] = useState('all');
+  const [allProfessionals, setAllProfessionals] = useState(mockProfessionals);
   
-  const { 
-    data: freelancers = [], 
-    isLoading, 
-    error 
-  } = useFreelancersForHome(3);
+  // Hook para buscar banners promocionais - SEMPRE buscar para solicitante
+  const { banners, loading: bannersLoading, error: bannersError } = usePromotionalBanners('solicitante');
 
-  // Filtrar por categoria se selecionada
-  const filteredFreelancers = selectedCategory 
-    ? freelancers.filter(freelancer => freelancer.category === selectedCategory)
-    : freelancers;
+  // Debug logs para verificar banners
+  useEffect(() => {
+    console.log('SolicitanteHome - Banner status:', { 
+      banners, 
+      bannersLoading, 
+      bannersError,
+      bannersCount: banners?.length || 0
+    });
+  }, [banners, bannersLoading, bannersError]);
+
+  // Load freelancer offers from localStorage
+  useEffect(() => {
+    const freelancerOffers = JSON.parse(localStorage.getItem('freelancerOffers') || '[]');
+    
+    // Convert freelancer offers to professional format
+    const convertedOffers = freelancerOffers.map((offer: any) => ({
+      id: offer.id,
+      name: offer.name,
+      description: offer.description,
+      categories: [offer.category],
+      rating: offer.rating,
+      ratingCount: offer.ratingCount,
+      price: offer.price,
+      distance: offer.distance,
+      avatar: offer.avatar,
+      verified: offer.verified,
+      location: offer.location
+    }));
+
+    // Combine mock professionals with real freelancer offers
+    setAllProfessionals([...mockProfessionals, ...convertedOffers]);
+  }, []);
+
+  // Filtrar freelancers por categoria, pesquisa e rating
+  const filteredProfessionals = allProfessionals.filter(pro => {
+    const matchesCategory = !selectedCategory || pro.categories.includes(selectedCategory);
+    const matchesSearch = !searchTerm || 
+      pro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pro.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRating = filterRating === 'all' || 
+      (filterRating === '4+' && pro.rating >= 4) ||
+      (filterRating === '4.5+' && pro.rating >= 4.5);
+    
+    return matchesCategory && matchesSearch && matchesRating;
+  });
+
+  // Ordenar freelancers
+  const sortedProfessionals = [...filteredProfessionals].sort((a, b) => {
+    switch (sortBy) {
+      case 'rating':
+        return b.rating - a.rating;
+      case 'distance':
+        return parseFloat(a.distance) - parseFloat(b.distance);
+      case 'price':
+        return parseFloat(a.price.replace(/[^\d,]/g, '').replace(',', '.')) - 
+               parseFloat(b.price.replace(/[^\d,]/g, '').replace(',', '.'));
+      default:
+        return 0;
+    }
+  });
+
+  const selectedCategoryName = selectedCategory 
+    ? serviceCategories.find(cat => cat.id === selectedCategory)?.name 
+    : null;
+
+  const userName = user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'Usuário';
 
   return (
     <div className="space-y-6">
-      {/* Header com ação rápida */}
+      {/* Banner promocional - SEMPRE RENDERIZAR ESTA SEÇÃO */}
+      <div className="mb-6">
+        {bannersLoading && (
+          <div className="bg-gray-200 animate-pulse rounded-xl h-[300px] md:h-[400px] flex items-center justify-center">
+            <p className="text-gray-500">Carregando banners...</p>
+          </div>
+        )}
+        
+        {!bannersLoading && bannersError && (
+          <div className="bg-red-100 border border-red-300 rounded-xl p-4">
+            <p className="text-red-700">Erro ao carregar banners: {bannersError}</p>
+          </div>
+        )}
+        
+        {!bannersLoading && !bannersError && banners.length > 0 && (
+          <BannerCarousel banners={banners} className="rounded-xl shadow-lg" />
+        )}
+        
+        {!bannersLoading && !bannersError && banners.length === 0 && (
+          <div className="bg-gray-100 border border-gray-300 rounded-xl p-4 text-center">
+            <p className="text-gray-600">Nenhum banner promocional disponível no momento.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Welcome Section */}
+      <div className="bg-white rounded-xl p-6 shadow-sm">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          Bem-vindo ao HelpAqui, {userName}! 👋
+        </h1>
+        <p className="text-gray-600 mb-4">
+          Encontre freelancers qualificados próximos a você
+        </p>
+        
+        {/* Search and Filters */}
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Pesquisar freelancers ou serviços..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="rating">Melhor avaliação</SelectItem>
+              <SelectItem value="distance">Mais próximo</SelectItem>
+              <SelectItem value="price">Menor preço</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={filterRating} onValueChange={setFilterRating}>
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue placeholder="Filtrar por nota" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as notas</SelectItem>
+              <SelectItem value="4+">4+ estrelas</SelectItem>
+              <SelectItem value="4.5+">4.5+ estrelas</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Quick Actions Card */}
       <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Encontre o profissional ideal</h2>
-              <p className="text-gray-600">
-                {selectedCategory 
-                  ? `Profissionais de ${selectedCategory} próximos a você`
-                  : 'Profissionais qualificados prontos para ajudar'
-                }
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => navigate('/recommended-freelancers')}
-                className="helpaqui-button-primary"
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Ver Todos os Freelancers
-              </Button>
-              <Button variant="outline">
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Solicitar Serviço
-              </Button>
-            </div>
+        <CardHeader>
+          <CardTitle>Ações Rápidas</CardTitle>
+          <CardDescription>
+            Acesse rapidamente as funcionalidades principais
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/jobs')}
+              className="h-16 flex flex-col gap-1"
+            >
+              <Search className="h-5 w-5" />
+              Buscar Serviços
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/payments')}
+              className="h-16 flex flex-col gap-1 bg-blue-50 hover:bg-blue-100 border-blue-200"
+            >
+              <CreditCard className="h-5 w-5" />
+              Pagamentos
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/profile')}
+              className="h-16 flex flex-col gap-1"
+            >
+              <Clock className="h-5 w-5" />
+              Meu Perfil
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Filtros rápidos */}
-      {selectedCategory && (
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Categoria selecionada:</span>
-                <Badge variant="default">{selectedCategory}</Badge>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onSelectCategory(null)}
-              >
-                Limpar filtro
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Service Map */}
+      <ServiceMap selectedCategory={selectedCategory} />
 
-      {/* Lista de profissionais */}
-      <div className="space-y-4">
-        {isLoading ? (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-helpaqui-blue mx-auto mb-4"></div>
-              <p className="text-gray-600">Carregando profissionais...</p>
-            </CardContent>
-          </Card>
-        ) : error ? (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <p className="text-red-600">Erro ao carregar profissionais. Tente novamente.</p>
-            </CardContent>
-          </Card>
-        ) : filteredFreelancers.length > 0 ? (
-          <>
-            <div className="space-y-4">
-              {filteredFreelancers.map((freelancer) => (
-                <FreelancerCard 
-                  key={freelancer.id} 
-                  freelancer={freelancer} 
-                />
-              ))}
-            </div>
-            
-            <Card>
-              <CardContent className="p-6 text-center">
-                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="font-medium mb-2">Veja mais profissionais</h3>
-                <p className="text-gray-600 mb-4">
-                  Encontre o freelancer perfeito para o seu projeto
-                </p>
-                <Button 
-                  onClick={() => navigate('/recommended-freelancers')}
-                  className="helpaqui-button-primary"
-                >
-                  Ver Todos os Freelancers
-                </Button>
-              </CardContent>
-            </Card>
-          </>
+      {/* Freelancers List */}
+      <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold">
+            {selectedCategoryName 
+              ? `Freelancers de ${selectedCategoryName}` 
+              : 'Freelancers Recomendados'}
+          </h2>
+          
+          <div className="flex items-center space-x-2 text-sm text-gray-500">
+            <MapPin className="h-4 w-4" />
+            <span>{sortedProfessionals.length} profissionais encontrados</span>
+          </div>
+        </div>
+        
+        {sortedProfessionals.length > 0 ? (
+          <div className="space-y-4">
+            {sortedProfessionals.map(professional => (
+              <ProfessionalCard 
+                key={professional.id} 
+                professional={professional}
+              />
+            ))}
+          </div>
         ) : (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="font-medium mb-2">Nenhum profissional encontrado</h3>
-              <p className="text-gray-600 mb-4">
-                {selectedCategory 
-                  ? `Não há profissionais disponíveis na categoria ${selectedCategory} no momento.`
-                  : 'Não há profissionais disponíveis no momento.'
-                }
-              </p>
-              <Button 
-                variant="outline" 
-                onClick={() => onSelectCategory(null)}
-              >
-                {selectedCategory ? 'Ver todas as categorias' : 'Atualizar'}
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="text-center py-12">
+            <div className="text-gray-400 mb-4">
+              <Search className="h-12 w-12 mx-auto" />
+            </div>
+            <p className="text-gray-500 mb-4">
+              Nenhum freelancer encontrado com os filtros aplicados.
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                onSelectCategory(null);
+                setSearchTerm('');
+                setFilterRating('all');
+              }}
+            >
+              Limpar filtros
+            </Button>
+          </div>
         )}
       </div>
     </div>
