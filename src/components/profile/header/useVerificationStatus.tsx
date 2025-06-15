@@ -1,9 +1,10 @@
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 
 interface ProfileData {
   first_name?: string;
   last_name?: string;
+  avatar_url?: string;
   phone?: string;
   address?: string;
 }
@@ -17,50 +18,58 @@ interface BankData {
 }
 
 interface User {
+  id?: string;
+  name: string;
+  email?: string;
+  avatar: string; 
   type?: 'professional' | 'client';
   isVerified?: boolean;
+  phone?: string;
+  coverPhoto?: string;
 }
 
-type VerificationStatus = 'verified' | 'pending' | 'incomplete';
+export type VerificationStatus = 'unverified' | 'partial' | 'verified';
 
-export const useVerificationStatus = (profileData: ProfileData, bankData: BankData, user: User) => {
-  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('incomplete');
+export const useVerificationStatus = (
+  profileData: ProfileData, 
+  bankData: BankData, 
+  user: User
+): VerificationStatus => {
+  return useMemo(() => {
+    // Check basic profile completeness
+    const hasBasicProfile = !!(
+      profileData.first_name && 
+      profileData.last_name && 
+      user.email
+    );
 
-  useEffect(() => {
-    const calculateVerificationStatus = () => {
-      // Check if basic profile info is complete
-      const hasBasicInfo = profileData.first_name && 
-                          profileData.last_name && 
-                          profileData.phone && 
-                          profileData.address;
+    // Check if user is already verified (from Supabase auth)
+    const hasEmailVerification = !!user.isVerified;
 
-      // Check if bank details are complete (mainly for freelancers)
-      const hasBankInfo = bankData.bank_name && 
-                         bankData.account_number && 
-                         bankData.account_type && 
-                         bankData.branch && 
-                         bankData.document;
+    // Check bank details completeness (for freelancers)
+    const hasBankDetails = !!(
+      bankData.bank_name && 
+      bankData.account_number && 
+      bankData.document
+    );
 
-      // For freelancers, require both profile and bank info
-      // For clients, only require profile info
-      const isFreelancer = user.type === 'professional';
-      const requiredInfoComplete = isFreelancer 
-        ? hasBasicInfo && hasBankInfo 
-        : hasBasicInfo;
-
-      if (!hasBasicInfo && (!isFreelancer || !hasBankInfo)) {
-        setVerificationStatus('incomplete');
-      } else if (requiredInfoComplete && user.isVerified) {
-        setVerificationStatus('verified');
-      } else if (requiredInfoComplete && !user.isVerified) {
-        setVerificationStatus('pending');
-      } else {
-        setVerificationStatus('incomplete');
+    // For professional users, require bank details
+    if (user.type === 'professional') {
+      if (hasBasicProfile && hasEmailVerification && hasBankDetails) {
+        return 'verified';
+      } else if (hasBasicProfile || hasEmailVerification || hasBankDetails) {
+        return 'partial';
       }
-    };
+      return 'unverified';
+    }
 
-    calculateVerificationStatus();
-  }, [profileData, bankData, user.type, user.isVerified]);
+    // For client users, bank details not required
+    if (hasBasicProfile && hasEmailVerification) {
+      return 'verified';
+    } else if (hasBasicProfile || hasEmailVerification) {
+      return 'partial';
+    }
 
-  return verificationStatus;
+    return 'unverified';
+  }, [profileData, bankData, user]);
 };

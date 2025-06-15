@@ -10,6 +10,7 @@ export const useUserData = (authUser: User | null, userType: 'solicitante' | 'fr
   return {
     currentUser,
     profile,
-    loading: !profile && !!authUser
+    loading: !profile && !!authUser,
+    isValid: !!(currentUser?.id && currentUser?.email)
   };
 };
