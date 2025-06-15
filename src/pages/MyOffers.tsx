@@ -3,6 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import BackButton from '@/components/ui/back-button';
+import Footer from '@/components/Footer';
 import { useAuth } from '@/hooks/useAuth';
 import { useMyOffers } from '@/hooks/useMyOffers';
 import MyOffersHeader from '@/components/offers/MyOffersHeader';
@@ -26,10 +27,10 @@ const MyOffers: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 flex flex-col">
       <Header />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 flex-1">
         <div className="mb-6">
           <BackButton to="/" label="Voltar ao Início" />
         </div>
@@ -50,6 +51,8 @@ const MyOffers: React.FC = () => {
           </div>
         )}
       </div>
+      
+      <Footer />
     </div>
   );
 };
