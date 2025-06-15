@@ -15,6 +15,7 @@ import Login from "./pages/Login";
 import UserProfilePage from "./pages/UserProfilePage";
 import FreelancerProfile from "./pages/FreelancerProfile";
 import Jobs from "./pages/Jobs";
+import ServiceRequests from "./pages/ServiceRequests";
 import Chat from "./pages/Chat";
 import Notes from "./pages/Notes";
 import PaymentSettings from "./pages/PaymentSettings";
@@ -75,6 +76,11 @@ function App() {
                 <Route path="/jobs" element={
                   <ProtectedRoute>
                     <Jobs />
+                  </ProtectedRoute>
+                } />
+                <Route path="/service-requests" element={
+                  <ProtectedRoute requiredUserType="freelancer">
+                    <ServiceRequests />
                   </ProtectedRoute>
                 } />
                 <Route path="/chat" element={
