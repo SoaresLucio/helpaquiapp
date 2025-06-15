@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useSecureProfileAccess } from '@/hooks/useSecureProfileAccess';
-import { saveSecureBankDetails, getSecureBankDetails } from '@/services/enhancedPaymentService';
+import { saveBankDetails, getBankDetails } from '@/services/paymentService';
 import { useSecureDataAccess } from '@/hooks/useSecureDataAccess';
 import { validateBankAccount, validateCPF, sanitizeText } from '@/utils/inputValidation';
 import { paymentRateLimiter, checkRateLimit } from '@/utils/rateLimiting';
@@ -40,7 +39,7 @@ export const useEnhancedPaymentSettings = () => {
     if (!user?.id || !profileData?.hasAccess) return;
 
     const result = await secureAccess(
-      () => getSecureBankDetails(),
+      () => getBankDetails(),
       'bank_details'
     );
 
@@ -126,7 +125,7 @@ export const useEnhancedPaymentSettings = () => {
     };
 
     const result = await secureWrite(
-      () => saveSecureBankDetails(sanitizedBankInfo),
+      () => saveBankDetails(sanitizedBankInfo),
       'bank_details',
       undefined,
       { 

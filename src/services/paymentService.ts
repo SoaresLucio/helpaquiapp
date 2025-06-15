@@ -1,5 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client';
+import { validateDataAccess, sanitizeUserInput } from '@/utils/securityEnhancement';
 
 export interface PaymentRequest {
   amount: number;
@@ -98,16 +98,52 @@ export const saveBankDetails = async (bankDetails: BankDetails): Promise<boolean
       throw new Error('User not authenticated');
     }
 
+    const validation = await validateDataAccess(userData.user.id, 'bank_details');
+    
+    if (!validation.isValid) {
+      console.error('Bank details access validation failed:', validation.errors);
+      return false;
+    }
+
+    const sanitizedDetails = {
+      bankName: sanitizeUserInput(bankDetails.bankName),
+      accountType: sanitizeUserInput(bankDetails.accountType),
+      accountNumber: sanitizeUserInput(bankDetails.accountNumber),
+      branch: sanitizeUserInput(bankDetails.branch),
+      document: sanitizeUserInput(bankDetails.document)
+    };
+
     const { data, error } = await supabase.rpc('insert_bank_details_encrypted', {
       p_user_id: userData.user.id,
-      p_bank_name: bankDetails.bankName,
-      p_account_type: bankDetails.accountType,
-      p_account_number: bankDetails.accountNumber,
-      p_branch: bankDetails.branch,
-      p_document: bankDetails.document
+      p_bank_name: sanitizedDetails.bankName,
+      p_account_type: sanitizedDetails.accountType,
+      p_account_number: sanitizedDetails.accountNumber,
+      p_branch: sanitizedDetails.branch,
+      p_document: sanitizedDetails.document
     });
 
-    if (error) throw error;
+    if (error) {
+      await supabase.rpc('log_security_event', {
+        p_user_id: userData.user.id,
+        p_action: 'bank_details_save_failed',
+        p_resource_type: 'bank_details',
+        p_success: false,
+        p_error_message: error.message
+      });
+      throw error;
+    }
+
+    await supabase.rpc('log_security_event', {
+      p_user_id: userData.user.id,
+      p_action: 'bank_details_saved',
+      p_resource_type: 'bank_details',
+      p_success: true,
+      p_metadata: {
+        security_score: validation.securityScore,
+        encrypted: true
+      }
+    });
+
     return data === true;
   } catch (error) {
     console.error('Bank details save error:', error);
@@ -124,11 +160,39 @@ export const getBankDetails = async (): Promise<any> => {
       throw new Error('User not authenticated');
     }
 
+    const validation = await validateDataAccess(userData.user.id, 'bank_details');
+    
+    if (!validation.isValid) {
+      console.error('Bank details access validation failed:', validation.errors);
+      return null;
+    }
+
     const { data, error } = await supabase.rpc('get_bank_details_decrypted', {
       p_user_id: userData.user.id
     });
 
-    if (error) throw error;
+    if (error) {
+      await supabase.rpc('log_security_event', {
+        p_user_id: userData.user.id,
+        p_action: 'bank_details_access_failed',
+        p_resource_type: 'bank_details',
+        p_success: false,
+        p_error_message: error.message
+      });
+      throw error;
+    }
+
+    await supabase.rpc('log_security_event', {
+      p_user_id: userData.user.id,
+      p_action: 'bank_details_accessed',
+      p_resource_type: 'bank_details',
+      p_success: true,
+      p_metadata: {
+        security_score: validation.securityScore,
+        has_data: !!(data && data.length > 0)
+      }
+    });
+
     return data && data.length > 0 ? data[0] : null;
   } catch (error) {
     console.error('Bank details retrieval error:', error);
