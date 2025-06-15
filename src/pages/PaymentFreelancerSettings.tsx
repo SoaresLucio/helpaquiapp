@@ -224,46 +224,6 @@ const PaymentFreelancerSettings = () => {
                     </form>
                   </CardContent>
                 </Card>
-                
-                <Card className="mt-6">
-                  <CardHeader>
-                    <CardTitle>Configurações de Recebimento</CardTitle>
-                    <CardDescription>
-                      Configure como deseja receber seus pagamentos
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Label htmlFor="auto-transfer">Transferência automática</Label>
-                          <Badge variant="outline">Recomendado</Badge>
-                        </div>
-                        <Switch id="auto-transfer" defaultChecked />
-                      </div>
-                      <p className="text-sm text-gray-500">
-                        Com as transferências automáticas, os pagamentos serão enviados para sua conta bancária assim que estiverem disponíveis.
-                      </p>
-                      
-                      <div className="flex items-center justify-between pt-4">
-                        <Label htmlFor="minimum-transfer">Valor mínimo para transferência</Label>
-                        <div className="w-24">
-                          <Select defaultValue="50">
-                            <SelectTrigger id="minimum-transfer">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="0">R$ 0</SelectItem>
-                              <SelectItem value="50">R$ 50</SelectItem>
-                              <SelectItem value="100">R$ 100</SelectItem>
-                              <SelectItem value="200">R$ 200</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
               </TabsContent>
               
               <TabsContent value="earnings">
