@@ -88,7 +88,7 @@ const SubscriptionIncentiveModal: React.FC<SubscriptionIncentiveModalProps> = ({
               'Acesso ilimitado a profissionais qualificados'
             ) : (
               'Receba mais oportunidades de trabalho'
-            }
+            )}
           </div>
         </div>
       </DialogContent>
