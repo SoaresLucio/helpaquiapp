@@ -1,7 +1,14 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import Index from "./pages/Index";
+
+// Pages refatoradas
+import IndexPage from "./pages/refactored/IndexPage";
+import MyOffersPage from "./pages/refactored/MyOffersPage";
+import SubscriptionHistoryPage from "./pages/refactored/SubscriptionHistoryPage";
+
+// Pages originais mantidas
 import UserTypeSelection from "./pages/UserTypeSelection";
 import Auth from "./pages/Auth";
 import Login from "./pages/Login";
@@ -14,7 +21,6 @@ import Jobs from "./pages/Jobs";
 import FreelancerProfile from "./pages/FreelancerProfile";
 import UserProfilePage from "./pages/UserProfilePage";
 import OffersPage from "./pages/OffersPage";
-import MyOffers from "./pages/MyOffers";
 import MyRequests from "./pages/MyRequests";
 import Notes from "./pages/Notes";
 import ProfileVerification from "./pages/ProfileVerification";
@@ -24,7 +30,6 @@ import SolicitantePlans from "./pages/SolicitantePlans";
 import FreelancerPlans from "./pages/FreelancerPlans";
 import Subscription from "./pages/Subscription";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
-import SubscriptionHistory from "./pages/SubscriptionHistory";
 import CategoryManagement from "./pages/CategoryManagement";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -44,13 +49,26 @@ function App() {
         <Route path="/user-type" element={<UserTypeSelection />} />
         <Route path="/auth" element={<Auth />} />
         
-        {/* Protected Routes */}
+        {/* Protected Routes - usando páginas refatoradas */}
         <Route path="/" element={
           <ProtectedRoute>
-            <Index />
+            <IndexPage />
           </ProtectedRoute>
         } />
         
+        <Route path="/my-offers" element={
+          <ProtectedRoute requiredUserType="freelancer">
+            <MyOffersPage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/subscription-history" element={
+          <ProtectedRoute>
+            <SubscriptionHistoryPage />
+          </ProtectedRoute>
+        } />
+        
+        {/* Protected Routes - páginas originais mantidas */}
         <Route path="/chat" element={
           <ProtectedRoute>
             <Chat />
@@ -84,12 +102,6 @@ function App() {
         <Route path="/offers" element={
           <ProtectedRoute>
             <OffersPage />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/my-offers" element={
-          <ProtectedRoute requiredUserType="freelancer">
-            <MyOffers />
           </ProtectedRoute>
         } />
         
@@ -150,12 +162,6 @@ function App() {
         <Route path="/subscription-success" element={
           <ProtectedRoute>
             <SubscriptionSuccess />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/subscription-history" element={
-          <ProtectedRoute>
-            <SubscriptionHistory />
           </ProtectedRoute>
         } />
         
