@@ -1,22 +1,6 @@
 
 import { useMemo } from 'react';
-import { serviceCategories } from '@/data/mockData';
-
-interface Professional {
-  id: string;
-  name: string;
-  description: string;
-  categories: string[];
-  rating: number;
-  ratingCount: number;
-  price: string;
-  distance: string;
-  avatar: string;
-  verified: boolean;
-  location: string;
-  available: boolean;
-  portfolio: string[];
-}
+import { serviceCategories, Professional } from '@/data/mockData';
 
 interface UseFilteringProps {
   professionals: Professional[];

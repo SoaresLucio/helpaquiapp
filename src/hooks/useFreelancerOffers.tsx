@@ -2,26 +2,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-
-interface FreelancerOffer {
-  id: string;
-  name: string;
-  description: string;
-  categories: string[];
-  rating: number;
-  ratingCount: number;
-  price: string;
-  distance: string;
-  avatar: string;
-  verified: boolean;
-  location: string;
-  available: boolean;
-  portfolio: string[];
-}
+import { Professional } from '@/data/mockData';
 
 export const useFreelancerOffers = () => {
   const { user } = useAuth();
-  const [offers, setOffers] = useState<FreelancerOffer[]>([]);
+  const [offers, setOffers] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(false);
 
   const loadFreelancerOffers = async () => {
@@ -77,9 +62,15 @@ export const useFreelancerOffers = () => {
             distance: `${(Math.random() * 10 + 1).toFixed(1)}km`,
             avatar: '/placeholder.svg',
             verified: true,
-            location: offer.location || 'São Paulo, SP',
+            location: {
+              lat: -23.5505 + (Math.random() - 0.5) * 0.1,
+              lng: -46.6333 + (Math.random() - 0.5) * 0.1
+            },
             available: true,
-            portfolio: []
+            portfolio: [],
+            isVerified: true,
+            responseTime: '30min',
+            responseRate: 95
           }));
           
           console.log('✅ Ofertas convertidas (fallback):', fallbackOffers);
@@ -114,9 +105,15 @@ export const useFreelancerOffers = () => {
           distance: `${(Math.random() * 10 + 1).toFixed(1)}km`,
           avatar: profile?.avatar_url || '/placeholder.svg',
           verified: true,
-          location: offer.location || 'São Paulo, SP',
+          location: {
+            lat: -23.5505 + (Math.random() - 0.5) * 0.1,
+            lng: -46.6333 + (Math.random() - 0.5) * 0.1
+          },
           available: true,
-          portfolio: []
+          portfolio: [],
+          isVerified: true,
+          responseTime: '30min',
+          responseRate: 95
         };
 
         console.log('🔄 Oferta convertida:', convertedOffer);
