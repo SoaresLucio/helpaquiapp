@@ -1,39 +1,28 @@
+
 import React from 'react';
-import { useRouteProtection } from '@/hooks/useRouteProtection';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import BackButton from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, MapPin, Clock, DollarSign, Users } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import { useMyRequests } from '@/hooks/useMyRequests';
 import { useRequestApplications } from '@/hooks/useRequestApplications';
 
 const MyRequests: React.FC = () => {
-  // Proteger a rota para apenas solicitantes
-  const { hasAccess, loading: authLoading } = useRouteProtection({
-    requiredUserType: 'solicitante'
-  });
+  const navigate = useNavigate();
+  const { user, userType } = useAuth();
+  const { requests, loading, deleteRequest } = useMyRequests();
 
-  const { requests, loading: requestsLoading, deleteRequest } = useMyRequests();
-
-  // Show loading while checking authentication/authorization
-  if (authLoading || !hasAccess) {
-    return (
-      <div className="min-h-screen bg-gray-100">
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-helpaqui-blue mx-auto mb-4"></div>
-            <p className="text-gray-600">Verificando acesso...</p>
-          </div>
-        </div>
-      </div>
-    );
+  // Redirect if not solicitante
+  if (userType !== 'solicitante') {
+    navigate('/');
+    return null;
   }
 
-  // Show loading while fetching requests
-  if (requestsLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-100">
         <Header />
@@ -63,7 +52,7 @@ const MyRequests: React.FC = () => {
           </div>
           
           <Button 
-            onClick={() => window.location.href = '/'}
+            onClick={() => navigate('/')}
             className="bg-helpaqui-blue hover:bg-helpaqui-blue/90"
           >
             Novo Pedido
@@ -81,7 +70,7 @@ const MyRequests: React.FC = () => {
                 Você ainda não criou nenhum pedido de ajuda.
               </p>
               <Button 
-                onClick={() => window.location.href = '/'}
+                onClick={() => navigate('/')}
                 className="bg-helpaqui-blue hover:bg-helpaqui-blue/90"
               >
                 Criar Primeiro Pedido

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoadingScreen from '@/components/index/LoadingScreen';
 import IndexLayoutWrapper from '@/components/index/IndexLayoutWrapper';
@@ -7,25 +7,20 @@ import IndexHeader from '@/components/index/IndexHeader';
 import IndexMainContent from '@/components/index/IndexMainContent';
 import IndexNotifications from '@/components/index/IndexNotifications';
 import { useJobNotifications } from '@/hooks/useJobNotifications';
-import { useRouteProtection } from '@/hooks/useRouteProtection';
-import { useUserData } from '@/hooks/useUserData';
+import { useAuth } from '@/hooks/useAuth';
+import { useUserData } from '@/hooks/user/useUserData';
 
 const Index = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('actions');
   
-  // Use route protection hook that handles all authentication logic
-  const { 
-    isAuthenticated, 
-    userType, 
-    loading, 
-    hasAccess 
-  } = useRouteProtection();
-
-  // Get current user data
-  const { currentUser } = useUserData(null, userType);
-
+  const {
+    userType,
+    loading,
+    user: authUser
+  } = useAuth();
+  
   const {
     currentNotification,
     acceptJob,
@@ -33,33 +28,57 @@ const Index = () => {
     dismissNotification
   } = useJobNotifications();
 
-  console.log('🏠 Index render:', {
-    userType,
-    loading,
-    isAuthenticated,
-    hasAccess,
-    selectedCategory,
-    activeTab
+  const { currentUser } = useUserData(authUser, userType);
+
+  // Debug: Log renders e mudanças de estado
+  useEffect(() => {
+    console.log('🏠 Index component mounted/re-rendered');
+    console.log('📊 Index state:', {
+      userType,
+      loading,
+      authUser: authUser?.id,
+      selectedCategory,
+      activeTab,
+      currentNotification: !!currentNotification,
+      currentUser: !!currentUser
+    });
   });
+
+  // Debug: Log mudanças de userType
+  useEffect(() => {
+    console.log('👤 UserType changed:', userType);
+    if (!userType && !loading) {
+      console.log('🔄 Redirecting to user-type selection...');
+    }
+  }, [userType, loading]);
+
+  // Debug: Log mudanças de loading
+  useEffect(() => {
+    console.log('⏳ Loading state changed:', loading);
+  }, [loading]);
+
+  // Debug: Log mudanças de authUser
+  useEffect(() => {
+    console.log('🔐 Auth user changed:', authUser?.id);
+  }, [authUser]);
 
   const handleChatRedirect = () => {
     console.log('💬 Chat redirect triggered');
     navigate('/chat');
   };
 
-  // Show loading while checking authentication
   if (loading) {
     console.log('⏳ Showing loading screen');
     return <LoadingScreen />;
   }
 
-  // Route protection hook handles all redirects automatically
-  if (!hasAccess) {
-    console.log('🚫 No access, route protection will handle redirect');
-    return <LoadingScreen />;
+  if (!userType) {
+    console.log('🚫 No userType, redirecting to user-type selection');
+    navigate('/user-type');
+    return null;
   }
 
-  console.log('✅ Rendering main Index content for userType:', userType);
+  console.log('✅ Rendering main Index content');
 
   return (
     <IndexLayoutWrapper userType={userType}>

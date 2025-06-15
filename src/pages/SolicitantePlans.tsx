@@ -4,28 +4,27 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import BackButton from '@/components/ui/back-button';
 import SolicitanteSubscriptionPlans from '@/components/subscription/SolicitanteSubscriptionPlans';
 import BannerCarousel from '@/components/banners/BannerCarousel';
-import { useRouteProtection } from '@/hooks/useRouteProtection';
+import { useAccessControl } from '@/hooks/useAccessControl';
 import { usePromotionalBanners } from '@/hooks/usePromotionalBanners';
 
 const SolicitantePlans: React.FC = () => {
-  // Proteger a rota para apenas solicitantes
-  const { hasAccess, loading: authLoading, userType } = useRouteProtection({ 
+  const { hasAccess, userType, loading } = useAccessControl({ 
     requiredUserType: 'solicitante' 
   });
   
   const { banners, loading: bannersLoading, error: bannersError } = usePromotionalBanners('solicitante');
 
   useEffect(() => {
-    console.log('SolicitantePlans - Access check:', { hasAccess, userType, authLoading });
+    console.log('SolicitantePlans - Access check:', { hasAccess, userType, loading });
     console.log('SolicitantePlans - Banners:', { banners, bannersLoading, bannersError });
-  }, [hasAccess, userType, authLoading, banners, bannersLoading, bannersError]);
+  }, [hasAccess, userType, loading, banners, bannersLoading, bannersError]);
 
-  if (authLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-helpaqui-blue mx-auto mb-4"></div>
-          <p className="text-gray-600">Verificando permissões...</p>
+          <p className="text-gray-600">Carregando...</p>
         </div>
       </div>
     );
@@ -36,7 +35,7 @@ const SolicitantePlans: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Acesso Negado</h1>
-          <p className="text-gray-600">Esta página é exclusiva para usuários solicitantes.</p>
+          <p className="text-gray-600">Você não tem permissão para acessar esta página.</p>
         </div>
       </div>
     );

@@ -1,125 +1,134 @@
 
-import { User } from '@supabase/supabase-js';
-
-export interface UserValidation {
+export interface ValidationResult {
   isValid: boolean;
   error?: string;
 }
 
-export const validateUserData = (user: User): UserValidation => {
-  if (!user.id) {
-    return { isValid: false, error: 'User ID is missing' };
-  }
-
-  if (!user.email) {
-    return { isValid: false, error: 'User email is missing' };
-  }
-
-  // Basic email format validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(user.email)) {
-    return { isValid: false, error: 'Invalid email format' };
-  }
-
-  // Check for suspicious user data
-  if (user.id.length !== 36) { // UUID should be 36 characters
-    return { isValid: false, error: 'Invalid user ID format' };
-  }
-
-  return { isValid: true };
-};
-
-export const validateUserMetadata = (metadata: any): UserValidation => {
-  if (!metadata) {
-    return { isValid: true }; // Metadata is optional
-  }
-
-  // Check for required fields if they exist
-  if (metadata.user_type && !['solicitante', 'freelancer'].includes(metadata.user_type)) {
-    return { isValid: false, error: 'Invalid user type in metadata' };
-  }
-
-  return { isValid: true };
-};
-
-// Add the missing validation functions needed by authActions
-export const validateEmail = (email: string): UserValidation => {
-  if (!email || typeof email !== 'string') {
-    return { isValid: false, error: 'Email é obrigatório' };
-  }
-
-  const trimmedEmail = email.trim();
+// Enhanced email validation with better regex and domain checks
+export const validateEmail = (email: string): ValidationResult => {
+  const cleanEmail = email.trim().toLowerCase();
   
-  if (trimmedEmail.length === 0) {
-    return { isValid: false, error: 'Email não pode estar vazio' };
+  if (!cleanEmail) {
+    return { isValid: false, error: "Email é obrigatório" };
   }
-
-  if (trimmedEmail.length > 254) {
-    return { isValid: false, error: 'Email muito longo (máximo 254 caracteres)' };
-  }
-
+  
+  // More comprehensive email regex
   const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
   
-  if (!emailRegex.test(trimmedEmail)) {
-    return { isValid: false, error: 'Formato de email inválido' };
+  if (!emailRegex.test(cleanEmail)) {
+    return { isValid: false, error: "Formato de e-mail inválido" };
   }
-
+  
   return { isValid: true };
 };
 
-export const validatePassword = (password: string): UserValidation => {
-  if (!password || typeof password !== 'string') {
-    return { isValid: false, error: 'Senha é obrigatória' };
+// Enhanced password validation with detailed requirements
+export const validatePassword = (password: string): ValidationResult => {
+  if (!password) {
+    return { isValid: false, error: "Senha é obrigatória" };
   }
-
-  if (password.length < 6) {
-    return { isValid: false, error: 'Senha deve ter pelo menos 6 caracteres' };
+  
+  if (password.length < 8) {
+    return { isValid: false, error: "A senha deve ter pelo menos 8 caracteres" };
   }
-
-  if (password.length > 128) {
-    return { isValid: false, error: 'Senha muito longa (máximo 128 caracteres)' };
+  
+  if (!/(?=.*[a-z])/.test(password)) {
+    return { isValid: false, error: "A senha deve conter pelo menos uma letra minúscula" };
   }
-
+  
+  if (!/(?=.*[A-Z])/.test(password)) {
+    return { isValid: false, error: "A senha deve conter pelo menos uma letra maiúscula" };
+  }
+  
+  if (!/(?=.*\d)/.test(password)) {
+    return { isValid: false, error: "A senha deve conter pelo menos um número" };
+  }
+  
   return { isValid: true };
 };
 
+// Name validation for registration
+export const validateName = (name: string, fieldName: string): ValidationResult => {
+  const cleanName = name.trim();
+  
+  if (!cleanName) {
+    return { isValid: false, error: `${fieldName} é obrigatório` };
+  }
+  
+  if (cleanName.length < 2) {
+    return { isValid: false, error: `${fieldName} deve ter pelo menos 2 caracteres` };
+  }
+  
+  if (cleanName.length > 50) {
+    return { isValid: false, error: `${fieldName} deve ter no máximo 50 caracteres` };
+  }
+  
+  // Check for invalid characters
+  if (!/^[a-zA-ZÀ-ÿ\s'-]+$/.test(cleanName)) {
+    return { isValid: false, error: `${fieldName} contém caracteres inválidos` };
+  }
+  
+  return { isValid: true };
+};
+
+// Comprehensive registration validation
 export const validateRegistrationData = (
   email: string,
   password: string,
   firstName: string,
   lastName: string,
   userType: 'solicitante' | 'freelancer'
-): UserValidation => {
+): ValidationResult => {
   const emailValidation = validateEmail(email);
   if (!emailValidation.isValid) {
     return emailValidation;
   }
-
+  
   const passwordValidation = validatePassword(password);
   if (!passwordValidation.isValid) {
     return passwordValidation;
   }
-
-  if (!firstName || firstName.trim().length === 0) {
-    return { isValid: false, error: 'Nome é obrigatório' };
+  
+  const firstNameValidation = validateName(firstName, "Nome");
+  if (!firstNameValidation.isValid) {
+    return firstNameValidation;
   }
-
-  if (!lastName || lastName.trim().length === 0) {
-    return { isValid: false, error: 'Sobrenome é obrigatório' };
+  
+  const lastNameValidation = validateName(lastName, "Sobrenome");
+  if (!lastNameValidation.isValid) {
+    return lastNameValidation;
   }
-
-  if (!userType || !['solicitante', 'freelancer'].includes(userType)) {
-    return { isValid: false, error: 'Tipo de usuário inválido' };
+  
+  if (!['solicitante', 'freelancer'].includes(userType)) {
+    return { isValid: false, error: "Tipo de usuário inválido" };
   }
-
+  
   return { isValid: true };
 };
 
+// Input sanitization
 export const sanitizeInput = (input: string): string => {
-  if (typeof input !== 'string') return '';
+  return input.trim().replace(/[<>]/g, '');
+};
+
+// User data validation for auth responses
+export const validateUserData = (user: any): ValidationResult => {
+  if (!user) {
+    return { isValid: false, error: "Dados de usuário não fornecidos" };
+  }
   
-  return input
-    .trim()
-    .replace(/[<>]/g, '') // Remove potential XSS characters
-    .replace(/['"]/g, ''); // Remove quotes
+  if (!user.id) {
+    return { isValid: false, error: "ID do usuário ausente" };
+  }
+  
+  if (!user.email) {
+    return { isValid: false, error: "Email do usuário ausente" };
+  }
+  
+  const emailValidation = validateEmail(user.email);
+  if (!emailValidation.isValid) {
+    return { isValid: false, error: "Email do usuário inválido" };
+  }
+  
+  return { isValid: true };
 };
