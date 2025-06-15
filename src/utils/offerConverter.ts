@@ -5,13 +5,13 @@ export const convertOfferToProfessional = (offer: any): Professional => {
   const profile = offer.profiles;
   const fullName = profile?.first_name && profile?.last_name 
     ? `${profile.first_name} ${profile.last_name}`.trim()
-    : 'Freelancer';
+    : profile?.first_name || profile?.last_name || 'Freelancer';
 
   const allCategories = [...(offer.categories || []), ...(offer.custom_categories || [])];
 
   const ratingsData = offer.freelancer_ratings;
-  const rating = ratingsData ? parseFloat(ratingsData.avg_rating) : 0;
-  const ratingCount = ratingsData ? ratingsData.rating_count : 0;
+  const rating = ratingsData ? parseFloat(ratingsData.avg_rating) || 0 : 0;
+  const ratingCount = ratingsData ? ratingsData.rating_count || 0 : 0;
   
   const convertedOffer: Professional = {
     id: `${offer.freelancer_id}/${offer.id}`,
@@ -45,6 +45,13 @@ export const convertOfferToProfessional = (offer: any): Professional => {
     }
   };
 
-  console.log('🔄 Oferta convertida para Professional:', convertedOffer);
+  console.log('🔄 Oferta convertida para Professional:', {
+    id: convertedOffer.id,
+    name: convertedOffer.name,
+    title: offer.title,
+    freelancer_id: offer.freelancer_id,
+    has_profile: !!profile
+  });
+  
   return convertedOffer;
 };

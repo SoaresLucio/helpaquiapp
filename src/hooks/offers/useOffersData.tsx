@@ -33,11 +33,30 @@ export const useOffersData = () => {
 
       if (error) {
         console.error('❌ Erro ao carregar ofertas com detalhes:', error);
-        setOffers([]);
+        // Vamos tentar uma query mais simples se a complexa falhar
+        const { data: simpleData, error: simpleError } = await supabase
+          .from('freelancer_service_offers')
+          .select('*')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+
+        if (simpleError) {
+          console.error('❌ Erro também na query simples:', simpleError);
+          setOffers([]);
+          return;
+        }
+
+        console.log('✅ Ofertas carregadas com query simples:', simpleData);
+        const convertedOffers = simpleData?.map(offer => convertOfferToProfessional({
+          ...offer,
+          profiles: null,
+          freelancer_ratings: null
+        })) || [];
+        setOffers(convertedOffers);
         return;
       }
 
-      console.log('✅ Ofertas carregadas do Supabase:', data);
+      console.log('✅ Ofertas carregadas do Supabase com detalhes:', data);
 
       const convertedOffers = data?.map(convertOfferToProfessional) || [];
 
