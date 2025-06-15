@@ -30,8 +30,8 @@ interface ServiceRequest {
 const ServiceRequests = () => {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [selectedUrgency, setSelectedUrgency] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedUrgency, setSelectedUrgency] = useState<string>('all');
   const { toast } = useToast();
   const { isAuthenticated, userType } = useAuth();
 
@@ -56,42 +56,65 @@ const ServiceRequests = () => {
           status,
           urgency,
           created_at,
-          client_id,
-          profiles!inner(first_name, last_name)
+          client_id
         `)
         .eq('status', 'open')
         .order('created_at', { ascending: false });
 
-      if (selectedCategory) {
+      if (selectedCategory && selectedCategory !== 'all') {
         query = query.eq('category', selectedCategory);
       }
 
-      if (selectedUrgency) {
+      if (selectedUrgency && selectedUrgency !== 'all') {
         query = query.eq('urgency', selectedUrgency);
       }
 
-      const { data, error } = await query;
+      const { data: serviceRequests, error: requestsError } = await query;
 
-      if (error) throw error;
+      if (requestsError) throw requestsError;
+
+      // Fetch client profiles separately
+      const clientIds = serviceRequests?.map(req => req.client_id) || [];
+      let profiles: any[] = [];
       
-      // Transform the data to match our interface
-      const transformedData: ServiceRequest[] = (data || []).map(item => ({
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        category: item.category,
-        location_address: item.location_address,
-        budget_min: item.budget_min,
-        budget_max: item.budget_max,
-        status: item.status,
-        urgency: item.urgency,
-        created_at: item.created_at,
-        client_id: item.client_id,
-        client_profile: {
-          first_name: item.profiles.first_name || '',
-          last_name: item.profiles.last_name || ''
+      if (clientIds.length > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name')
+          .in('id', clientIds);
+
+        if (profilesError) {
+          console.log('Error fetching profiles:', profilesError);
+        } else {
+          profiles = profilesData || [];
         }
-      }));
+      }
+
+      // Transform the data to match our interface
+      const transformedData: ServiceRequest[] = (serviceRequests || []).map(item => {
+        const clientProfile = profiles.find(profile => profile.id === item.client_id);
+        
+        return {
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          category: item.category,
+          location_address: item.location_address,
+          budget_min: item.budget_min,
+          budget_max: item.budget_max,
+          status: item.status,
+          urgency: item.urgency,
+          created_at: item.created_at,
+          client_id: item.client_id,
+          client_profile: clientProfile ? {
+            first_name: clientProfile.first_name || '',
+            last_name: clientProfile.last_name || ''
+          } : {
+            first_name: '',
+            last_name: ''
+          }
+        };
+      });
 
       setRequests(transformedData);
     } catch (error: any) {

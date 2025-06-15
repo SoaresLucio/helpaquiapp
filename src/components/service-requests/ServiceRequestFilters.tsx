@@ -41,11 +41,11 @@ const ServiceRequestFilters: React.FC<ServiceRequestFiltersProps> = ({
   };
 
   const clearFilters = () => {
-    onCategoryChange('');
-    onUrgencyChange('');
+    onCategoryChange('all');
+    onUrgencyChange('all');
   };
 
-  const hasFilters = selectedCategory || selectedUrgency;
+  const hasFilters = selectedCategory !== 'all' || selectedUrgency !== 'all';
 
   return (
     <Card className="mb-6">
@@ -63,7 +63,7 @@ const ServiceRequestFilters: React.FC<ServiceRequestFiltersProps> = ({
                   <SelectValue placeholder="Todas as categorias" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as categorias</SelectItem>
+                  <SelectItem value="all">Todas as categorias</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category.id} value={category.nome}>
                       {category.nome}
@@ -79,7 +79,7 @@ const ServiceRequestFilters: React.FC<ServiceRequestFiltersProps> = ({
                   <SelectValue placeholder="Todas as urgências" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as urgências</SelectItem>
+                  <SelectItem value="all">Todas as urgências</SelectItem>
                   <SelectItem value="baixa">Baixa</SelectItem>
                   <SelectItem value="normal">Normal</SelectItem>
                   <SelectItem value="alta">Alta</SelectItem>
