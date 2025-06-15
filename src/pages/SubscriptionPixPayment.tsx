@@ -16,13 +16,15 @@ const SubscriptionPixPayment: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isExpired, setIsExpired] = useState(false);
 
-  const { pixPayment, subscription } = location.state as {
-    pixPayment: PixPayment;
-    subscription: UserSubscriptionFlow;
-  };
+  // Safely destructure with fallback to null
+  const state = location.state as { pixPayment?: PixPayment; subscription?: UserSubscriptionFlow } | null;
+  const pixPayment = state?.pixPayment || null;
+  const subscription = state?.subscription || null;
 
   useEffect(() => {
     if (!pixPayment || !subscription) {
+      console.error('Missing required data in location.state:', { pixPayment, subscription });
+      toast.error('Dados de pagamento não encontrados. Redirecionando...');
       navigate('/subscription-flow');
       return;
     }
@@ -52,11 +54,13 @@ const SubscriptionPixPayment: React.FC = () => {
   };
 
   const copyPixCode = () => {
+    if (!pixPayment) return;
     navigator.clipboard.writeText(pixPayment.pix_code);
     toast.success('Código PIX copiado!');
   };
 
   const handleConfirmPayment = async () => {
+    if (!pixPayment || !subscription) return;
     const result = await confirmPixPayment(pixPayment.id);
     if (result) {
       navigate('/subscription-success', { 
@@ -72,8 +76,15 @@ const SubscriptionPixPayment: React.FC = () => {
     }).format(price);
   };
 
+  // Show loading or redirect if data is missing
   if (!pixPayment || !subscription) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Carregando dados do pagamento...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
