@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,42 +21,56 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { saveBankDetails } from '@/services/paymentService';
+
+interface PaymentMethod {
+  id: string;
+  method_type: string;
+  card_last_four: string;
+  card_brand: string;
+  is_default: boolean;
+  is_active: boolean;
+}
+
+interface BankDetails {
+  id: string;
+  bank_name: string;
+  account_type: string;
+  account_number: string;
+  branch: string;
+  document: string;
+}
+
+interface PaymentHistory {
+  id: string;
+  amount: number;
+  status: string;
+  created_at: string;
+  service_title?: string;
+}
 
 const PaymentSettings = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("payment-methods");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Payment method states
-  const [paymentMethods, setPaymentMethods] = useState([
-    {
-      id: '1',
-      type: 'credit-card',
-      name: 'Cartão principal',
-      last4: '4242',
-      brand: 'visa',
-      expiry: '12/25',
-      isDefault: true
-    },
-    {
-      id: '2',
-      type: 'credit-card',
-      name: 'Cartão secundário',
-      last4: '1234',
-      brand: 'mastercard',
-      expiry: '09/24',
-      isDefault: false
-    }
-  ]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
+  const [paymentHistory, setPaymentHistory] = useState<PaymentHistory[]>([]);
   
-  // Bank account info (for freelancers)
+  // Bank account info
   const [bankInfo, setBankInfo] = useState({
-    accountName: 'José Silva',
-    bankName: 'Banco do Brasil',
+    accountName: '',
+    bankName: '',
     accountType: 'Corrente',
-    accountNumber: '12345-6',
-    branch: '0001',
-    cpfCnpj: '123.456.789-00'
+    accountNumber: '',
+    branch: '',
+    cpfCnpj: ''
   });
   
   // New card state
@@ -66,27 +81,103 @@ const PaymentSettings = () => {
     cvv: '',
     saveCard: true
   });
+
+  // Load data on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      if (!user?.id) return;
+
+      try {
+        setLoading(true);
+
+        // Load payment methods
+        const { data: methodsData, error: methodsError } = await supabase
+          .from('payment_methods')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .order('is_default', { ascending: false });
+
+        if (methodsError) {
+          console.error('Error loading payment methods:', methodsError);
+        } else {
+          setPaymentMethods(methodsData || []);
+        }
+
+        // Load bank details
+        const { data: bankData, error: bankError } = await supabase
+          .from('bank_details')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (bankError && bankError.code !== 'PGRST116') {
+          console.error('Error loading bank details:', bankError);
+        } else if (bankData) {
+          setBankDetails(bankData);
+          setBankInfo({
+            accountName: bankData.bank_name,
+            bankName: bankData.bank_name,
+            accountType: bankData.account_type,
+            accountNumber: bankData.account_number,
+            branch: bankData.branch,
+            cpfCnpj: bankData.document
+          });
+        }
+
+        // Load payment history (payments made by this user)
+        const { data: historyData, error: historyError } = await supabase
+          .from('payments')
+          .select('id, amount, status, created_at, service_title')
+          .eq('client_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (historyError) {
+          console.error('Error loading payment history:', historyError);
+        } else {
+          setPaymentHistory(historyData || []);
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [user]);
   
   // Function to add a new payment method
-  const handleAddCard = (event: React.FormEvent, onClose: () => void) => {
+  const handleAddCard = async (event: React.FormEvent, onClose: () => void) => {
     event.preventDefault();
+    
+    if (!user?.id) return;
+    
     setIsProcessing(true);
     
-    // Simulate API call to process card
-    setTimeout(() => {
-      const last4 = newCard.cardNumber.slice(-4);
-      
-      const newPaymentMethod = {
-        id: Date.now().toString(),
-        type: 'credit-card',
-        name: `Cartão ${newCard.cardName}`,
-        last4,
-        brand: 'visa', // Just for the example
-        expiry: newCard.expiry,
-        isDefault: false
-      };
-      
-      setPaymentMethods(prev => [...prev, newPaymentMethod]);
+    try {
+      const { error } = await supabase
+        .from('payment_methods')
+        .insert({
+          user_id: user.id,
+          method_type: 'credit_card',
+          card_last_four: newCard.cardNumber.slice(-4),
+          card_brand: 'visa', // In a real app, you'd detect this from the card number
+          is_default: paymentMethods.length === 0
+        });
+
+      if (error) throw error;
+
+      // Reload payment methods
+      const { data: updatedMethods } = await supabase
+        .from('payment_methods')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .order('is_default', { ascending: false });
+
+      setPaymentMethods(updatedMethods || []);
       
       setNewCard({
         cardNumber: '',
@@ -98,60 +189,160 @@ const PaymentSettings = () => {
       
       toast({
         title: "Cartão adicionado",
-        description: `O cartão terminado em ${last4} foi adicionado com sucesso.`,
+        description: `O cartão terminado em ${newCard.cardNumber.slice(-4)} foi adicionado com sucesso.`,
       });
       
-      setIsProcessing(false);
       onClose();
-    }, 1500);
+    } catch (error) {
+      console.error('Error adding card:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível adicionar o cartão.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
   
   // Function to set a payment method as default
-  const setDefaultPaymentMethod = (id: string) => {
-    setPaymentMethods(prev => 
-      prev.map(method => ({
-        ...method,
-        isDefault: method.id === id
-      }))
-    );
-    
-    toast({
-      title: "Método padrão atualizado",
-      description: "Seu método de pagamento padrão foi atualizado.",
-    });
+  const setDefaultPaymentMethod = async (id: string) => {
+    try {
+      // First, remove default from all methods
+      await supabase
+        .from('payment_methods')
+        .update({ is_default: false })
+        .eq('user_id', user?.id);
+
+      // Then set the selected method as default
+      const { error } = await supabase
+        .from('payment_methods')
+        .update({ is_default: true })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setPaymentMethods(prev => 
+        prev.map(method => ({
+          ...method,
+          is_default: method.id === id
+        }))
+      );
+      
+      toast({
+        title: "Método padrão atualizado",
+        description: "Seu método de pagamento padrão foi atualizado.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o método padrão.",
+        variant: "destructive"
+      });
+    }
   };
   
   // Function to remove a payment method
-  const removePaymentMethod = (id: string) => {
-    setPaymentMethods(prev => prev.filter(method => method.id !== id));
-    
-    toast({
-      title: "Método removido",
-      description: "O método de pagamento foi removido com sucesso.",
-    });
+  const removePaymentMethod = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('payment_methods')
+        .update({ is_active: false })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setPaymentMethods(prev => prev.filter(method => method.id !== id));
+      
+      toast({
+        title: "Método removido",
+        description: "O método de pagamento foi removido com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover o método de pagamento.",
+        variant: "destructive"
+      });
+    }
   };
   
-  // Function to update bank information (for freelancers)
-  const handleUpdateBankInfo = (event: React.FormEvent) => {
+  // Function to update bank information
+  const handleUpdateBankInfo = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsProcessing(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      toast({
-        title: "Dados bancários atualizados",
-        description: "Suas informações de pagamento foram atualizadas com sucesso.",
+    try {
+      const success = await saveBankDetails({
+        bankName: bankInfo.bankName,
+        accountType: bankInfo.accountType,
+        accountNumber: bankInfo.accountNumber,
+        branch: bankInfo.branch,
+        document: bankInfo.cpfCnpj
       });
-      
+
+      if (success) {
+        toast({
+          title: "Dados bancários atualizados",
+          description: "Suas informações de pagamento foram atualizadas com sucesso.",
+        });
+
+        // Reload bank details
+        const { data: bankData } = await supabase
+          .from('bank_details')
+          .select('*')
+          .eq('user_id', user?.id)
+          .maybeSingle();
+        
+        if (bankData) {
+          setBankDetails(bankData);
+        }
+      } else {
+        throw new Error('Failed to save bank details');
+      }
+    } catch (error) {
+      toast({
+        title: "Erro ao atualizar",
+        description: "Não foi possível atualizar as informações bancárias.",
+        variant: "destructive"
+      });
+    } finally {
       setIsProcessing(false);
-    }, 1000);
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(amount / 100);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusMap = {
+      pending: { label: 'Pendente', variant: 'secondary' as const },
+      processing: { label: 'Processando', variant: 'default' as const },
+      completed: { label: 'Concluído', variant: 'default' as const },
+      cancelled: { label: 'Cancelado', variant: 'destructive' as const }
+    };
+
+    const statusInfo = statusMap[status as keyof typeof statusMap] || statusMap.pending;
+    
+    return (
+      <Badge variant={statusInfo.variant}>
+        {statusInfo.label}
+      </Badge>
+    );
   };
   
   // Create a component for the add card form
   const AddCardForm = () => {
     return (
       <form onSubmit={(e) => {
-        // Create a dummy close function for the dialog
         const closeDialog = () => {
           document.querySelector<HTMLButtonElement>('[data-id="close-add-card-dialog"]')?.click();
         };
@@ -234,6 +425,17 @@ const PaymentSettings = () => {
     );
   };
   
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-helpaqui-blue mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <Header />
@@ -297,11 +499,26 @@ const PaymentSettings = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {bankDetails && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-helpaqui-green" />
+                    Dados Confirmados
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pb-3">
+                  <p className="text-sm text-gray-600">
+                    Seus dados bancários estão configurados e seguros.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
           
           {/* Main Content */}
           <div className="md:col-span-3">
-            {/* Important: Use a single Tabs component that wraps all TabsContent items */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsContent value="payment-methods">
                 <Card>
@@ -318,24 +535,26 @@ const PaymentSettings = () => {
                           <div key={method.id} className="flex items-center justify-between p-4 border rounded-lg">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center">
-                                {method.brand === 'visa' ? (
+                                {method.card_brand === 'visa' ? (
                                   <span className="text-blue-700 font-bold">VISA</span>
                                 ) : (
                                   <span className="text-red-600 font-bold">MC</span>
                                 )}
                               </div>
                               <div>
-                                <p className="font-medium">{method.name}</p>
-                                <p className="text-sm text-gray-500">
-                                  •••• {method.last4} | Expira em {method.expiry}
+                                <p className="font-medium">
+                                  {method.card_brand?.toUpperCase()} **** {method.card_last_four}
+                                </p>
+                                <p className="text-sm text-gray-500 capitalize">
+                                  {method.method_type.replace('_', ' ')}
                                 </p>
                               </div>
-                              {method.isDefault && (
+                              {method.is_default && (
                                 <Badge variant="outline" className="ml-2">Padrão</Badge>
                               )}
                             </div>
                             <div className="flex items-center gap-2">
-                              {!method.isDefault && (
+                              {!method.is_default && (
                                 <Button 
                                   variant="ghost" 
                                   size="sm"
@@ -393,7 +612,7 @@ const PaymentSettings = () => {
                   <CardHeader>
                     <CardTitle>Dados Bancários</CardTitle>
                     <CardDescription>
-                      Configure sua conta bancária para receber pagamentos como profissional
+                      Configure sua conta bancária para receber reembolsos ou pagamentos
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -467,6 +686,15 @@ const PaymentSettings = () => {
                             />
                           </div>
                         </div>
+
+                        {!bankDetails && (
+                          <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <AlertCircle className="h-4 w-4 text-blue-600" />
+                            <p className="text-sm text-blue-800">
+                              Configure seus dados bancários para facilitar reembolsos e outras transações.
+                            </p>
+                          </div>
+                        )}
                         
                         <div className="pt-2">
                           <Button type="submit" className="w-full" disabled={isProcessing}>
@@ -476,52 +704,14 @@ const PaymentSettings = () => {
                                 Salvando...
                               </>
                             ) : (
-                              <>Salvar dados bancários</>
+                              <>
+                                {bankDetails ? 'Atualizar dados bancários' : 'Salvar dados bancários'}
+                              </>
                             )}
                           </Button>
                         </div>
                       </div>
                     </form>
-                  </CardContent>
-                </Card>
-                
-                <Card className="mt-6">
-                  <CardHeader>
-                    <CardTitle>Recebimentos</CardTitle>
-                    <CardDescription>
-                      Configure como deseja receber seus pagamentos
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Label htmlFor="auto-transfer">Transferência automática</Label>
-                          <Badge variant="outline">Recomendado</Badge>
-                        </div>
-                        <Switch id="auto-transfer" defaultChecked />
-                      </div>
-                      <p className="text-sm text-gray-500">
-                        Com as transferências automáticas, os pagamentos serão enviados para sua conta bancária assim que estiverem disponíveis.
-                      </p>
-                      
-                      <div className="flex items-center justify-between pt-4">
-                        <Label htmlFor="minimum-transfer">Valor mínimo para transferência</Label>
-                        <div className="w-24">
-                          <Select defaultValue="50">
-                            <SelectTrigger id="minimum-transfer">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="0">R$ 0</SelectItem>
-                              <SelectItem value="50">R$ 50</SelectItem>
-                              <SelectItem value="100">R$ 100</SelectItem>
-                              <SelectItem value="200">R$ 200</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -531,17 +721,42 @@ const PaymentSettings = () => {
                   <CardHeader>
                     <CardTitle>Histórico de Transações</CardTitle>
                     <CardDescription>
-                      Veja todos os seus pagamentos e recebimentos
+                      Veja todos os seus pagamentos realizados
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-center py-8">
-                      <Wallet className="mx-auto h-12 w-12 text-gray-400" />
-                      <h3 className="mt-4 text-lg font-medium">Nenhuma transação ainda</h3>
-                      <p className="mt-2 text-gray-500">
-                        Suas transações aparecerão aqui quando você começar a usar a plataforma.
-                      </p>
-                    </div>
+                    {paymentHistory.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Wallet className="mx-auto h-12 w-12 text-gray-400" />
+                        <h3 className="mt-4 text-lg font-medium">Nenhuma transação ainda</h3>
+                        <p className="mt-2 text-gray-500">
+                          Suas transações aparecerão aqui quando você começar a usar a plataforma.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {paymentHistory.map((payment) => (
+                          <div key={payment.id} className="flex items-center justify-between p-4 border rounded-lg">
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium">
+                                  {payment.service_title || 'Serviço'}
+                                </h4>
+                                {getStatusBadge(payment.status)}
+                              </div>
+                              <p className="text-sm text-gray-500">
+                                Pago em {formatDate(payment.created_at)}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-lg text-red-600">
+                                {formatCurrency(payment.amount)}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>

@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { CreditCard, Plus, Trash2 } from 'lucide-react';
+import { CreditCard, Plus, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { saveBankDetails } from '@/services/paymentService';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -33,6 +34,7 @@ const BankTab: React.FC = () => {
   const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [formData, setFormData] = useState({
     bankName: '',
     accountType: '',
@@ -47,6 +49,8 @@ const BankTab: React.FC = () => {
       if (!user?.id) return;
 
       try {
+        setInitialLoading(true);
+        
         // Load bank details
         const { data: bankData, error: bankError } = await supabase
           .from('bank_details')
@@ -82,11 +86,18 @@ const BankTab: React.FC = () => {
         }
       } catch (error) {
         console.error('Error loading data:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar os dados financeiros.",
+          variant: "destructive"
+        });
+      } finally {
+        setInitialLoading(false);
       }
     };
 
     loadData();
-  }, [user]);
+  }, [user, toast]);
 
   const handleBankDetailsSubmit = async () => {
     if (!formData.bankName || !formData.accountType || !formData.accountNumber || !formData.branch || !formData.document) {
@@ -202,11 +213,29 @@ const BankTab: React.FC = () => {
     }
   };
 
+  if (initialLoading) {
+    return (
+      <div className="p-4 space-y-4">
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-helpaqui-blue"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Dados Bancários</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            Dados Bancários
+            {bankDetails && (
+              <Badge variant="outline" className="text-green-600">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Configurado
+              </Badge>
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -266,6 +295,15 @@ const BankTab: React.FC = () => {
             />
           </div>
           
+          {!bankDetails && (
+            <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <AlertCircle className="h-4 w-4 text-yellow-600" />
+              <p className="text-sm text-yellow-800">
+                Configure seus dados bancários para poder receber pagamentos.
+              </p>
+            </div>
+          )}
+          
           <Button 
             onClick={handleBankDetailsSubmit} 
             className="w-full"
@@ -288,9 +326,15 @@ const BankTab: React.FC = () => {
         </CardHeader>
         <CardContent>
           {paymentMethods.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-4">
-              Nenhum método de pagamento cadastrado
-            </p>
+            <div className="text-center py-8">
+              <CreditCard className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="text-sm text-gray-500 mt-4">
+                Nenhum método de pagamento cadastrado
+              </p>
+              <p className="text-xs text-gray-400 mt-2">
+                Adicione cartões ou PIX para facilitar seus pagamentos
+              </p>
+            </div>
           ) : (
             <div className="space-y-3">
               {paymentMethods.map((method) => (
