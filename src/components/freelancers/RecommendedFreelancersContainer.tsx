@@ -20,6 +20,7 @@ const RecommendedFreelancersContainer: React.FC = () => {
   } = useQuery({
     queryKey: ['recommended-freelancers', categoryFilter, sortBy],
     queryFn: () => fetchRecommendedFreelancers({ category: categoryFilter, sortBy }),
+    refetchInterval: 30 * 1000, // Refetch a cada 30 segundos para mostrar novas ofertas
   });
 
   const filteredFreelancers = freelancers.filter(freelancer =>
@@ -100,7 +101,12 @@ const RecommendedFreelancersContainer: React.FC = () => {
           {filteredFreelancers.length === 0 ? (
             <div className="text-center py-8">
               <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Nenhum freelancer encontrado.</p>
+              <p className="text-gray-500">
+                {searchTerm || categoryFilter !== 'all' 
+                  ? 'Nenhum freelancer encontrado com os filtros selecionados.'
+                  : 'Nenhum freelancer disponível no momento. Novos profissionais aparecem aqui automaticamente quando oferecem seus serviços!'
+                }
+              </p>
             </div>
           ) : (
             <div className="grid gap-4">

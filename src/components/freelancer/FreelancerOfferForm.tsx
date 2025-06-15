@@ -9,78 +9,82 @@ import { MapPin, DollarSign, Clock, Plus } from 'lucide-react';
 import { serviceCategories } from '@/data/mockData';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { createFreelancerProfile } from '@/services/freelancersService';
 
 const FreelancerOfferForm: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
     category: '',
-    location: '',
-    price: '',
-    availability: '',
-    experience: ''
+    description: '',
+    hourly_rate: '',
+    observations: '',
+    portfolio_photos: [] as string[]
   });
-  const [photos, setPhotos] = useState<string[]>([]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.description || !formData.category || !formData.price) {
+    if (!formData.category || !formData.description) {
       toast({
         title: "Campos obrigatórios",
-        description: "Preencha todos os campos obrigatórios",
+        description: "Preencha categoria e descrição",
         variant: "destructive",
       });
       return;
     }
 
-    // Create freelancer offer
-    const offer = {
-      id: Date.now().toString(),
-      freelancerId: user?.id || 'current-user',
-      name: user?.user_metadata?.first_name ? 
-        `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}`.trim() : 
-        user?.email?.split('@')[0] || 'Freelancer',
-      title: formData.title,
-      description: formData.description,
-      category: formData.category,
-      location: formData.location || 'São Paulo, SP',
-      price: formData.price,
-      availability: formData.availability,
-      experience: formData.experience,
-      photos,
-      rating: 4.5 + Math.random() * 0.5, // Random rating between 4.5-5.0
-      ratingCount: Math.floor(Math.random() * 50) + 10,
-      distance: `${(Math.random() * 10 + 1).toFixed(1)}km`,
-      categories: [formData.category],
-      avatar: '/placeholder.svg',
-      verified: true,
-      created_at: new Date().toISOString()
-    };
+    if (!user?.id) {
+      toast({
+        title: "Erro de autenticação",
+        description: "Você precisa estar logado para criar uma oferta",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // Save to localStorage (in a real app, this would go to backend)
-    const existingOffers = JSON.parse(localStorage.getItem('freelancerOffers') || '[]');
-    existingOffers.push(offer);
-    localStorage.setItem('freelancerOffers', JSON.stringify(existingOffers));
+    setLoading(true);
 
-    toast({
-      title: "Oferta publicada!",
-      description: "Sua oferta de serviço foi publicada com sucesso!",
-    });
+    try {
+      // Preparar dados para inserção no banco
+      const profileData = {
+        user_id: user.id,
+        category: formData.category,
+        description: formData.description,
+        portfolio_photos: formData.portfolio_photos,
+        observations: formData.observations || null,
+        hourly_rate: formData.hourly_rate ? Math.round(parseFloat(formData.hourly_rate) * 100) : null, // Converter para centavos
+        available: true
+      };
 
-    // Reset form
-    setFormData({
-      title: '',
-      description: '',
-      category: '',
-      location: '',
-      price: '',
-      availability: '',
-      experience: ''
-    });
-    setPhotos([]);
+      // Criar perfil no banco de dados
+      await createFreelancerProfile(profileData);
+
+      toast({
+        title: "Oferta publicada!",
+        description: "Sua oferta de serviço foi publicada com sucesso e já aparece para os clientes!",
+      });
+
+      // Reset form
+      setFormData({
+        category: '',
+        description: '',
+        hourly_rate: '',
+        observations: '',
+        portfolio_photos: []
+      });
+
+    } catch (error: any) {
+      console.error('Error creating freelancer profile:', error);
+      toast({
+        title: "Erro ao publicar oferta",
+        description: error.message || "Ocorreu um erro inesperado",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -88,13 +92,19 @@ const FreelancerOfferForm: React.FC = () => {
   };
 
   const handleAddPhoto = () => {
-    if (photos.length < 5) {
-      setPhotos([...photos, '/placeholder.svg']);
+    if (formData.portfolio_photos.length < 5) {
+      setFormData(prev => ({
+        ...prev,
+        portfolio_photos: [...prev.portfolio_photos, '/placeholder.svg']
+      }));
     }
   };
 
   const handleRemovePhoto = (index: number) => {
-    setPhotos(photos.filter((_, i) => i !== index));
+    setFormData(prev => ({
+      ...prev,
+      portfolio_photos: prev.portfolio_photos.filter((_, i) => i !== index)
+    }));
   };
 
   return (
@@ -107,33 +117,6 @@ const FreelancerOfferForm: React.FC = () => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium mb-1">
-              Título do Serviço <span className="text-red-500">*</span>
-            </label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              placeholder="Ex: Eletricista profissional para reparos"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium mb-1">
-              Descrição <span className="text-red-500">*</span>
-            </label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Descreva seus serviços, experiência e diferenciais..."
-              className="min-h-[100px]"
-              required
-            />
-          </div>
-
           <div>
             <label htmlFor="category" className="block text-sm font-medium mb-1">
               Categoria <span className="text-red-500">*</span>
@@ -152,66 +135,48 @@ const FreelancerOfferForm: React.FC = () => {
             </Select>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="location" className="block text-sm font-medium mb-1">
-                Área de Atendimento
-              </label>
-              <div className="relative">
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  placeholder="Ex: Vila Madalena, São Paulo"
-                  className="pl-10"
-                />
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="price" className="block text-sm font-medium mb-1">
-                Preço <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Input
-                  id="price"
-                  value={formData.price}
-                  onChange={(e) => handleInputChange('price', e.target.value)}
-                  placeholder="Ex: R$ 50/hora"
-                  className="pl-10"
-                  required
-                />
-                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              </div>
-            </div>
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium mb-1">
+              Descrição dos Serviços <span className="text-red-500">*</span>
+            </label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              placeholder="Descreva seus serviços, experiência e diferenciais..."
+              className="min-h-[100px]"
+              required
+            />
           </div>
 
           <div>
-            <label htmlFor="availability" className="block text-sm font-medium mb-1">
-              Disponibilidade
+            <label htmlFor="hourly_rate" className="block text-sm font-medium mb-1">
+              Preço por Hora
             </label>
             <div className="relative">
               <Input
-                id="availability"
-                value={formData.availability}
-                onChange={(e) => handleInputChange('availability', e.target.value)}
-                placeholder="Ex: Segunda a Sexta, 8h às 18h"
+                id="hourly_rate"
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.hourly_rate}
+                onChange={(e) => handleInputChange('hourly_rate', e.target.value)}
+                placeholder="Ex: 50.00"
                 className="pl-10"
               />
-              <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
           </div>
 
           <div>
-            <label htmlFor="experience" className="block text-sm font-medium mb-1">
-              Experiência
+            <label htmlFor="observations" className="block text-sm font-medium mb-1">
+              Observações Adicionais
             </label>
             <Textarea
-              id="experience"
-              value={formData.experience}
-              onChange={(e) => handleInputChange('experience', e.target.value)}
-              placeholder="Conte sobre sua experiência, certificações, trabalhos anteriores..."
+              id="observations"
+              value={formData.observations}
+              onChange={(e) => handleInputChange('observations', e.target.value)}
+              placeholder="Informações extras sobre disponibilidade, área de atendimento, etc..."
               className="min-h-[80px]"
             />
           </div>
@@ -219,7 +184,7 @@ const FreelancerOfferForm: React.FC = () => {
           <div>
             <label className="block text-sm font-medium mb-2">Fotos dos Trabalhos</label>
             <div className="flex flex-wrap gap-2">
-              {photos.map((photo, index) => (
+              {formData.portfolio_photos.map((photo, index) => (
                 <div key={index} className="relative w-20 h-20 rounded-md overflow-hidden border border-gray-200">
                   <img src={photo} alt={`Trabalho ${index + 1}`} className="w-full h-full object-cover" />
                   <button
@@ -232,7 +197,7 @@ const FreelancerOfferForm: React.FC = () => {
                 </div>
               ))}
               
-              {photos.length < 5 && (
+              {formData.portfolio_photos.length < 5 && (
                 <button
                   type="button"
                   onClick={handleAddPhoto}
@@ -247,8 +212,19 @@ const FreelancerOfferForm: React.FC = () => {
             </p>
           </div>
 
-          <Button type="submit" className="w-full bg-helpaqui-green hover:bg-helpaqui-green/90">
-            Publicar Oferta de Serviço
+          <Button 
+            type="submit" 
+            className="w-full bg-helpaqui-green hover:bg-helpaqui-green/90"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Publicando...
+              </>
+            ) : (
+              'Publicar Oferta de Serviço'
+            )}
           </Button>
         </form>
       </CardContent>

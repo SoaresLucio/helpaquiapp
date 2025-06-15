@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Star, Users, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import ProfessionalCard from '../ProfessionalCard';
-import { mockProfessionals } from '@/data/mockData';
+import FreelancerCard from '../freelancers/FreelancerCard';
+import { useFreelancersForHome } from '@/hooks/useFreelancersForHome';
 
 interface SolicitanteHomeProps {
   selectedCategory: string | null;
@@ -18,10 +18,17 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({
   onSelectCategory 
 }) => {
   const navigate = useNavigate();
+  
+  const { 
+    data: freelancers = [], 
+    isLoading, 
+    error 
+  } = useFreelancersForHome(3);
 
-  const filteredProfessionals = selectedCategory 
-    ? mockProfessionals.filter(prof => prof.categories.includes(selectedCategory))
-    : mockProfessionals.slice(0, 3);
+  // Filtrar por categoria se selecionada
+  const filteredFreelancers = selectedCategory 
+    ? freelancers.filter(freelancer => freelancer.category === selectedCategory)
+    : freelancers;
 
   return (
     <div className="space-y-6">
@@ -72,38 +79,51 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({
                 Limpar filtro
               </Button>
             </div>
-          </CardContent>
+          </div>
         </Card>
       )}
 
       {/* Lista de profissionais */}
       <div className="space-y-4">
-        {filteredProfessionals.length > 0 ? (
+        {isLoading ? (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-helpaqui-blue mx-auto mb-4"></div>
+              <p className="text-gray-600">Carregando profissionais...</p>
+            </CardContent>
+          </Card>
+        ) : error ? (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-red-600">Erro ao carregar profissionais. Tente novamente.</p>
+            </CardContent>
+          </Card>
+        ) : filteredFreelancers.length > 0 ? (
           <>
-            {filteredProfessionals.map((professional) => (
-              <ProfessionalCard 
-                key={professional.id} 
-                professional={professional} 
-              />
-            ))}
+            <div className="space-y-4">
+              {filteredFreelancers.map((freelancer) => (
+                <FreelancerCard 
+                  key={freelancer.id} 
+                  freelancer={freelancer} 
+                />
+              ))}
+            </div>
             
-            {!selectedCategory && (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="font-medium mb-2">Veja mais profissionais</h3>
-                  <p className="text-gray-600 mb-4">
-                    Encontre o freelancer perfeito para o seu projeto
-                  </p>
-                  <Button 
-                    onClick={() => navigate('/recommended-freelancers')}
-                    className="helpaqui-button-primary"
-                  >
-                    Ver Todos os Freelancers
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+            <Card>
+              <CardContent className="p-6 text-center">
+                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="font-medium mb-2">Veja mais profissionais</h3>
+                <p className="text-gray-600 mb-4">
+                  Encontre o freelancer perfeito para o seu projeto
+                </p>
+                <Button 
+                  onClick={() => navigate('/recommended-freelancers')}
+                  className="helpaqui-button-primary"
+                >
+                  Ver Todos os Freelancers
+                </Button>
+              </CardContent>
+            </Card>
           </>
         ) : (
           <Card>
@@ -111,13 +131,16 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({
               <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="font-medium mb-2">Nenhum profissional encontrado</h3>
               <p className="text-gray-600 mb-4">
-                Não há profissionais disponíveis nesta categoria no momento.
+                {selectedCategory 
+                  ? `Não há profissionais disponíveis na categoria ${selectedCategory} no momento.`
+                  : 'Não há profissionais disponíveis no momento.'
+                }
               </p>
               <Button 
                 variant="outline" 
                 onClick={() => onSelectCategory(null)}
               >
-                Ver todas as categorias
+                {selectedCategory ? 'Ver todas as categorias' : 'Atualizar'}
               </Button>
             </CardContent>
           </Card>

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { FreelancerProfile } from '@/types/freelancer';
 
@@ -144,6 +145,37 @@ export const updateFreelancerProfile = async (id: string, profileData: Partial<F
     ...data,
     portfolio_photos: Array.isArray(data.portfolio_photos) ? data.portfolio_photos : []
   } as FreelancerProfile;
+
+  return transformedData;
+};
+
+// Função para buscar freelancers para a página inicial do solicitante
+export const fetchFreelancersForHome = async (limit: number = 3): Promise<FreelancerProfile[]> => {
+  const { data, error } = await supabase
+    .from('freelancer_profiles')
+    .select(`
+      *,
+      user_profile:profiles(
+        first_name,
+        last_name,
+        avatar_url,
+        verified
+      )
+    `)
+    .eq('available', true)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('Error fetching freelancers for home:', error);
+    throw error;
+  }
+
+  // Transform the data to match our interface
+  const transformedData = (data || []).map(item => ({
+    ...item,
+    portfolio_photos: Array.isArray(item.portfolio_photos) ? item.portfolio_photos : []
+  })) as FreelancerProfile[];
 
   return transformedData;
 };
