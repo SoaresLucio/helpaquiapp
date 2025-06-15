@@ -46,7 +46,7 @@ export class ApiService {
       }
       
       const result = await query;
-      return { data: result.data as TableRow<T>[] | null, error: result.error };
+      return { data: result.data as unknown as TableRow<T>[] | null, error: result.error };
     });
   }
 
@@ -64,7 +64,7 @@ export class ApiService {
         .eq('id', id)
         .single();
       
-      return { data: result.data as TableRow<T> | null, error: result.error };
+      return { data: result.data as unknown as TableRow<T> | null, error: result.error };
     });
   }
 
@@ -82,7 +82,7 @@ export class ApiService {
         .select()
         .single();
       
-      return { data: result.data as TableRow<T> | null, error: result.error };
+      return { data: result.data as unknown as TableRow<T> | null, error: result.error };
     });
   }
 
@@ -102,7 +102,7 @@ export class ApiService {
         .select()
         .single();
       
-      return { data: result.data as TableRow<T> | null, error: result.error };
+      return { data: result.data as unknown as TableRow<T> | null, error: result.error };
     });
   }
 
