@@ -1,35 +1,37 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useOffersData } from '@/hooks/offers/useOffersData';
 import { useOffersRealtime } from '@/hooks/offers/useOffersRealtime';
 
 export const useFreelancerOffers = () => {
   const { offers, loading, loadOffers } = useOffersData();
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  useEffect(() => {
-    console.log('🚀 useFreelancerOffers: Hook montado, carregando ofertas...');
-    console.log('🔍 useFreelancerOffers: Refresh key atual:', refreshKey);
+  // Função memoizada para recarregar ofertas
+  const handleReloadOffers = useCallback(() => {
+    console.log('🔄 useFreelancerOffers: Recarregando ofertas...');
     loadOffers();
-  }, [loadOffers, refreshKey]);
+  }, [loadOffers]);
 
-  // Escutar mudanças em tempo real
-  useOffersRealtime({ 
-    onOffersChange: () => {
-      console.log('🔄 useFreelancerOffers: Recarregando ofertas devido a mudança em tempo real...');
+  // Carregamento inicial apenas uma vez
+  useEffect(() => {
+    if (!isInitialized) {
+      console.log('🚀 useFreelancerOffers: Carregamento inicial das ofertas...');
       loadOffers();
+      setIsInitialized(true);
     }
+  }, [isInitialized, loadOffers]);
+
+  // Escutar mudanças em tempo real (sem auto-refresh para evitar loops)
+  useOffersRealtime({ 
+    onOffersChange: handleReloadOffers
   });
 
   // Escutar evento customizado para novas ofertas
   useEffect(() => {
     const handleNewOffer = () => {
-      console.log('🆕 useFreelancerOffers: Nova oferta detectada, recarregando...');
-      setRefreshKey(prev => {
-        const newKey = prev + 1;
-        console.log('🔄 useFreelancerOffers: Atualizando refresh key de', prev, 'para', newKey);
-        return newKey;
-      });
+      console.log('🆕 useFreelancerOffers: Nova oferta detectada via evento customizado');
+      handleReloadOffers();
     };
 
     console.log('👂 useFreelancerOffers: Configurando listener para newOfferCreated');
@@ -39,55 +41,25 @@ export const useFreelancerOffers = () => {
       console.log('🧹 useFreelancerOffers: Removendo listener para newOfferCreated');
       window.removeEventListener('newOfferCreated', handleNewOffer);
     };
-  }, []);
+  }, [handleReloadOffers]);
 
-  // Atualização automática a cada 55 segundos
-  useEffect(() => {
-    console.log('⏰ useFreelancerOffers: Configurando atualização automática a cada 55 segundos');
-    
-    const interval = setInterval(() => {
-      console.log('🔄 useFreelancerOffers: Atualização automática das ofertas (55s)');
-      setRefreshKey(prev => {
-        const newKey = prev + 1;
-        console.log('⏰ useFreelancerOffers: Auto-refresh: atualizando refresh key de', prev, 'para', newKey);
-        return newKey;
-      });
-    }, 55000); // 55 segundos
-
-    return () => {
-      console.log('🧹 useFreelancerOffers: Removendo interval de atualização automática');
-      clearInterval(interval);
-    };
-  }, []);
-
-  // Log quando as ofertas mudarem
+  // Log quando as ofertas mudarem (apenas para debug)
   useEffect(() => {
     console.log('📊 useFreelancerOffers: Estado das ofertas atualizado:', {
       count: offers.length,
       loading,
-      offers: offers.map(o => ({ 
+      isInitialized,
+      offers: offers.slice(0, 3).map(o => ({ 
         id: o.id, 
         name: o.name, 
-        description: o.description 
+        description: o.description?.substring(0, 50) + '...'
       }))
     });
-  }, [offers, loading]);
-
-  // Debug: detectar re-renders excessivos
-  useEffect(() => {
-    console.log('🔄 useFreelancerOffers: Component re-rendered');
-  });
+  }, [offers, loading, isInitialized]);
 
   return {
     offers,
     loading,
-    reloadOffers: () => {
-      console.log('🔄 useFreelancerOffers: Recarregamento manual das ofertas...');
-      setRefreshKey(prev => {
-        const newKey = prev + 1;
-        console.log('🔄 useFreelancerOffers: Manual reload: atualizando refresh key de', prev, 'para', newKey);
-        return newKey;
-      });
-    },
+    reloadOffers: handleReloadOffers,
   };
 };

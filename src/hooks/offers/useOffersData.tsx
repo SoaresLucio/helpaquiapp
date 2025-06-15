@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Professional } from '@/data/mockData';
 import { convertOfferToProfessional } from '@/utils/offerConverter';
@@ -7,11 +7,20 @@ import { convertOfferToProfessional } from '@/utils/offerConverter';
 export const useOffersData = () => {
   const [offers, setOffers] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(false);
+  const loadingRef = useRef(false);
 
   const loadFreelancerOffers = useCallback(async () => {
+    // Evita múltiplas chamadas simultâneas
+    if (loadingRef.current) {
+      console.log('🚫 useOffersData: Carregamento já em andamento, ignorando...');
+      return;
+    }
+
+    loadingRef.current = true;
     setLoading(true);
+    
     try {
-      console.log('🔄 Carregando ofertas de freelancers...');
+      console.log('🔄 useOffersData: Carregando ofertas de freelancers...');
       
       const { data, error } = await supabase
         .from('freelancer_service_offers')
@@ -33,7 +42,7 @@ export const useOffersData = () => {
 
       if (error) {
         console.error('❌ Erro ao carregar ofertas com detalhes:', error);
-        // Vamos tentar uma query mais simples se a complexa falhar
+        // Fallback para query simples
         const { data: simpleData, error: simpleError } = await supabase
           .from('freelancer_service_offers')
           .select('*')
@@ -46,7 +55,7 @@ export const useOffersData = () => {
           return;
         }
 
-        console.log('✅ Ofertas carregadas com query simples:', simpleData);
+        console.log('✅ Ofertas carregadas com query simples:', simpleData?.length || 0);
         const convertedOffers = simpleData?.map(offer => convertOfferToProfessional({
           ...offer,
           profiles: null,
@@ -56,11 +65,9 @@ export const useOffersData = () => {
         return;
       }
 
-      console.log('✅ Ofertas carregadas do Supabase com detalhes:', data);
-
+      console.log('✅ Ofertas carregadas com detalhes:', data?.length || 0);
       const convertedOffers = data?.map(convertOfferToProfessional) || [];
-
-      console.log('✅ Ofertas convertidas finais:', convertedOffers);
+      console.log('✅ Ofertas convertidas:', convertedOffers.length);
       setOffers(convertedOffers);
       
     } catch (error) {
@@ -68,6 +75,7 @@ export const useOffersData = () => {
       setOffers([]);
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
   }, []);
 
