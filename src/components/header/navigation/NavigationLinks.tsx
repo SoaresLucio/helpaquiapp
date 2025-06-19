@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
@@ -34,9 +33,8 @@ const NavigationLinks: React.FC<NavigationLinksProps> = ({
         Bate Papo
       </Link>
       
-      <Link to="/ai-chat" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-gray-100 transition-colors", currentPath === "/ai-chat" && "text-helpaqui-blue font-medium bg-blue-50")}>
-        AI Chat
-      </Link>
+      <Link to="/ai-chat" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-gray-100 transition-colors", currentPath === "/ai-chat" && "text-helpaqui-blue font-medium bg-blue-50")}>Suporte
+    </Link>
     </nav>;
 };
 export default NavigationLinks;
