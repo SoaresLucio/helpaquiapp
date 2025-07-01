@@ -1,7 +1,6 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { RealtimeChannel } from '@supabase/supabase-js';
 
 interface UseOffersRealtimeOptimizedProps {
   onOffersChange: () => void;
@@ -12,19 +11,24 @@ export const useOffersRealtimeOptimized = ({
   onOffersChange, 
   enabled = true 
 }: UseOffersRealtimeOptimizedProps) => {
-  const channelRef = useRef<RealtimeChannel | null>(null);
+  const channelRef = useRef<any>(null);
+  const isConnectedRef = useRef(false);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    if (!enabled) {
-      console.log('🚫 useOffersRealtimeOptimized: Realtime desabilitado');
+  const handleOffersChange = useCallback(() => {
+    console.log('🔄 useOffersRealtimeOptimized: Mudança detectada');
+    onOffersChange();
+  }, [onOffersChange]);
+
+  const connectRealtime = useCallback(() => {
+    if (!enabled || isConnectedRef.current || channelRef.current) {
       return;
     }
 
-    console.log('🔄 useOffersRealtimeOptimized: Configurando realtime');
-
-    // Criar canal realtime
-    channelRef.current = supabase
-      .channel('freelancer_service_offers_changes')
+    console.log('🔴 Configurando conexão realtime otimizada...');
+    
+    const channel = supabase
+      .channel(`freelancer-offers-optimized-${Date.now()}`)
       .on(
         'postgres_changes',
         {
@@ -33,23 +37,93 @@ export const useOffersRealtimeOptimized = ({
           table: 'freelancer_service_offers'
         },
         (payload) => {
-          console.log('📡 useOffersRealtimeOptimized: Mudança detectada:', payload);
-          onOffersChange();
+          console.log('🔄 Mudança em ofertas (realtime):', payload.eventType);
+          handleOffersChange();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          console.log('🔄 Mudança em profiles (realtime):', payload.eventType);
+          handleOffersChange();
         }
       )
       .subscribe((status) => {
-        console.log('📡 useOffersRealtimeOptimized: Status da inscrição:', status);
+        console.log('📡 Status da conexão realtime:', status);
+        
+        if (status === 'SUBSCRIBED') {
+          isConnectedRef.current = true;
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          isConnectedRef.current = false;
+          
+          // Reconectar após 5 segundos em caso de erro
+          if (enabled && !reconnectTimeoutRef.current) {
+            reconnectTimeoutRef.current = setTimeout(() => {
+              console.log('🔄 Tentando reconectar realtime...');
+              reconnectTimeoutRef.current = null;
+              disconnectRealtime();
+              connectRealtime();
+            }, 5000);
+          }
+        }
       });
 
-    // Cleanup
-    return () => {
-      if (channelRef.current) {
-        console.log('🧹 useOffersRealtimeOptimized: Limpando canal realtime');
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-    };
-  }, [onOffersChange, enabled]);
+    channelRef.current = channel;
+  }, [enabled, handleOffersChange]);
 
-  return null;
+  const disconnectRealtime = useCallback(() => {
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+
+    if (channelRef.current) {
+      console.log('🔌 Desconectando realtime...');
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+      isConnectedRef.current = false;
+    }
+  }, []);
+
+  // Conectar/desconectar baseado no estado enabled
+  useEffect(() => {
+    if (enabled) {
+      connectRealtime();
+    } else {
+      disconnectRealtime();
+    }
+
+    return disconnectRealtime;
+  }, [enabled, connectRealtime, disconnectRealtime]);
+
+  // Listener para eventos customizados
+  useEffect(() => {
+    if (!enabled) return;
+
+    const handleCustomEvent = (event: CustomEvent) => {
+      console.log('🆕 Evento customizado detectado:', event.detail);
+      handleOffersChange();
+    };
+
+    window.addEventListener('newOfferCreated', handleCustomEvent as EventListener);
+    window.addEventListener('offerUpdated', handleCustomEvent as EventListener);
+    window.addEventListener('offerDeleted', handleCustomEvent as EventListener);
+
+    return () => {
+      window.removeEventListener('newOfferCreated', handleCustomEvent as EventListener);
+      window.removeEventListener('offerUpdated', handleCustomEvent as EventListener);
+      window.removeEventListener('offerDeleted', handleCustomEvent as EventListener);
+    };
+  }, [enabled, handleOffersChange]);
+
+  return {
+    isConnected: isConnectedRef.current,
+    reconnect: connectRealtime,
+    disconnect: disconnectRealtime
+  };
 };

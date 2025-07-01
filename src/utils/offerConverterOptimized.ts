@@ -73,8 +73,3 @@ export const convertOfferToProfessional = (offer: any): Professional => {
   
   return convertedOffer;
 };
-
-// Export the function that was missing
-export const convertSupabaseToMockData = (offers: any[]): Professional[] => {
-  return offers.map(convertOfferToProfessional);
-};
