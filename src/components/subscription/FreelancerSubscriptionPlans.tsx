@@ -7,18 +7,9 @@ import SubscriptionStatusCard from './freelancer/SubscriptionStatusCard';
 import PlanSummaryModal from './PlanSummaryModal';
 import CancelSubscriptionModal from './CancelSubscriptionModal';
 import ActiveSubscriptionWarningModal from './ActiveSubscriptionWarningModal';
+import SubscriptionSuccessMessage from './SubscriptionSuccessMessage';
 import { useFreelancerSubscription } from './freelancer/useFreelancerSubscription';
 
-/**
- * Componente principal para exibição e gerenciamento de planos de assinatura para freelancers
- * 
- * Funcionalidades:
- * - Exibe lista de planos disponíveis
- * - Mostra status da assinatura atual
- * - Permite assinar novos planos
- * - Gerencia cancelamento de assinaturas
- * - Exibe modais de confirmação e avisos
- */
 const FreelancerSubscriptionPlans: React.FC = () => {
   const {
     plans,
@@ -31,27 +22,26 @@ const FreelancerSubscriptionPlans: React.FC = () => {
     showCancelModal,
     showWarningModal,
     warningPlanName,
+    showSuccessMessage,
+    successPlanName,
     handleSubscribe,
     handleConfirmPlan,
     handleCancelSubscription,
     setShowPlanSummary,
     setShowCancelModal,
-    setShowWarningModal
+    setShowWarningModal,
+    setShowSuccessMessage
   } = useFreelancerSubscription();
 
-  // Exibe estado de carregamento enquanto busca dados
   if (loading) {
     return <LoadingState message="Carregando planos para freelancers..." />;
   }
 
   return (
     <>
-      {/* Conteúdo principal da página */}
       <div className="space-y-6">
-        {/* Cabeçalho com título e descrição */}
         <PlansHeader />
 
-        {/* Grade de planos disponíveis */}
         <PlansGrid
           plans={plans}
           currentPlanId={currentSubscription?.plan_id || null}
@@ -59,7 +49,6 @@ const FreelancerSubscriptionPlans: React.FC = () => {
           onSubscribe={handleSubscribe}
         />
 
-        {/* Card de status da assinatura atual (se houver) */}
         {currentSubscription && (
           <SubscriptionStatusCard
             currentSubscription={currentSubscription}
@@ -68,7 +57,6 @@ const FreelancerSubscriptionPlans: React.FC = () => {
         )}
       </div>
 
-      {/* Modal de resumo do plano selecionado */}
       <PlanSummaryModal
         isOpen={showPlanSummary}
         onClose={() => setShowPlanSummary(false)}
@@ -76,7 +64,6 @@ const FreelancerSubscriptionPlans: React.FC = () => {
         onConfirm={handleConfirmPlan}
       />
 
-      {/* Modal de confirmação de cancelamento */}
       <CancelSubscriptionModal
         isOpen={showCancelModal}
         onClose={() => setShowCancelModal(false)}
@@ -85,13 +72,19 @@ const FreelancerSubscriptionPlans: React.FC = () => {
         isLoading={cancelling}
       />
 
-      {/* Modal de aviso para assinatura ativa */}
       <ActiveSubscriptionWarningModal
         isOpen={showWarningModal}
         onClose={() => setShowWarningModal(false)}
         currentPlanName={currentSubscription?.subscription_plans?.name || ''}
         newPlanName={warningPlanName}
       />
+
+      {showSuccessMessage && (
+        <SubscriptionSuccessMessage
+          planName={successPlanName}
+          onClose={() => setShowSuccessMessage(false)}
+        />
+      )}
     </>
   );
 };

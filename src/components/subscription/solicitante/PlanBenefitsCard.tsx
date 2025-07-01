@@ -27,15 +27,15 @@ const PlanBenefitsCard: React.FC<PlanBenefitsCardProps> = ({
   };
 
   const getPlanIcon = (planName: string) => {
-    if (planName.includes('Boss')) return <Star className="h-5 w-5 text-yellow-500" />;
-    if (planName.includes('Medium')) return <Zap className="h-5 w-5 text-blue-500" />;
-    return <Gift className="h-5 w-5 text-green-500" />;
+    if (planName.includes('Ouro')) return <Star className="h-5 w-5 text-yellow-500" />;
+    if (planName.includes('Prata')) return <Zap className="h-5 w-5 text-gray-400" />;
+    return <Gift className="h-5 w-5 text-amber-600" />;
   };
 
   const getPlanGradient = (planName: string) => {
-    if (planName.includes('Boss')) return 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200';
-    if (planName.includes('Medium')) return 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200';
-    return 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200';
+    if (planName.includes('Ouro')) return 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200';
+    if (planName.includes('Prata')) return 'bg-gradient-to-br from-gray-50 to-slate-50 border-gray-300';
+    return 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200';
   };
 
   const getButtonText = () => {
@@ -45,12 +45,12 @@ const PlanBenefitsCard: React.FC<PlanBenefitsCardProps> = ({
     return "Assinar Agora";
   };
 
-  const getPlanBenefits = (planName: string) => {
-    if (planName.includes('Boss')) {
-      return 'Ideal para empresas e profissionais que precisam de muitos serviços';
+  const getPlanDescription = (planName: string) => {
+    if (planName.includes('Ouro')) {
+      return 'Ideal para quem precisa de muitos serviços e quer o melhor atendimento';
     }
-    if (planName.includes('Medium')) {
-      return 'Perfeito para uso regular e divulgação do seu negócio';
+    if (planName.includes('Prata')) {
+      return 'Perfeito para uso regular com destaque nas buscas';
     }
     return 'Ótimo para começar e conhecer a plataforma';
   };
@@ -59,6 +59,12 @@ const PlanBenefitsCard: React.FC<PlanBenefitsCardProps> = ({
     if (maxRequests === -1) return "Ilimitadas";
     if (maxRequests === null) return "0";
     return maxRequests.toString();
+  };
+
+  const getPlanCoin = (planName: string) => {
+    if (planName.includes('Ouro')) return '🥇';
+    if (planName.includes('Prata')) return '🥈';
+    return '🥉';
   };
 
   return (
@@ -75,7 +81,7 @@ const PlanBenefitsCard: React.FC<PlanBenefitsCardProps> = ({
         </Badge>
       )}
       
-      {plan.name.includes('Boss') && (
+      {plan.name.includes('Ouro') && (
         <Badge className="absolute -top-2 right-4 bg-yellow-500 text-yellow-900">
           Mais Popular
         </Badge>
@@ -83,6 +89,7 @@ const PlanBenefitsCard: React.FC<PlanBenefitsCardProps> = ({
 
       <CardHeader className="text-center pb-4">
         <div className="flex items-center justify-center mb-3">
+          <span className="text-2xl mr-2">{getPlanCoin(plan.name)}</span>
           {getPlanIcon(plan.name)}
           <CardTitle className="ml-2 text-xl font-bold">
             {plan.name}
@@ -101,7 +108,7 @@ const PlanBenefitsCard: React.FC<PlanBenefitsCardProps> = ({
         </div>
         
         <p className="text-sm text-gray-600">
-          {getPlanBenefits(plan.name)}
+          {getPlanDescription(plan.name)}
         </p>
       </CardHeader>
 

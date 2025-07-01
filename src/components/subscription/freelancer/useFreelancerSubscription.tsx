@@ -12,44 +12,29 @@ import {
   type UserSubscription 
 } from '@/services/subscriptionService';
 
-/**
- * Hook personalizado para gerenciar assinaturas de freelancers
- * 
- * Funcionalidades:
- * - Carrega planos disponíveis para freelancers
- * - Gerencia assinatura atual
- * - Processa novas assinaturas
- * - Controla modais de confirmação
- * - Gerencia cancelamentos
- */
 export const useFreelancerSubscription = () => {
   const navigate = useNavigate();
   
-  // Estados principais
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [currentSubscription, setCurrentSubscription] = useState<UserSubscription | null>(null);
   const [loading, setLoading] = useState(true);
   
-  // Estados de operação
   const [subscribing, setSubscribing] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
   
-  // Estados de modais
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [showPlanSummary, setShowPlanSummary] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [warningPlanName, setWarningPlanName] = useState('');
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successPlanName, setSuccessPlanName] = useState('');
 
-  /**
-   * Carrega dados de assinatura (planos e assinatura atual)
-   */
   const loadSubscriptionData = async () => {
     setLoading(true);
     console.log('🔄 Carregando dados de assinatura para freelancer...');
     
     try {
-      // Busca planos e assinatura atual em paralelo
       const [plansData, currentSub] = await Promise.all([
         getSubscriptionPlans('freelancer'),
         getCurrentSubscription()
@@ -70,19 +55,13 @@ export const useFreelancerSubscription = () => {
     }
   };
 
-  // Carrega dados na inicialização
   useEffect(() => {
     loadSubscriptionData();
   }, []);
 
-  /**
-   * Processa assinatura de um plano
-   * @param plan - Plano selecionado pelo freelancer
-   */
   const handleSubscribe = async (plan: SubscriptionPlan) => {
     console.log('🎯 Iniciando processo de assinatura:', plan.name);
     
-    // Planos gratuitos são ativados imediatamente
     if (plan.price_monthly === 0) {
       setSubscribing(plan.id);
       
@@ -90,8 +69,9 @@ export const useFreelancerSubscription = () => {
         const success = await subscribeToPlan(plan.id);
         
         if (success) {
-          toast.success('Plano ativado com sucesso!');
-          await loadSubscriptionData(); // Recarrega dados
+          setSuccessPlanName(plan.name);
+          setShowSuccessMessage(true);
+          await loadSubscriptionData();
         } else {
           toast.error('Erro ao ativar plano');
         }
@@ -104,7 +84,6 @@ export const useFreelancerSubscription = () => {
       return;
     }
 
-    // Para planos pagos, verifica se já há assinatura ativa
     try {
       const hasActivePaid = await hasActivePaidSubscription();
       
@@ -114,7 +93,6 @@ export const useFreelancerSubscription = () => {
         return;
       }
 
-      // Exibe modal de resumo para planos pagos
       setSelectedPlan(plan);
       setShowPlanSummary(true);
     } catch (error) {
@@ -123,22 +101,14 @@ export const useFreelancerSubscription = () => {
     }
   };
 
-  /**
-   * Confirma assinatura de plano pago e redireciona para pagamento
-   */
   const handleConfirmPlan = () => {
     if (selectedPlan) {
       console.log('✅ Confirmando plano e redirecionando para pagamento:', selectedPlan.name);
       setShowPlanSummary(false);
-      
-      // Redireciona para página de pagamento PIX
       navigate('/pix-payment', { state: { plan: selectedPlan } });
     }
   };
 
-  /**
-   * Processa cancelamento da assinatura atual
-   */
   const handleCancelSubscription = async () => {
     setCancelling(true);
     console.log('🚫 Cancelando assinatura...');
@@ -149,7 +119,7 @@ export const useFreelancerSubscription = () => {
       if (success) {
         toast.success('Assinatura cancelada com sucesso!');
         setShowCancelModal(false);
-        await loadSubscriptionData(); // Recarrega dados
+        await loadSubscriptionData();
       } else {
         toast.error('Erro ao cancelar assinatura');
       }
@@ -162,30 +132,28 @@ export const useFreelancerSubscription = () => {
   };
 
   return {
-    // Dados
     plans,
     currentSubscription,
     loading,
     
-    // Estados de operação
     subscribing,
     cancelling,
     
-    // Estados de modais
     selectedPlan,
     showPlanSummary,
     showCancelModal,
     showWarningModal,
     warningPlanName,
+    showSuccessMessage,
+    successPlanName,
     
-    // Ações
     handleSubscribe,
     handleConfirmPlan,
     handleCancelSubscription,
     
-    // Controles de modal
     setShowPlanSummary,
     setShowCancelModal,
-    setShowWarningModal
+    setShowWarningModal,
+    setShowSuccessMessage
   };
 };

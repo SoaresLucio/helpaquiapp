@@ -432,6 +432,9 @@ export type Database = {
           is_active: boolean
           job_type: string
           location: string | null
+          location_address: string | null
+          location_lat: number | null
+          location_lng: number | null
           requirements: string | null
           salary_range: string | null
           title: string
@@ -447,6 +450,9 @@ export type Database = {
           is_active?: boolean
           job_type: string
           location?: string | null
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
           requirements?: string | null
           salary_range?: string | null
           title: string
@@ -462,6 +468,9 @@ export type Database = {
           is_active?: boolean
           job_type?: string
           location?: string | null
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
           requirements?: string | null
           salary_range?: string | null
           title?: string
