@@ -193,20 +193,3 @@ export const cancelSubscription = async (): Promise<boolean> => {
     return false;
   }
 };
-
-// Check if user has an active paid subscription
-export const hasActivePaidSubscription = async (): Promise<boolean> => {
-  try {
-    const currentSub = await getCurrentSubscription();
-    
-    if (!currentSub || !currentSub.subscription_plans) {
-      return false;
-    }
-    
-    // Check if it's a paid plan (price > 0)
-    return currentSub.subscription_plans.price_monthly > 0;
-  } catch (error) {
-    console.error('Error checking active paid subscription:', error);
-    return false;
-  }
-};

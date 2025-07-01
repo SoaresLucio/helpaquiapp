@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -23,12 +24,13 @@ import PaymentFreelancerSettings from "./pages/PaymentFreelancerSettings";
 import SolicitantePlans from "./pages/SolicitantePlans";
 import FreelancerPlans from "./pages/FreelancerPlans";
 import Subscription from "./pages/Subscription";
+import SubscriptionFlow from "./pages/SubscriptionFlow";
+import SubscriptionPixPayment from "./pages/SubscriptionPixPayment";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import SubscriptionHistory from "./pages/SubscriptionHistory";
 import CategoryManagement from "./pages/CategoryManagement";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-import PixPayment from "./pages/PixPayment";
 
 const queryClient = new QueryClient();
 
@@ -141,9 +143,15 @@ function App() {
           </ProtectedRoute>
         } />
         
-        <Route path="/pix-payment" element={
+        <Route path="/subscription-flow" element={
           <ProtectedRoute>
-            <PixPayment />
+            <SubscriptionFlow />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/subscription-pix-payment" element={
+          <ProtectedRoute>
+            <SubscriptionPixPayment />
           </ProtectedRoute>
         } />
         

@@ -7,9 +7,9 @@ import {
   getUserSubscriptions, 
   updatePixPaymentStatus,
   type UserSubscriptionFlow,
-  type PixPayment
+  type PixPayment,
+  type SubscriptionPlan 
 } from '@/services/subscriptionFlowService';
-import type { SubscriptionPlan } from '@/services/subscriptionService';
 
 export const useSubscriptionFlow = () => {
   const [subscriptions, setSubscriptions] = useState<UserSubscriptionFlow[]>([]);
@@ -39,7 +39,7 @@ export const useSubscriptionFlow = () => {
     try {
       const { data: subscription, error } = await createSubscription(
         plan.name,
-        plan.price_monthly,
+        plan.price,
         paymentMethod
       );
 
@@ -48,7 +48,7 @@ export const useSubscriptionFlow = () => {
       if (paymentMethod === 'pix' && subscription) {
         const { data: pixPayment, error: pixError } = await createPixPayment(
           subscription.id,
-          plan.price_monthly
+          plan.price
         );
 
         if (pixError) throw pixError;
