@@ -1054,6 +1054,7 @@ export type Database = {
           created_at: string
           features: Json
           id: string
+          max_messages_per_month: number | null
           max_requests_per_month: number | null
           name: string
           price_monthly: number
@@ -1066,6 +1067,7 @@ export type Database = {
           created_at?: string
           features?: Json
           id?: string
+          max_messages_per_month?: number | null
           max_requests_per_month?: number | null
           name: string
           price_monthly: number
@@ -1078,6 +1080,7 @@ export type Database = {
           created_at?: string
           features?: Json
           id?: string
+          max_messages_per_month?: number | null
           max_requests_per_month?: number | null
           name?: string
           price_monthly?: number
@@ -1162,6 +1165,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_conversations: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_message_at: string | null
+          message_count: number | null
+          other_user_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          message_count?: number | null
+          other_user_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          message_count?: number | null
+          other_user_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1189,7 +1219,9 @@ export type Database = {
           current_period_end: string | null
           current_period_start: string | null
           id: string
+          messages_used_this_month: number | null
           plan_id: string | null
+          profile_views_this_month: number | null
           requests_used_this_month: number | null
           status: string | null
           stripe_subscription_id: string | null
@@ -1201,7 +1233,9 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          messages_used_this_month?: number | null
           plan_id?: string | null
+          profile_views_this_month?: number | null
           requests_used_this_month?: number | null
           status?: string | null
           stripe_subscription_id?: string | null
@@ -1213,7 +1247,9 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          messages_used_this_month?: number | null
           plan_id?: string | null
+          profile_views_this_month?: number | null
           requests_used_this_month?: number | null
           status?: string | null
           stripe_subscription_id?: string | null
@@ -1370,6 +1406,10 @@ export type Database = {
       }
     }
     Functions: {
+      check_message_limit: {
+        Args: { p_user_id: string; p_other_user_id: string }
+        Returns: boolean
+      }
       check_request_limit: {
         Args: { p_user_id: string }
         Returns: boolean

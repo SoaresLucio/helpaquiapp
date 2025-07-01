@@ -32,7 +32,7 @@ export const useMessageLimit = () => {
       // Buscar plano atual
       const subscription = await getCurrentSubscription();
       const planName = subscription?.subscription_plans?.name || 'Help Bronze';
-      const messageLimit = subscription?.subscription_plans?.max_requests_per_month || 6;
+      const messageLimit = subscription?.subscription_plans?.max_messages_per_month || 6;
       const isUnlimited = messageLimit === -1;
 
       if (isUnlimited) {
@@ -46,12 +46,11 @@ export const useMessageLimit = () => {
         return true;
       }
 
-      // For now, we'll use a simple approach - count active service requests as a proxy for conversations
-      // This can be refined later when we have a proper conversations system
-      const { data: requests, error } = await supabase
-        .from('service_requests')
+      // Contar conversas únicas do usuário no mês atual
+      const { data: conversations, error } = await supabase
+        .from('user_conversations')
         .select('*')
-        .eq('client_id', user.id)
+        .eq('user_id', user.id)
         .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
 
       if (error) {
@@ -59,7 +58,7 @@ export const useMessageLimit = () => {
         return false;
       }
 
-      const messagesUsed = requests?.length || 0;
+      const messagesUsed = conversations?.length || 0;
       const canSendMessage = messagesUsed < messageLimit;
 
       setMessageLimit({
@@ -83,11 +82,19 @@ export const useMessageLimit = () => {
     if (!user?.id) return;
 
     try {
-      // For now, this is a placeholder since we don't have a conversations system yet
-      // In the future, this would insert into a conversations table
-      console.log('Recording conversation with user:', otherUserId);
-      
-      // Update contador local
+      // Inserir ou atualizar conversa na tabela user_conversations
+      await supabase
+        .from('user_conversations')
+        .upsert({
+          user_id: user.id,
+          other_user_id: otherUserId,
+          last_message_at: new Date().toISOString(),
+          message_count: 1
+        }, {
+          onConflict: 'user_id,other_user_id'
+        });
+
+      // Atualizar contador local
       await checkMessageLimit();
     } catch (error) {
       console.error('Erro ao registrar conversa:', error);
