@@ -9,7 +9,7 @@ import { useFreelancerOffers } from '@/hooks/useFreelancerOffers';
 import { useProfessionalFiltering } from '@/hooks/useProfessionalFiltering';
 import WelcomeSection from './WelcomeSection';
 import QuickActions from './QuickActions';
-import OffersSectionOptimized from './OffersSectionOptimized';
+import OffersSection from './OffersSection';
 import { Button } from '@/components/ui/button';
 
 interface SolicitanteHomeProps {
@@ -31,7 +31,7 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({
   const { banners, loading: bannersLoading, error: bannersError } = usePromotionalBanners('solicitante');
 
   // Hook para buscar ofertas de freelancers
-  const { offers: allProfessionals, loading: loadingOffers, error: offersError, reloadOffers } = useFreelancerOffers();
+  const { offers: allProfessionals, loading: loadingOffers, reloadOffers } = useFreelancerOffers();
 
   // Hook para filtrar e ordenar profissionais
   const { filteredProfessionals, selectedCategoryName } = useProfessionalFiltering({
@@ -86,12 +86,11 @@ const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({
 
       <ServiceMap selectedCategory={selectedCategory} />
 
-      {/* Freelancers List com componente otimizado */}
-      <OffersSectionOptimized
+      {/* Freelancers List */}
+      <OffersSection
         selectedCategoryName={selectedCategoryName}
         professionals={filteredProfessionals.slice(0, 5)}
         loading={loadingOffers}
-        error={offersError}
         onReload={reloadOffers}
       />
 

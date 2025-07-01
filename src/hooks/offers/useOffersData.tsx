@@ -2,9 +2,8 @@
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Professional } from '@/data/mockData';
-import { convertOfferToProfessional } from '@/utils/offerConverterOptimized';
+import { convertOfferToProfessional } from '@/utils/offerConverter';
 
-// Versão legada mantida para compatibilidade
 export const useOffersData = () => {
   const [offers, setOffers] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(false);

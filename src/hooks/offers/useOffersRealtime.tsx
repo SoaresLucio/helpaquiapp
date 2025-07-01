@@ -6,7 +6,6 @@ interface UseOffersRealtimeProps {
   onOffersChange: () => void;
 }
 
-// Versão legada mantida para compatibilidade
 export const useOffersRealtime = ({ onOffersChange }: UseOffersRealtimeProps) => {
   const channelRef = useRef<any>(null);
   const isConnectedRef = useRef(false);
@@ -41,7 +40,7 @@ export const useOffersRealtime = ({ onOffersChange }: UseOffersRealtimeProps) =>
     console.log('🔴 Configurando listeners de realtime...');
     
     const channel = supabase
-      .channel('freelancer-offers-realtime-legacy')
+      .channel('freelancer-offers-realtime-single')
       .on(
         'postgres_changes',
         {
