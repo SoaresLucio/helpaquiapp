@@ -1,21 +1,21 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, CreditCard, AlertCircle, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useSubscriptionHistory } from '@/hooks/useSubscriptionHistory';
+import { useSubscriptionFlow } from '@/hooks/useSubscriptionFlow';
 import BackButton from '@/components/ui/back-button';
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 
 const SubscriptionHistory: React.FC = () => {
   const navigate = useNavigate();
-  const { subscriptions, loading, loadSubscriptions } = useSubscriptionHistory();
+  const { subscriptions, loading, loadSubscriptions } = useSubscriptionFlow();
 
   useEffect(() => {
     loadSubscriptions();
-  }, [loadSubscriptions]);
+  }, []);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -60,9 +60,9 @@ const SubscriptionHistory: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex flex-col">
+      <div className="min-h-screen bg-gray-100">
         <Header />
-        <div className="container mx-auto px-4 py-8 flex-1">
+        <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-helpaqui-blue mx-auto mb-4"></div>
@@ -70,16 +70,15 @@ const SubscriptionHistory: React.FC = () => {
             </div>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-gray-100">
       <Header />
       
-      <div className="container mx-auto px-4 py-8 flex-1">
+      <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <BackButton to="/" label="Voltar ao Início" />
@@ -209,8 +208,6 @@ const SubscriptionHistory: React.FC = () => {
           )}
         </div>
       </div>
-      
-      <Footer />
     </div>
   );
 };

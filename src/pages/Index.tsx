@@ -6,7 +6,6 @@ import IndexLayoutWrapper from '@/components/index/IndexLayoutWrapper';
 import IndexHeader from '@/components/index/IndexHeader';
 import IndexMainContent from '@/components/index/IndexMainContent';
 import IndexNotifications from '@/components/index/IndexNotifications';
-import Footer from '@/components/Footer';
 import { useJobNotifications } from '@/hooks/useJobNotifications';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserData } from '@/hooks/user/useUserData';
@@ -105,8 +104,6 @@ const Index = () => {
         onChatRedirect={handleChatRedirect}
         currentUser={currentUser}
       />
-      
-      <Footer />
     </IndexLayoutWrapper>
   );
 };

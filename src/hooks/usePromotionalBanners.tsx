@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-interface PromotionalBanner {
+interface Banner {
   id: string;
   title: string;
   image_url: string;
@@ -12,45 +13,75 @@ interface PromotionalBanner {
   is_active: boolean;
 }
 
-/**
- * Hook para gerenciar banners promocionais
- * Busca e filtra banners baseado no público-alvo
- * 
- * @param targetAudience - Público-alvo dos banners ('solicitante' | 'freelancer' | 'all')
- * @returns Banners, estado de carregamento e possíveis erros
- */
-export const usePromotionalBanners = (targetAudience: string) => {
-  const [banners, setBanners] = useState<PromotionalBanner[]>([]);
+export const usePromotionalBanners = (targetAudience: 'solicitante' | 'freelancer') => {
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchBanners = async () => {
-      console.log('🎨 Buscando banners promocionais para:', targetAudience);
-      
       try {
         setLoading(true);
         setError(null);
 
-        // Buscar banners ativos para o público-alvo específico ou geral
-        const { data, error: supabaseError } = await supabase
+        console.log('🔍 Fetching banners for target audience:', targetAudience);
+
+        // Primeiro, vamos buscar TODOS os banners para debug
+        const { data: allBanners, error: allBannersError } = await supabase
+          .from('promotional_banners')
+          .select('*')
+          .order('display_order', { ascending: true });
+
+        if (allBannersError) {
+          console.error('❌ Error fetching all banners:', allBannersError);
+        } else {
+          console.log('📊 ALL banners in database:', allBanners);
+          console.log('📊 Total banners found:', allBanners?.length || 0);
+          
+          // Log detalhado de cada banner
+          allBanners?.forEach((banner, index) => {
+            console.log(`📋 Banner ${index + 1}:`, {
+              id: banner.id,
+              title: banner.title,
+              target_audience: banner.target_audience,
+              is_active: banner.is_active,
+              image_url: banner.image_url
+            });
+          });
+        }
+
+        // Agora a query filtrada original
+        const { data, error } = await supabase
           .from('promotional_banners')
           .select('*')
           .eq('is_active', true)
-          .in('target_audience', [targetAudience, 'all'])
+          .in('target_audience', [targetAudience, 'both'])
           .order('display_order', { ascending: true });
 
-        if (supabaseError) {
-          console.error('❌ Erro ao buscar banners:', supabaseError);
-          throw supabaseError;
+        if (error) {
+          console.error('❌ Error fetching filtered banners:', error);
+          setError(error.message);
+          return;
         }
 
-        console.log('✅ Banners carregados:', data?.length || 0);
+        console.log('✅ Filtered banners fetched successfully:', data);
+        console.log('📊 Filtered banners count:', data?.length || 0);
+        
+        // Log detalhado dos banners filtrados
+        data?.forEach((banner, index) => {
+          console.log(`🎯 Filtered Banner ${index + 1}:`, {
+            id: banner.id,
+            title: banner.title,
+            target_audience: banner.target_audience,
+            is_active: banner.is_active,
+            matches_target: [targetAudience, 'both'].includes(banner.target_audience)
+          });
+        });
+
         setBanners(data || []);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar banners';
-        console.error('❌ Erro:', errorMessage);
-        setError(errorMessage);
+        console.error('💥 Unexpected error fetching banners:', err);
+        setError('Erro inesperado ao carregar banners');
       } finally {
         setLoading(false);
       }
@@ -59,19 +90,5 @@ export const usePromotionalBanners = (targetAudience: string) => {
     fetchBanners();
   }, [targetAudience]);
 
-  /**
-   * Recarrega os banners
-   */
-  const refetchBanners = () => {
-    setBanners([]);
-    setError(null);
-    // Re-executar o useEffect
-  };
-
-  return {
-    banners,
-    loading,
-    error,
-    refetchBanners
-  };
+  return { banners, loading, error };
 };
