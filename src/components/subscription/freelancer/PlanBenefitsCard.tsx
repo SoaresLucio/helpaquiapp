@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, Zap, Gift, Crown } from 'lucide-react';
+import { Check, Star, Crown, Zap, Gift } from 'lucide-react';
 import { SubscriptionPlan } from '@/services/subscriptionService';
 
 interface PlanBenefitsCardProps {
@@ -43,32 +43,32 @@ const PlanBenefitsCard: React.FC<PlanBenefitsCardProps> = ({
    * Retorna ícone apropriado baseado no nome do plano
    */
   const getPlanIcon = (planName: string) => {
-    if (planName.includes('Premium') || planName.includes('Pro')) {
+    if (planName.includes('Ouro')) {
       return <Crown className="h-5 w-5 text-yellow-500" />;
     }
-    if (planName.includes('Plus') || planName.includes('Médio')) {
+    if (planName.includes('Prata')) {
       return <Zap className="h-5 w-5 text-blue-500" />;
     }
-    if (planName.includes('Enterprise') || planName.includes('Business')) {
-      return <Star className="h-5 w-5 text-purple-500" />;
+    if (planName.includes('Bronze')) {
+      return <Gift className="h-5 w-5 text-green-500" />;
     }
-    return <Gift className="h-5 w-5 text-green-500" />;
+    return <Star className="h-5 w-5 text-gray-500" />;
   };
 
   /**
    * Retorna classes CSS para gradiente do card baseado no plano
    */
   const getPlanGradient = (planName: string) => {
-    if (planName.includes('Premium') || planName.includes('Pro')) {
+    if (planName.includes('Ouro')) {
       return 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200';
     }
-    if (planName.includes('Plus') || planName.includes('Médio')) {
+    if (planName.includes('Prata')) {
       return 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200';
     }
-    if (planName.includes('Enterprise') || planName.includes('Business')) {
-      return 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200';
+    if (planName.includes('Bronze')) {
+      return 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200';
     }
-    return 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200';
+    return 'bg-gradient-to-br from-gray-50 to-slate-50 border-gray-200';
   };
 
   /**
@@ -85,16 +85,16 @@ const PlanBenefitsCard: React.FC<PlanBenefitsCardProps> = ({
    * Retorna descrição promocional do plano
    */
   const getPlanDescription = (planName: string) => {
-    if (planName.includes('Premium') || planName.includes('Pro')) {
+    if (planName.includes('Ouro')) {
       return 'Ideal para freelancers experientes que querem maximizar oportunidades';
     }
-    if (planName.includes('Plus') || planName.includes('Médio')) {
+    if (planName.includes('Prata')) {
       return 'Perfeito para profissionais em crescimento que buscam mais visibilidade';
     }
-    if (planName.includes('Enterprise') || planName.includes('Business')) {
-      return 'Solução completa para agências e empresas de serviços';
+    if (planName.includes('Bronze')) {
+      return 'Ótimo para começar e conhecer nossa plataforma';
     }
-    return 'Ótimo para começar e conhecer nossa plataforma';
+    return 'Plano básico para iniciantes';
   };
 
   /**
@@ -104,6 +104,15 @@ const PlanBenefitsCard: React.FC<PlanBenefitsCardProps> = ({
     if (maxRequests === -1) return "Ilimitadas";
     if (maxRequests === null) return "0";
     return maxRequests.toString();
+  };
+
+  /**
+   * Formata limite de mensagens para exibição
+   */
+  const formatMaxMessages = (maxMessages: number | null) => {
+    if (maxMessages === -1) return "Ilimitadas";
+    if (maxMessages === null) return "0";
+    return maxMessages.toString();
   };
 
   return (
@@ -122,7 +131,7 @@ const PlanBenefitsCard: React.FC<PlanBenefitsCardProps> = ({
       )}
       
       {/* Badge de destaque para planos premium */}
-      {(plan.name.includes('Premium') || plan.name.includes('Pro')) && !isCurrentPlan && (
+      {plan.name.includes('Ouro') && !isCurrentPlan && (
         <Badge className="absolute -top-2 right-4 bg-yellow-500 text-yellow-900">
           Mais Popular
         </Badge>
@@ -145,9 +154,14 @@ const PlanBenefitsCard: React.FC<PlanBenefitsCardProps> = ({
           )}
         </div>
         
-        {/* Limite de solicitações */}
-        <div className="text-sm text-gray-600 mb-2">
-          {formatMaxRequests(plan.max_requests_per_month)} oportunidades{plan.max_requests_per_month !== -1 ? ' por mês' : ''}
+        {/* Limite de solicitações e mensagens */}
+        <div className="text-sm text-gray-600 mb-2 space-y-1">
+          <div>
+            {formatMaxRequests(plan.max_requests_per_month)} oportunidades{plan.max_requests_per_month !== -1 ? ' por mês' : ''}
+          </div>
+          <div>
+            {formatMaxMessages(plan.max_messages_per_month)} conversas{plan.max_messages_per_month !== -1 ? ' por mês' : ''}
+          </div>
         </div>
         
         {/* Descrição do plano */}

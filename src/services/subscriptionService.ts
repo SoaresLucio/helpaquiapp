@@ -9,6 +9,7 @@ export interface SubscriptionPlan {
   stripe_price_id: string | null;
   features: string[];
   max_requests_per_month: number | null;
+  max_messages_per_month: number | null;
   priority_support: boolean | null;
   user_type: string | null;
   created_at: string;
@@ -24,6 +25,7 @@ export interface UserSubscription {
   current_period_start: string | null;
   current_period_end: string | null;
   requests_used_this_month: number | null;
+  messages_used_this_month: number | null;
   created_at: string;
   updated_at: string;
   subscription_plans?: SubscriptionPlan;
@@ -121,6 +123,29 @@ export const checkRequestLimit = async (): Promise<boolean> => {
   }
 };
 
+// Check if user can send message to another user
+export const checkMessageLimit = async (otherUserId: string): Promise<boolean> => {
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    
+    if (!userData?.user) {
+      return false;
+    }
+
+    const { data, error } = await supabase.rpc('check_message_limit', {
+      p_user_id: userData.user.id,
+      p_other_user_id: otherUserId
+    });
+
+    if (error) throw error;
+    
+    return data || false;
+  } catch (error) {
+    console.error('Error checking message limit:', error);
+    return false;
+  }
+};
+
 // Subscribe to a new plan (creates subscription record - payment integration to be added later)
 export const subscribeToPlan = async (planId: string): Promise<boolean> => {
   try {
@@ -154,7 +179,8 @@ export const subscribeToPlan = async (planId: string): Promise<boolean> => {
           status: 'active',
           current_period_start: new Date().toISOString(),
           current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-          requests_used_this_month: 0
+          requests_used_this_month: 0,
+          messages_used_this_month: 0
         });
 
       if (error) throw error;

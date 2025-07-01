@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, Zap, Gift } from 'lucide-react';
+import { Check, Star, Crown, Zap, Gift } from 'lucide-react';
 import { SubscriptionPlan } from '@/services/subscriptionService';
 
 interface PlanBenefitsCardProps {
@@ -27,15 +27,29 @@ const PlanBenefitsCard: React.FC<PlanBenefitsCardProps> = ({
   };
 
   const getPlanIcon = (planName: string) => {
-    if (planName.includes('Boss')) return <Star className="h-5 w-5 text-yellow-500" />;
-    if (planName.includes('Medium')) return <Zap className="h-5 w-5 text-blue-500" />;
-    return <Gift className="h-5 w-5 text-green-500" />;
+    if (planName.includes('Ouro')) {
+      return <Crown className="h-5 w-5 text-yellow-500" />;
+    }
+    if (planName.includes('Prata')) {
+      return <Zap className="h-5 w-5 text-blue-500" />;
+    }
+    if (planName.includes('Bronze')) {
+      return <Gift className="h-5 w-5 text-green-500" />;
+    }
+    return <Star className="h-5 w-5 text-gray-500" />;
   };
 
   const getPlanGradient = (planName: string) => {
-    if (planName.includes('Boss')) return 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200';
-    if (planName.includes('Medium')) return 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200';
-    return 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200';
+    if (planName.includes('Ouro')) {
+      return 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200';
+    }
+    if (planName.includes('Prata')) {
+      return 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200';
+    }
+    if (planName.includes('Bronze')) {
+      return 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200';
+    }
+    return 'bg-gradient-to-br from-gray-50 to-slate-50 border-gray-200';
   };
 
   const getButtonText = () => {
@@ -46,19 +60,28 @@ const PlanBenefitsCard: React.FC<PlanBenefitsCardProps> = ({
   };
 
   const getPlanBenefits = (planName: string) => {
-    if (planName.includes('Boss')) {
+    if (planName.includes('Ouro')) {
       return 'Ideal para empresas e profissionais que precisam de muitos serviços';
     }
-    if (planName.includes('Medium')) {
+    if (planName.includes('Prata')) {
       return 'Perfeito para uso regular e divulgação do seu negócio';
     }
-    return 'Ótimo para começar e conhecer a plataforma';
+    if (planName.includes('Bronze')) {
+      return 'Ótimo para começar e conhecer a plataforma';
+    }
+    return 'Plano básico para iniciantes';
   };
 
   const formatMaxRequests = (maxRequests: number | null) => {
     if (maxRequests === -1) return "Ilimitadas";
     if (maxRequests === null) return "0";
     return maxRequests.toString();
+  };
+
+  const formatMaxMessages = (maxMessages: number | null) => {
+    if (maxMessages === -1) return "Ilimitadas";
+    if (maxMessages === null) return "0";
+    return maxMessages.toString();
   };
 
   return (
@@ -75,7 +98,7 @@ const PlanBenefitsCard: React.FC<PlanBenefitsCardProps> = ({
         </Badge>
       )}
       
-      {plan.name.includes('Boss') && (
+      {plan.name.includes('Ouro') && !isCurrentPlan && (
         <Badge className="absolute -top-2 right-4 bg-yellow-500 text-yellow-900">
           Mais Popular
         </Badge>
@@ -96,8 +119,13 @@ const PlanBenefitsCard: React.FC<PlanBenefitsCardProps> = ({
           )}
         </div>
         
-        <div className="text-sm text-gray-600 mb-2">
-          {formatMaxRequests(plan.max_requests_per_month)} solicitações{plan.max_requests_per_month !== -1 ? ' por mês' : ''}
+        <div className="text-sm text-gray-600 mb-2 space-y-1">
+          <div>
+            {formatMaxRequests(plan.max_requests_per_month)} solicitações{plan.max_requests_per_month !== -1 ? ' por mês' : ''}
+          </div>
+          <div>
+            {formatMaxMessages(plan.max_messages_per_month)} conversas{plan.max_messages_per_month !== -1 ? ' por mês' : ''}
+          </div>
         </div>
         
         <p className="text-sm text-gray-600">
