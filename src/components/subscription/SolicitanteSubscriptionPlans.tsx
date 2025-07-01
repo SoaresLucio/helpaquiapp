@@ -7,7 +7,6 @@ import SubscriptionStatusCard from './solicitante/SubscriptionStatusCard';
 import PlanSummaryModal from './PlanSummaryModal';
 import CancelSubscriptionModal from './CancelSubscriptionModal';
 import ActiveSubscriptionWarningModal from './ActiveSubscriptionWarningModal';
-import SubscriptionSuccessMessage from './SubscriptionSuccessMessage';
 import { useSolicitanteSubscription } from './solicitante/useSolicitanteSubscription';
 
 const SolicitanteSubscriptionPlans: React.FC = () => {
@@ -22,15 +21,12 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
     showCancelModal,
     showWarningModal,
     warningPlanName,
-    showSuccessMessage,
-    successPlanName,
     handleSubscribe,
     handleConfirmPlan,
     handleCancelSubscription,
     setShowPlanSummary,
     setShowCancelModal,
-    setShowWarningModal,
-    setShowSuccessMessage
+    setShowWarningModal
   } = useSolicitanteSubscription();
 
   if (loading) {
@@ -78,13 +74,6 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
         currentPlanName={currentSubscription?.subscription_plans?.name || ''}
         newPlanName={warningPlanName}
       />
-
-      {showSuccessMessage && (
-        <SubscriptionSuccessMessage
-          planName={successPlanName}
-          onClose={() => setShowSuccessMessage(false)}
-        />
-      )}
     </>
   );
 };

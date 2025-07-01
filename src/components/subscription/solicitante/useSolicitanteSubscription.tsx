@@ -24,8 +24,6 @@ export const useSolicitanteSubscription = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [warningPlanName, setWarningPlanName] = useState('');
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [successPlanName, setSuccessPlanName] = useState('');
 
   const loadSubscriptionData = async () => {
     setLoading(true);
@@ -58,8 +56,7 @@ export const useSolicitanteSubscription = () => {
         const success = await subscribeToPlan(plan.id);
         
         if (success) {
-          setSuccessPlanName(plan.name);
-          setShowSuccessMessage(true);
+          toast.success('Plano ativado com sucesso!');
           await loadSubscriptionData();
         } else {
           toast.error('Erro ao ativar plano');
@@ -131,14 +128,11 @@ export const useSolicitanteSubscription = () => {
     showCancelModal,
     showWarningModal,
     warningPlanName,
-    showSuccessMessage,
-    successPlanName,
     handleSubscribe,
     handleConfirmPlan,
     handleCancelSubscription,
     setShowPlanSummary,
     setShowCancelModal,
-    setShowWarningModal,
-    setShowSuccessMessage
+    setShowWarningModal
   };
 };
