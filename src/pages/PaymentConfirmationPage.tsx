@@ -9,68 +9,54 @@ import BackButton from '@/components/ui/back-button';
 import TermsOfUseDialog from '@/components/TermsOfUseDialog';
 import { CheckCircle, QrCode, Copy } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface PlanData {
-  id: string;
-  name: string;
-  price: number;
-  benefits: string[];
-}
+import { getSubscriptionPlans, subscribeToPlan, type SubscriptionPlan } from '@/services/subscriptionService';
+import { useAuth } from '@/hooks/useAuth';
 
 const PaymentConfirmationPage: React.FC = () => {
   const { planId } = useParams<{ planId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
-  const [planData, setPlanData] = useState<PlanData | null>(null);
+  const [planData, setPlanData] = useState<SubscriptionPlan | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isTermsDialogOpen, setIsTermsDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
   const [pixCode] = useState('00020126580014BR.GOV.BCB.PIX013654321098-7654-321a-bcde-f0123456789027400014BR.GOV.BCB.PIX2534example.com/qr/v2/99eb3b1ad-4f20-47a0-95e9-3f123');
 
-  // Simulated plan data based on planId
+  // Carregar dados do plano
   useEffect(() => {
-    const mockPlansData: Record<string, PlanData> = {
-      'bronze': {
-        id: 'bronze',
-        name: 'Help Bronze',
-        price: 9.99,
-        benefits: [
-          'Até 5 solicitações por mês',
-          'Suporte via chat',
-          'Acesso a profissionais verificados',
-          'Notificações em tempo real'
-        ]
-      },
-      'prata': {
-        id: 'prata',
-        name: 'Help Prata',
-        price: 19.99,
-        benefits: [
-          'Até 15 solicitações por mês',
-          'Suporte prioritário',
-          'Acesso a profissionais premium',
-          'Notificações em tempo real',
-          'Desconto de 10% em serviços'
-        ]
-      },
-      'ouro': {
-        id: 'ouro',
-        name: 'Help Ouro',
-        price: 39.99,
-        benefits: [
-          'Solicitações ilimitadas',
-          'Suporte 24/7 prioritário',
-          'Acesso a profissionais VIP',
-          'Notificações em tempo real',
-          'Desconto de 20% em serviços',
-          'Garantia de qualidade'
-        ]
-      }
-    };
-
-    if (planId && mockPlansData[planId]) {
-      setPlanData(mockPlansData[planId]);
-    }
+    loadPlanData();
   }, [planId]);
+
+  const loadPlanData = async () => {
+    if (!planId) return;
+    
+    setLoading(true);
+    try {
+      // Buscar ambos os tipos de planos
+      const [solicitantePlans, freelancerPlans] = await Promise.all([
+        getSubscriptionPlans('solicitante'),
+        getSubscriptionPlans('freelancer')
+      ]);
+      
+      const allPlans = [...solicitantePlans, ...freelancerPlans];
+      const plan = allPlans.find(p => p.id === planId);
+      
+      if (plan) {
+        setPlanData(plan);
+      } else {
+        toast.error('Plano não encontrado');
+        navigate(-1);
+      }
+    } catch (error) {
+      console.error('Error loading plan data:', error);
+      toast.error('Erro ao carregar dados do plano');
+      navigate(-1);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCopyPixCode = async () => {
     try {
@@ -81,17 +67,32 @@ const PaymentConfirmationPage: React.FC = () => {
     }
   };
 
-  const handleConfirmPayment = () => {
+  const handleConfirmPayment = async () => {
     if (!termsAccepted) {
       toast.error('Você deve aceitar os termos de uso para continuar');
       return;
     }
 
-    // Simulate payment verification
-    toast.success('Pagamento confirmado! Redirecionando...');
-    setTimeout(() => {
-      navigate('/', { replace: true });
-    }, 2000);
+    if (!planData) return;
+
+    setProcessing(true);
+    try {
+      const success = await subscribeToPlan(planData.id);
+      
+      if (success) {
+        toast.success('Pagamento confirmado! Redirecionando...');
+        setTimeout(() => {
+          navigate('/', { replace: true });
+        }, 2000);
+      } else {
+        toast.error('Erro ao processar pagamento');
+      }
+    } catch (error) {
+      console.error('Error processing payment:', error);
+      toast.error('Erro ao processar pagamento');
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const handleAcceptTerms = () => {
@@ -100,22 +101,40 @@ const PaymentConfirmationPage: React.FC = () => {
     toast.success('Termos aceitos com sucesso!');
   };
 
-  if (!planData) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Plano não encontrado</h1>
-          <BackButton to="/solicitante-plans" label="Voltar aos Planos" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-helpaqui-blue mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando dados do plano...</p>
         </div>
       </div>
     );
   }
 
+  if (!planData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Plano não encontrado</h1>
+          <BackButton to="/" label="Voltar ao Início" />
+        </div>
+      </div>
+    );
+  }
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(price);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <BackButton to="/solicitante-plans" label="Voltar aos Planos" />
+          <BackButton to="/" label="Voltar ao Início" />
         </div>
 
         <div className="text-center mb-8">
@@ -141,7 +160,7 @@ const PaymentConfirmationPage: React.FC = () => {
                   {planData.name}
                 </h3>
                 <div className="text-3xl font-bold text-gray-900">
-                  R$ {planData.price.toFixed(2).replace('.', ',')}
+                  {formatPrice(planData.price_monthly)}
                   <span className="text-sm font-normal text-gray-600">/mês</span>
                 </div>
                 <Badge variant="secondary" className="mt-2">
@@ -154,10 +173,10 @@ const PaymentConfirmationPage: React.FC = () => {
                   Benefícios inclusos:
                 </h4>
                 <div className="space-y-3">
-                  {planData.benefits.map((benefit, index) => (
+                  {(planData.features as string[]).map((feature, index) => (
                     <div key={index} className="flex items-start gap-3">
                       <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">{benefit}</span>
+                      <span className="text-gray-700">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -230,11 +249,11 @@ const PaymentConfirmationPage: React.FC = () => {
               {/* Botão de Confirmação */}
               <Button
                 onClick={handleConfirmPayment}
-                disabled={!termsAccepted}
+                disabled={!termsAccepted || processing}
                 className="w-full"
                 size="lg"
               >
-                Já realizei o pagamento
+                {processing ? 'Processando...' : 'Já realizei o pagamento'}
               </Button>
             </CardContent>
           </Card>

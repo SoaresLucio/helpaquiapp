@@ -41,17 +41,23 @@ const FreelancerSubscriptionPlans: React.FC = () => {
     }
   };
 
-  const handleSubscribe = async (planId: string) => {
-    setSubscribing(planId);
+  const handleSubscribe = async (plan: SubscriptionPlan) => {
+    setSubscribing(plan.id);
     
     try {
-      const success = await subscribeToPlan(planId);
-      
-      if (success) {
-        toast.success('Plano atualizado com sucesso!');
-        await loadSubscriptionData();
+      // Se for plano gratuito, ativar diretamente
+      if (plan.price_monthly === 0) {
+        const success = await subscribeToPlan(plan.id);
+        
+        if (success) {
+          toast.success('Plano ativado com sucesso!');
+          await loadSubscriptionData();
+        } else {
+          toast.error('Erro ao ativar plano');
+        }
       } else {
-        toast.error('Erro ao atualizar plano');
+        // Para planos pagos, redirecionar para página de confirmação
+        window.location.href = `/payment-confirmation/${plan.id}`;
       }
     } catch (error) {
       console.error('Error subscribing:', error);
@@ -200,7 +206,7 @@ const FreelancerSubscriptionPlans: React.FC = () => {
                 className="w-full mt-6"
                 variant={isCurrentPlan(plan.id) ? "outline" : "default"}
                 disabled={isCurrentPlan(plan.id) || subscribing === plan.id}
-                onClick={() => handleSubscribe(plan.id)}
+                onClick={() => handleSubscribe(plan)}
               >
                 {getButtonText(plan)}
               </Button>

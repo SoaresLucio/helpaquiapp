@@ -27,6 +27,7 @@ import MyOffers from "./pages/MyOffers";
 import MyRequests from "./pages/MyRequests";
 import OffersPage from "./pages/OffersPage";
 import PaymentConfirmationPage from "./pages/PaymentConfirmationPage";
+import AdminPlanManagement from "./pages/AdminPlanManagement";
 import NotFound from "./pages/NotFound";
 
 function App() {
@@ -138,8 +139,15 @@ function App() {
         </ProtectedRoute>
       } />
       <Route path="/payment-confirmation/:planId" element={
-        <ProtectedRoute requiredUserType="solicitante">
+        <ProtectedRoute>
           <PaymentConfirmationPage />
+        </ProtectedRoute>
+      } />
+      
+      {/* Admin routes */}
+      <Route path="/admin/plans" element={
+        <ProtectedRoute>
+          <AdminPlanManagement />
         </ProtectedRoute>
       } />
       
