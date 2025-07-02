@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import BackButton from '@/components/ui/back-button';
 import SolicitanteSubscriptionPlans from '@/components/subscription/SolicitanteSubscriptionPlans';
 import BannerCarousel from '@/components/banners/BannerCarousel';
+import Footer from '@/components/common/Footer';
 import { useAccessControl } from '@/hooks/useAccessControl';
 import { usePromotionalBanners } from '@/hooks/usePromotionalBanners';
 
@@ -112,6 +113,8 @@ const SolicitantePlans: React.FC = () => {
             </CardContent>
           </Card>
         </div>
+        
+        <Footer />
       </div>
     </div>
   );

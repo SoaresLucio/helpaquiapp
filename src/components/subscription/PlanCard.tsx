@@ -10,7 +10,7 @@ interface PlanCardProps {
   plan: SubscriptionPlan;
   isCurrentPlan: boolean;
   isSubscribing: boolean;
-  onSubscribe: (planId: string) => void;
+  onSubscribe: (plan: SubscriptionPlan) => void;
 }
 
 const PlanCard: React.FC<PlanCardProps> = ({
@@ -99,7 +99,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
           className="w-full mt-6"
           variant={isCurrentPlan ? "outline" : "default"}
           disabled={isCurrentPlan || isSubscribing}
-          onClick={() => onSubscribe(plan.id)}
+          onClick={() => onSubscribe(plan)}
         >
           {isSubscribing ? (
             "Processando..."

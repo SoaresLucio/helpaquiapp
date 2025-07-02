@@ -3,20 +3,37 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { 
   getSubscriptionPlans, 
-  getCurrentSubscription, 
-  subscribeToPlan,
+  getCurrentSubscription,
   type SubscriptionPlan,
   type UserSubscription 
 } from '@/services/subscriptionService';
 import PlanCard from './PlanCard';
 import LoadingState from './LoadingState';
 import SubscriptionStatus from './SubscriptionStatus';
+import SubscriptionModal from './SubscriptionModal';
+import PaymentModal from './PaymentModal';
+import SuccessModal from './SuccessModal';
+import { useSubscriptionFlow } from '@/hooks/useSubscriptionFlow';
 
 const SubscriptionPlans: React.FC = () => {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [currentSubscription, setCurrentSubscription] = useState<UserSubscription | null>(null);
   const [loading, setLoading] = useState(true);
-  const [subscribing, setSubscribing] = useState<string | null>(null);
+
+  const {
+    isSubscriptionModalOpen,
+    isPaymentModalOpen,
+    isSuccessModalOpen,
+    selectedPlan,
+    isLoading,
+    handleSubscribeClick,
+    handleConfirmSubscription,
+    handlePaymentSuccess,
+    handleGoToDashboard,
+    setIsSubscriptionModalOpen,
+    setIsPaymentModalOpen,
+    setIsSuccessModalOpen
+  } = useSubscriptionFlow();
 
   useEffect(() => {
     const loadData = async () => {
@@ -40,28 +57,6 @@ const SubscriptionPlans: React.FC = () => {
     loadData();
   }, []);
 
-  const handleSubscribe = async (planId: string) => {
-    setSubscribing(planId);
-    
-    try {
-      const success = await subscribeToPlan(planId);
-      
-      if (success) {
-        toast.success('Plano atualizado com sucesso!');
-        // Reload current subscription
-        const updatedSub = await getCurrentSubscription();
-        setCurrentSubscription(updatedSub);
-      } else {
-        toast.error('Erro ao atualizar plano');
-      }
-    } catch (error) {
-      console.error('Error subscribing:', error);
-      toast.error('Erro ao processar assinatura');
-    } finally {
-      setSubscribing(null);
-    }
-  };
-
   const isCurrentPlan = (planId: string) => {
     return currentSubscription?.plan_id === planId;
   };
@@ -71,32 +66,58 @@ const SubscriptionPlans: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">
-          Escolha seu Plano
-        </h2>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Encontre o plano perfeito para suas necessidades e comece a solicitar serviços hoje mesmo.
-        </p>
+    <>
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Escolha seu Plano
+          </h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Encontre o plano perfeito para suas necessidades e comece a solicitar serviços hoje mesmo.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {plans.map((plan) => (
+            <PlanCard
+              key={plan.id}
+              plan={plan}
+              isCurrentPlan={isCurrentPlan(plan.id)}
+              isSubscribing={isLoading}
+              onSubscribe={handleSubscribeClick}
+            />
+          ))}
+        </div>
+
+        {currentSubscription && (
+          <SubscriptionStatus currentSubscription={currentSubscription} />
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {plans.map((plan) => (
-          <PlanCard
-            key={plan.id}
-            plan={plan}
-            isCurrentPlan={isCurrentPlan(plan.id)}
-            isSubscribing={subscribing === plan.id}
-            onSubscribe={handleSubscribe}
-          />
-        ))}
-      </div>
+      {/* Modals do fluxo de assinatura */}
+      <SubscriptionModal
+        isOpen={isSubscriptionModalOpen}
+        onClose={() => setIsSubscriptionModalOpen(false)}
+        plan={selectedPlan}
+        onConfirm={handleConfirmSubscription}
+        isLoading={isLoading}
+      />
 
-      {currentSubscription && (
-        <SubscriptionStatus currentSubscription={currentSubscription} />
-      )}
-    </div>
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        plan={selectedPlan}
+        onPaymentSuccess={handlePaymentSuccess}
+        isLoading={isLoading}
+      />
+
+      <SuccessModal
+        isOpen={isSuccessModalOpen}
+        onClose={() => setIsSuccessModalOpen(false)}
+        plan={selectedPlan}
+        onGoToDashboard={handleGoToDashboard}
+      />
+    </>
   );
 };
 
