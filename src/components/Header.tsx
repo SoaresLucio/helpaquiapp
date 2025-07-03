@@ -74,7 +74,7 @@ const Header = () => {
             />
           </div>
 
-          <NotificationBadge notifications={notificationCount} />
+          <NotificationBadge />
           <UserSection isAuthenticated={isAuthenticated} />
         </div>
       </div>
