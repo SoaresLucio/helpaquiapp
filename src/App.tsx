@@ -28,6 +28,7 @@ import MyRequests from "./pages/MyRequests";
 import OffersPage from "./pages/OffersPage";
 import PaymentConfirmationPage from "./pages/PaymentConfirmationPage";
 import AdminPlanManagement from "./pages/AdminPlanManagement";
+import HelpRequests from "./pages/HelpRequests";
 import NotFound from "./pages/NotFound";
 
 function App() {
@@ -72,6 +73,11 @@ function App() {
       <Route path="/jobs" element={
         <ProtectedRoute>
           <Jobs />
+        </ProtectedRoute>
+      } />
+      <Route path="/help-requests" element={
+        <ProtectedRoute requiredUserType="freelancer">
+          <HelpRequests />
         </ProtectedRoute>
       } />
       <Route path="/chat" element={

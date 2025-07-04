@@ -21,6 +21,7 @@ import { serviceCategories } from '@/data/mockData';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import AsaasPaymentButton from './payment/AsaasPaymentButton';
 
 const ServiceRequest: React.FC = () => {
@@ -84,42 +85,85 @@ const ServiceRequest: React.FC = () => {
     setPhotos(photos.filter((_, i) => i !== index));
   };
 
-  const handlePaymentComplete = () => {
-    // Save service request to database/state
-    const serviceRequest = {
-      id: Date.now().toString(),
-      title: formData.title,
-      description: formData.description,
-      category: formData.category,
-      location: formData.location,
-      budget: formData.budget,
-      date: formData.date,
-      photos,
-      status: 'active',
-      created_at: new Date().toISOString()
-    };
+  const handlePaymentComplete = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    // Add to localStorage for now (in a real app, this would be sent to backend)
-    const existingRequests = JSON.parse(localStorage.getItem('serviceRequests') || '[]');
-    existingRequests.push(serviceRequest);
-    localStorage.setItem('serviceRequests', JSON.stringify(existingRequests));
+      // Parse budget to extract min and max values
+      let budgetMin = null;
+      let budgetMax = null;
+      
+      if (formData.budget) {
+        const budgetMatch = formData.budget.match(/\d+/g);
+        if (budgetMatch) {
+          budgetMin = parseInt(budgetMatch[0]);
+          budgetMax = budgetMatch.length > 1 ? parseInt(budgetMatch[1]) : budgetMin;
+        }
+      }
 
-    toast({
-      title: "Trabalho publicado",
-      description: "Seu pedido de HELP foi publicado com sucesso!",
-    });
-    
-    // Reset form
-    setFormData({
-      title: '',
-      description: '',
-      category: '',
-      location: '',
-      budget: '',
-      date: '',
-    });
-    setPhotos([]);
-    setShowPayment(false);
+      // Save service request to Supabase
+      const { data, error } = await supabase
+        .from('service_requests')
+        .insert({
+          client_id: user.id,
+          title: formData.title,
+          description: formData.description,
+          category: formData.category,
+          location_address: formData.location,
+          budget_min: budgetMin,
+          budget_max: budgetMax,
+          urgency: formData.date ? 'scheduled' : 'normal',
+          status: 'open'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating service request:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao criar solicitação de serviço",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Trabalho publicado",
+        description: "Seu pedido de HELP foi publicado com sucesso!",
+      });
+      
+      // Reset form
+      setFormData({
+        title: '',
+        description: '',
+        category: '',
+        location: '',
+        budget: '',
+        date: '',
+      });
+      setPhotos([]);
+      setShowPayment(false);
+      
+      // Navigate to requests page
+      navigate('/my-requests');
+    } catch (error) {
+      console.error('Error saving service request:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao publicar solicitação",
+        variant: "destructive",
+      });
+    }
   };
 
   if (showPayment) {

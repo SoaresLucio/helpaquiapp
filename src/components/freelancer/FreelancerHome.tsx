@@ -96,9 +96,9 @@ const FreelancerHome: React.FC = () => {
           Você tem {stats.pendingRequests} novas solicitações de serviço
         </p>
         <div className="flex gap-3">
-          <Button variant="secondary" onClick={() => navigate('/jobs')}>
+          <Button variant="secondary" onClick={() => navigate('/help-requests')}>
             <Briefcase className="h-4 w-4 mr-2" />
-            Ver Solicitações
+            Ver Solicitações de Help
           </Button>
           <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
             Meus Trabalhos
@@ -120,11 +120,11 @@ const FreelancerHome: React.FC = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Button 
-              onClick={() => navigate('/jobs')}
+              onClick={() => navigate('/help-requests')}
               className="bg-helpaqui-green hover:bg-helpaqui-green/90 h-16 flex flex-col gap-1"
             >
               <Briefcase className="h-5 w-5" />
-              Ver Trabalhos
+              Solicitações de Help
             </Button>
             <Button 
               variant="outline"

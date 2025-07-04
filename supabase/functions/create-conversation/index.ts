@@ -46,11 +46,24 @@ serve(async (req) => {
     const requestData = await req.json();
     const { freelancerId, serviceRequestId } = validateInput(requestData);
 
+    // Get the service request to find the client
+    const { data: serviceRequest, error: requestError } = await supabase
+      .from('service_requests')
+      .select('client_id')
+      .eq('id', serviceRequestId)
+      .single();
+
+    if (requestError || !serviceRequest) {
+      throw new Error('Service request not found');
+    }
+
+    const clientId = serviceRequest.client_id;
+
     // Check if conversation already exists
     const { data: existingConv } = await supabase
       .from('conversations')
       .select('*')
-      .eq('client_id', user.id)
+      .eq('client_id', clientId)
       .eq('freelancer_id', freelancerId)
       .eq('service_request_id', serviceRequestId)
       .maybeSingle();
@@ -66,7 +79,7 @@ serve(async (req) => {
     const { data: conversation, error: convError } = await supabase
       .from('conversations')
       .insert({
-        client_id: user.id,
+        client_id: clientId,
         freelancer_id: freelancerId,
         service_request_id: serviceRequestId
       })
@@ -77,13 +90,13 @@ serve(async (req) => {
       throw new Error(`Failed to create conversation: ${convError.message}`);
     }
 
-    // Create welcome notification for freelancer
+    // Create welcome notification for client
     await supabase
       .from('notifications')
       .insert({
-        user_id: freelancerId,
+        user_id: clientId,
         title: 'Nova conversa iniciada',
-        message: 'Um cliente iniciou uma conversa com você sobre um serviço',
+        message: 'Um freelancer iniciou uma conversa com você sobre sua solicitação',
         type: 'info',
         metadata: { conversation_id: conversation.id }
       });
