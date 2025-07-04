@@ -1,65 +1,108 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Professional } from '@/data/mockData';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useOffersData } from '@/hooks/offers/useOffersData';
-import { useOffersRealtime } from '@/hooks/offers/useOffersRealtime';
+interface FreelancerOffer {
+  id: string;
+  title: string;
+  description: string;
+  categories: string[];
+  custom_categories?: string[];
+  rate: string;
+  location?: string;
+  photos?: string[];
+  is_active: boolean;
+  freelancer_id: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export const useFreelancerOffers = () => {
-  const { offers, loading, loadOffers } = useOffersData();
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [freelancers, setFreelancers] = useState<FreelancerOffer[]>([]);
+  const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Função memoizada para recarregar ofertas
-  const handleReloadOffers = useCallback(() => {
-    console.log('🔄 useFreelancerOffers: Recarregando ofertas...');
-    loadOffers();
-  }, [loadOffers]);
+  const fetchFreelancers = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-  // Carregamento inicial apenas uma vez
-  useEffect(() => {
-    if (!isInitialized) {
-      console.log('🚀 useFreelancerOffers: Carregamento inicial das ofertas...');
-      loadOffers();
-      setIsInitialized(true);
+      const { data, error: fetchError } = await supabase
+        .from('freelancer_service_offers')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      const offers = data || [];
+      setFreelancers(offers);
+
+      // Mapear dados para o formato Professional esperado pelos componentes
+      const mappedProfessionals: Professional[] = offers.map(offer => ({
+        id: offer.id,
+        name: offer.title,
+        avatar: offer.photos?.[0] || '/placeholder.svg',
+        rating: 4.5, // Valor padrão por enquanto
+        ratingCount: 0, // Valor padrão por enquanto
+        categories: offer.categories,
+        description: offer.description,
+        price: offer.rate,
+        location: { lat: 0, lng: 0 }, // Valores padrão por enquanto
+        distance: offer.location || 'Não informado',
+        available: true,
+        portfolio: offer.photos || [],
+        isVerified: false,
+        responseTime: '2h',
+        responseRate: 95
+      }));
+
+      setProfessionals(mappedProfessionals);
+    } catch (err) {
+      console.error('Erro ao buscar freelancers:', err);
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+    } finally {
+      setIsLoading(false);
     }
-  }, [isInitialized, loadOffers]);
+  };
 
-  // Escutar mudanças em tempo real (sem auto-refresh para evitar loops)
-  useOffersRealtime({ 
-    onOffersChange: handleReloadOffers
-  });
-
-  // Escutar evento customizado para novas ofertas
   useEffect(() => {
-    const handleNewOffer = () => {
-      console.log('🆕 useFreelancerOffers: Nova oferta detectada via evento customizado');
-      handleReloadOffers();
-    };
+    fetchFreelancers();
+  }, []);
 
-    console.log('👂 useFreelancerOffers: Configurando listener para newOfferCreated');
-    window.addEventListener('newOfferCreated', handleNewOffer);
-    
+  // Escutar mudanças em tempo real
+  useEffect(() => {
+    const channel = supabase
+      .channel('freelancer_service_offers')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'freelancer_service_offers'
+        },
+        () => {
+          fetchFreelancers();
+        }
+      )
+      .subscribe();
+
     return () => {
-      console.log('🧹 useFreelancerOffers: Removendo listener para newOfferCreated');
-      window.removeEventListener('newOfferCreated', handleNewOffer);
+      supabase.removeChannel(channel);
     };
-  }, [handleReloadOffers]);
-
-  // Log quando as ofertas mudarem (apenas para debug)
-  useEffect(() => {
-    console.log('📊 useFreelancerOffers: Estado das ofertas atualizado:', {
-      count: offers.length,
-      loading,
-      isInitialized,
-      offers: offers.slice(0, 3).map(o => ({ 
-        id: o.id, 
-        name: o.name, 
-        description: o.description?.substring(0, 50) + '...'
-      }))
-    });
-  }, [offers, loading, isInitialized]);
+  }, []);
 
   return {
-    offers,
-    loading,
-    reloadOffers: handleReloadOffers,
+    offers: professionals, // Dados formatados para os componentes existentes
+    loading: isLoading,
+    reloadOffers: fetchFreelancers,
+    freelancers,
+    professionals,
+    isLoading,
+    error,
+    refetch: fetchFreelancers
   };
 };
