@@ -11,8 +11,6 @@ export const useOfferInterests = (offerId: string) => {
     
     setLoading(true);
     try {
-      console.log('🔄 Carregando interessados para oferta:', offerId);
-      
       const { data, error } = await supabase
         .from('offer_interests')
         .select('*')
@@ -20,15 +18,14 @@ export const useOfferInterests = (offerId: string) => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('❌ Erro ao carregar interessados:', error);
+        console.error('Erro ao carregar interessados:', error);
         throw error;
       }
 
-      console.log('✅ Interessados carregados:', data);
       setInterests(data || []);
       
     } catch (error) {
-      console.error('💥 Erro inesperado ao carregar interessados:', error);
+      console.error('Erro inesperado ao carregar interessados:', error);
       setInterests([]);
     } finally {
       setLoading(false);
@@ -43,8 +40,6 @@ export const useOfferInterests = (offerId: string) => {
   useEffect(() => {
     if (!offerId) return;
 
-    console.log('🔴 Configurando listeners de realtime para interessados...');
-    
     const channel = supabase
       .channel(`offer-interests-${offerId}`)
       .on(
@@ -56,16 +51,15 @@ export const useOfferInterests = (offerId: string) => {
           filter: `offer_id=eq.${offerId}`
         },
         (payload) => {
-          console.log('🔄 Mudança em interessado detectada:', payload);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Mudança em interessado detectada:', payload);
+          }
           loadInterests();
         }
       )
-      .subscribe((status) => {
-        console.log('📡 Status da conexão realtime:', status);
-      });
+      .subscribe();
 
     return () => {
-      console.log('🔌 Removendo channel realtime...');
       supabase.removeChannel(channel);
     };
   }, [offerId]);

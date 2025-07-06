@@ -20,12 +20,6 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
       window.open(linkUrl, '_blank', 'noopener,noreferrer');
     }
   };
-  console.log('PromotionalBanner rendering:', {
-    title,
-    imageUrl,
-    linkUrl,
-    ctaText
-  });
   return <div className={`relative rounded-xl overflow-hidden shadow-lg ${className}`}>
       <div className="w-full h-full bg-cover bg-center bg-no-repeat cursor-pointer" style={{
       backgroundImage: `url(${imageUrl})`,

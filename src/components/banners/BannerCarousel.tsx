@@ -20,11 +20,6 @@ interface BannerCarouselProps {
 const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners, className = '' }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Debug log para verificar banners recebidos
-  useEffect(() => {
-    console.log('BannerCarousel received banners:', banners);
-  }, [banners]);
-
   // Auto-rotation para múltiplos banners
   useEffect(() => {
     if (banners.length <= 1) return;
@@ -37,14 +32,12 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners, className = ''
   }, [banners.length]);
 
   if (banners.length === 0) {
-    console.log('No banners to display');
     return null;
   }
 
   // Se há apenas um banner, renderizar diretamente
   if (banners.length === 1) {
     const banner = banners[0];
-    console.log('Rendering single banner:', banner);
     return (
       <PromotionalBanner
         title={banner.title}
@@ -55,8 +48,6 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners, className = ''
       />
     );
   }
-
-  console.log('Rendering multiple banners carousel');
   return (
     <div className={className}>
       <Carousel className="w-full">
