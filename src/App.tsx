@@ -29,6 +29,7 @@ import OffersPage from "./pages/OffersPage";
 import PaymentConfirmationPage from "./pages/PaymentConfirmationPage";
 import AdminPlanManagement from "./pages/AdminPlanManagement";
 import HelpRequests from "./pages/HelpRequests";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
 function App() {
@@ -154,6 +155,13 @@ function App() {
       <Route path="/admin/plans" element={
         <ProtectedRoute>
           <AdminPlanManagement />
+        </ProtectedRoute>
+      } />
+      
+      {/* About page */}
+      <Route path="/about" element={
+        <ProtectedRoute>
+          <About />
         </ProtectedRoute>
       } />
       
