@@ -62,7 +62,9 @@ export const useFreelancerOffers = () => {
 
       setProfessionals(mappedProfessionals);
     } catch (err) {
-      console.error('Erro ao buscar freelancers:', err);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Erro ao buscar freelancers:', err);
+      }
       setError(err instanceof Error ? err.message : 'Erro desconhecido');
     } finally {
       setIsLoading(false);

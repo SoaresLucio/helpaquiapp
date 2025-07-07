@@ -10,14 +10,7 @@ export const useAuthSession = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔐 useAuthSession: Starting auth session hook');
-    }
-
     const handleAuthChange = async (session: Session | null) => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔄 useAuthSession: Auth state change detected:', !!session);
-      }
       
       let fetchedUserType: 'solicitante' | 'freelancer' | null = null;
       
@@ -34,7 +27,9 @@ export const useAuthSession = () => {
           }
           
         } catch (error) {
-          console.error("Error getting user type:", error);
+          if (process.env.NODE_ENV === 'development') {
+            console.error("Error getting user type:", error);
+          }
           fetchedUserType = 'solicitante'; // Default fallback
         }
       } else {
@@ -56,8 +51,10 @@ export const useAuthSession = () => {
         } else {
           setLoading(false);
         }
-      } catch (error) {
-        console.error("Error checking session:", error);
+        } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Error checking session:", error);
+        }
         setLoading(false);
       }
     };

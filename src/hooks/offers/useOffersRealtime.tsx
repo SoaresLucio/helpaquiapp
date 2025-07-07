@@ -12,14 +12,18 @@ export const useOffersRealtime = ({ onOffersChange }: UseOffersRealtimeProps) =>
 
   // Função memoizada para mudanças em ofertas
   const handleOffersChange = useCallback(() => {
-    console.log('🔄 useOffersRealtime: Mudança detectada, atualizando ofertas...');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 useOffersRealtime: Mudança detectada, atualizando ofertas...');
+    }
     onOffersChange();
   }, [onOffersChange]);
 
   // Listen for new offers created via custom events
   useEffect(() => {
     const handleNewOffer = (event: CustomEvent) => {
-      console.log('🆕 Nova oferta detectada via evento personalizado:', event.detail);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🆕 Nova oferta detectada via evento personalizado:', event.detail);
+      }
       handleOffersChange();
     };
 
@@ -37,7 +41,9 @@ export const useOffersRealtime = ({ onOffersChange }: UseOffersRealtimeProps) =>
       return;
     }
 
-    console.log('🔴 Configurando listeners de realtime...');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔴 Configurando listeners de realtime...');
+    }
     
     const channel = supabase
       .channel('freelancer-offers-realtime-single')
@@ -49,7 +55,9 @@ export const useOffersRealtime = ({ onOffersChange }: UseOffersRealtimeProps) =>
           table: 'freelancer_service_offers'
         },
         (payload) => {
-          console.log('🔄 Alteração em ofertas via realtime:', payload.eventType);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔄 Alteração em ofertas via realtime:', payload.eventType);
+          }
           handleOffersChange();
         }
       )
@@ -61,15 +69,21 @@ export const useOffersRealtime = ({ onOffersChange }: UseOffersRealtimeProps) =>
           table: 'reviews'
         },
         (payload) => {
-          console.log('🔄 Alteração em reviews via realtime:', payload.eventType);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔄 Alteração em reviews via realtime:', payload.eventType);
+          }
           handleOffersChange();
         }
       )
       .subscribe((status) => {
-        console.log('📡 Status da conexão realtime:', status);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📡 Status da conexão realtime:', status);
+        }
         if (status === 'SUBSCRIBED') {
           isConnectedRef.current = true;
-          console.log('✅ Realtime conectado com sucesso');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('✅ Realtime conectado com sucesso');
+          }
         } else if (status === 'CLOSED') {
           isConnectedRef.current = false;
         }
@@ -78,7 +92,9 @@ export const useOffersRealtime = ({ onOffersChange }: UseOffersRealtimeProps) =>
     channelRef.current = channel;
 
     return () => {
-      console.log('🔌 Removendo channel realtime...');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔌 Removendo channel realtime...');
+      }
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;

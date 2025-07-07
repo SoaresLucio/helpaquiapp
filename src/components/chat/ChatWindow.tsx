@@ -148,8 +148,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         }
 
         await sendMessage(conversation.id, content, type, metadata);
-      } catch (error) {
-        console.error('Error sending message:', error);
+        } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error sending message:', error);
+        }
       }
     };
     
@@ -157,9 +159,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     return true;
   };
 
-  const handleConfirmSchedule = (messageId: string) => {
+    const handleConfirmSchedule = (messageId: string) => {
     // This would be handled by the backend in a real implementation
-    console.log('Schedule confirmed for message:', messageId);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Schedule confirmed for message:', messageId);
+    }
   };
 
   const handleViewLocation = () => {
