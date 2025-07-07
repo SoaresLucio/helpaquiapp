@@ -51,9 +51,7 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional }) => 
         });
       }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error starting conversation:', error);
-      }
+      console.error('Error starting conversation:', error);
       toast({
         title: "Erro",
         description: "Erro ao iniciar conversa. Tente novamente.",

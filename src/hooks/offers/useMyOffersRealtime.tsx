@@ -13,9 +13,7 @@ export const useMyOffersRealtime = ({ onOffersChange }: UseMyOffersRealtimeProps
   useEffect(() => {
     if (!user) return;
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔴 Configurando listeners de realtime para ofertas...');
-    }
+    console.log('🔴 Configurando listeners de realtime para ofertas...');
     
     const channel = supabase
       .channel('my-offers-realtime')
@@ -28,22 +26,16 @@ export const useMyOffersRealtime = ({ onOffersChange }: UseMyOffersRealtimeProps
           filter: `freelancer_id=eq.${user.id}`
         },
         (payload) => {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('🔄 Mudança em realtime detectada:', payload);
-          }
+          console.log('🔄 Mudança em realtime detectada:', payload);
           onOffersChange();
         }
       )
       .subscribe((status) => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('📡 Status da conexão realtime:', status);
-        }
+        console.log('📡 Status da conexão realtime:', status);
       });
 
     return () => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔌 Removendo channel realtime...');
-      }
+      console.log('🔌 Removendo channel realtime...');
       supabase.removeChannel(channel);
     };
   }, [user, onOffersChange]);

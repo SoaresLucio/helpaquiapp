@@ -59,18 +59,18 @@ export const getUserType = async (): Promise<'solicitante' | 'freelancer' | null
     // Try to get from user metadata first
     const userType = user.user_metadata?.user_type;
     if (userType && ['solicitante', 'freelancer'].includes(userType)) {
+      console.log("User type from metadata:", userType, "for user:", user.id);
       return userType as 'solicitante' | 'freelancer';
     }
     
     // Fallback to localStorage (for Google auth users)
     const storedType = localStorage.getItem('userType');
     if (storedType && ['solicitante', 'freelancer'].includes(storedType)) {
+      console.log("User type from localStorage:", storedType, "for user:", user.id);
       return storedType as 'solicitante' | 'freelancer';
     }
     
-    if (process.env.NODE_ENV === 'development') {
-      console.warn("No user type found for user:", user.id);
-    }
+    console.warn("No user type found for user:", user.id);
     return null;
   } catch (error) {
     console.error("Error getting user type:", error);

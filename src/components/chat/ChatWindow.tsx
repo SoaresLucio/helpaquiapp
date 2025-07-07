@@ -4,7 +4,6 @@ import ChatHeader from './ChatHeader';
 import ChatMessages from './ChatMessages';
 import ChatInput from './ChatInput';
 import ChatSecurity from './ChatSecurity';
-import { useRealTimeChat } from '@/hooks/useRealTimeChat';
 
 interface ChatWindowProps {
   conversation: {
@@ -64,124 +63,141 @@ interface FileMessage extends BaseMessage {
 
 type Message = TextMessage | ScheduleMessage | FileMessage;
 
+// Mock messages with proper types
+const mockMessages: Message[] = [
+  {
+    id: '1',
+    senderId: 'user_123',
+    senderName: 'João Silva',
+    content: 'Olá! Vi seu interesse no projeto de desenvolvimento.',
+    timestamp: '10:25',
+    type: 'text',
+    read: true
+  },
+  {
+    id: '2',
+    senderId: 'me',
+    senderName: 'Você',
+    content: 'Oi! Sim, tenho muito interesse. Qual seria o valor?',
+    timestamp: '10:27',
+    type: 'text',
+    read: true
+  },
+  {
+    id: '3',
+    senderId: 'user_123',
+    senderName: 'João Silva',
+    content: 'Para um projeto desse escopo, estou pensando em R$ 2.500',
+    timestamp: '10:28',
+    type: 'text',
+    read: true
+  },
+  {
+    id: '4',
+    senderId: 'user_123',
+    senderName: 'João Silva',
+    content: '',
+    timestamp: '10:29',
+    type: 'schedule_suggestion',
+    scheduleData: {
+      date: '2024-06-15',
+      time: '14:00',
+      message: 'Que tal começarmos na sexta-feira às 14h?'
+    },
+    read: true
+  },
+  {
+    id: '5',
+    senderId: 'me',
+    senderName: 'Você',
+    content: 'Ótimo! Quando podemos começar o projeto?',
+    timestamp: '10:30',
+    type: 'text',
+    read: false
+  }
+];
+
 const ChatWindow: React.FC<ChatWindowProps> = ({
   conversation,
   userType,
   onUpdateUnreadCount
 }) => {
-  const { messages, loading, sendMessage, markAsRead } = useRealTimeChat(conversation.id);
+  const [messages, setMessages] = useState<Message[]>(mockMessages);
   const [blockedContent, setBlockedContent] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Convert real chat messages to the expected format
-  const formattedMessages: Message[] = messages.map(msg => {
-    const baseMessage = {
-      id: msg.id,
-      senderId: msg.sender_id,
-      senderName: msg.sender_id === 'me' ? 'Você' : conversation.participantName,
-      content: msg.content,
-      timestamp: new Date(msg.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      read: msg.is_read,
-    };
-
-    if (msg.message_type === 'schedule_suggestion') {
-      return {
-        ...baseMessage,
-        type: 'schedule_suggestion' as const,
-        scheduleData: msg.metadata as any || {
-          date: '',
-          time: '',
-          message: msg.content,
-          confirmed: false
-        }
-      };
-    } else if (msg.message_type === 'file') {
-      return {
-        ...baseMessage,
-        type: 'file' as const,
-        fileData: msg.metadata as any || {
-          name: 'arquivo',
-          size: '0kb',
-          type: 'document' as const,
-          url: ''
-        }
-      };
-    } else {
-      return {
-        ...baseMessage,
-        type: 'text' as const
-      };
-    }
-  });
-
   useEffect(() => {
-    // Mark messages as read when the chat is opened
-    markAsRead(conversation.id);
+    // Marcar mensagens como lidas quando o chat é aberto
     onUpdateUnreadCount(conversation.id, 0);
     scrollToBottom();
-  }, [conversation.id, onUpdateUnreadCount, markAsRead]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [formattedMessages]);
+  }, [conversation.id, onUpdateUnreadCount]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSendMessage = (content: string, type: 'text' | 'file' | 'schedule_suggestion' = 'text', additionalData?: any): boolean => {
-    // Check security before sending
+  const handleSendMessage = (content: string, type: 'text' | 'file' | 'schedule_suggestion' = 'text', additionalData?: any) => {
+    // Verificar segurança antes de enviar
     const securityCheck = ChatSecurity.checkMessage(content);
     if (!securityCheck.isValid) {
       setBlockedContent(prev => [...prev, content]);
       return false;
     }
 
-    // Send message asynchronously but return true immediately for UI feedback
-    const sendAsync = async () => {
-      try {
-        let metadata = {};
-        if (type === 'schedule_suggestion' && additionalData?.scheduleData) {
-          metadata = additionalData.scheduleData;
-        } else if (type === 'file' && additionalData?.fileData) {
-          metadata = additionalData.fileData;
-        }
-
-        await sendMessage(conversation.id, content, type, metadata);
-        } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Error sending message:', error);
-        }
-      }
+    const baseMessage = {
+      id: `msg_${Date.now()}`,
+      senderId: 'me',
+      senderName: 'Você',
+      content,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      read: false
     };
-    
-    sendAsync();
+
+    let newMessage: Message;
+
+    if (type === 'schedule_suggestion' && additionalData?.scheduleData) {
+      newMessage = {
+        ...baseMessage,
+        type: 'schedule_suggestion',
+        scheduleData: additionalData.scheduleData
+      };
+    } else if (type === 'file' && additionalData?.fileData) {
+      newMessage = {
+        ...baseMessage,
+        type: 'file',
+        fileData: additionalData.fileData
+      };
+    } else {
+      newMessage = {
+        ...baseMessage,
+        type: 'text'
+      };
+    }
+
+    setMessages(prev => [...prev, newMessage]);
     return true;
   };
 
-    const handleConfirmSchedule = (messageId: string) => {
-    // This would be handled by the backend in a real implementation
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Schedule confirmed for message:', messageId);
-    }
+  const handleConfirmSchedule = (messageId: string) => {
+    setMessages(prev => 
+      prev.map(msg => {
+        if (msg.id === messageId && msg.type === 'schedule_suggestion') {
+          return {
+            ...msg,
+            scheduleData: { ...msg.scheduleData, confirmed: true }
+          };
+        }
+        return msg;
+      })
+    );
   };
 
   const handleViewLocation = () => {
-    // Open map with location
+    // Abrir mapa com a localização
     const { lat, lng } = conversation.location;
     const url = `https://www.google.com/maps?q=${lat},${lng}`;
     window.open(url, '_blank');
   };
-
-  if (loading) {
-    return (
-      <Card className="h-full max-h-[calc(100vh-140px)] flex items-center justify-center">
-        <div className="text-center text-gray-500">
-          <p>Carregando mensagens...</p>
-        </div>
-      </Card>
-    );
-  }
 
   return (
     <Card className="h-full max-h-[calc(100vh-140px)] flex flex-col">
@@ -193,7 +209,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       
       <CardContent className="flex-1 flex flex-col p-0 min-h-0">
         <ChatMessages 
-          messages={formattedMessages}
+          messages={messages}
           conversation={conversation}
           userType={userType}
           onConfirmSchedule={handleConfirmSchedule}
