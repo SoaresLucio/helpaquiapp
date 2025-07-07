@@ -15,6 +15,7 @@ const validateInput = (input: any) => {
     throw new Error('Valid freelancer ID is required');
   }
   
+  // serviceRequestId is optional for direct conversations
   return { freelancerId, serviceRequestId };
 };
 
@@ -46,27 +47,37 @@ serve(async (req) => {
     const requestData = await req.json();
     const { freelancerId, serviceRequestId } = validateInput(requestData);
 
-    // Get the service request to find the client
-    const { data: serviceRequest, error: requestError } = await supabase
-      .from('service_requests')
-      .select('client_id')
-      .eq('id', serviceRequestId)
-      .single();
+    let clientId = user.id; // Default to current user as client
 
-    if (requestError || !serviceRequest) {
-      throw new Error('Service request not found');
+    // If serviceRequestId is provided, get the client from service request
+    if (serviceRequestId) {
+      const { data: serviceRequest, error: requestError } = await supabase
+        .from('service_requests')
+        .select('client_id')
+        .eq('id', serviceRequestId)
+        .single();
+
+      if (requestError || !serviceRequest) {
+        throw new Error('Service request not found');
+      }
+
+      clientId = serviceRequest.client_id;
     }
 
-    const clientId = serviceRequest.client_id;
-
     // Check if conversation already exists
-    const { data: existingConv } = await supabase
+    let existingConvQuery = supabase
       .from('conversations')
       .select('*')
       .eq('client_id', clientId)
-      .eq('freelancer_id', freelancerId)
-      .eq('service_request_id', serviceRequestId)
-      .maybeSingle();
+      .eq('freelancer_id', freelancerId);
+
+    if (serviceRequestId) {
+      existingConvQuery = existingConvQuery.eq('service_request_id', serviceRequestId);
+    } else {
+      existingConvQuery = existingConvQuery.is('service_request_id', null);
+    }
+
+    const { data: existingConv } = await existingConvQuery.maybeSingle();
 
     if (existingConv) {
       return new Response(
@@ -81,7 +92,7 @@ serve(async (req) => {
       .insert({
         client_id: clientId,
         freelancer_id: freelancerId,
-        service_request_id: serviceRequestId
+        service_request_id: serviceRequestId || null
       })
       .select()
       .single();
@@ -90,13 +101,20 @@ serve(async (req) => {
       throw new Error(`Failed to create conversation: ${convError.message}`);
     }
 
-    // Create welcome notification for client
+    // Create welcome notification
+    const notificationMessage = serviceRequestId 
+      ? 'Uma nova conversa foi iniciada sobre sua solicitação'
+      : 'Uma nova conversa direta foi iniciada com você';
+
+    // Notify the other party (if current user is client, notify freelancer, and vice versa)
+    const notifyUserId = clientId === user.id ? freelancerId : clientId;
+    
     await supabase
       .from('notifications')
       .insert({
-        user_id: clientId,
+        user_id: notifyUserId,
         title: 'Nova conversa iniciada',
-        message: 'Um freelancer iniciou uma conversa com você sobre sua solicitação',
+        message: notificationMessage,
         type: 'info',
         metadata: { conversation_id: conversation.id }
       });

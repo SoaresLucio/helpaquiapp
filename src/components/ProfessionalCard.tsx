@@ -6,6 +6,8 @@ import { Professional } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
 import ProfessionalAvatar from '@/components/professional/ProfessionalAvatar';
 import ProfessionalPortfolio from '@/components/professional/ProfessionalPortfolio';
+import { useRealTimeChat } from '@/hooks/useRealTimeChat';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ProfessionalCardProps {
   professional: Professional;
@@ -13,6 +15,8 @@ interface ProfessionalCardProps {
 
 const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional }) => {
   const navigate = useNavigate();
+  const { createConversation } = useRealTimeChat();
+  const { toast } = useToast();
   
   const isVerified = professional.isVerified || false;
   const responseTime = professional.responseTime || "1h";
@@ -23,8 +27,39 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional }) => 
     navigate(`/freelancer/${freelancerId}`);
   };
 
-  const handleContact = () => {
-    navigate('/chat');
+  const handleContact = async () => {
+    try {
+      // Extract freelancer ID from professional ID
+      const freelancerId = professional.id.split('/')[0];
+      
+      // Create conversation with the freelancer
+      const conversation = await createConversation(freelancerId);
+      
+      if (conversation) {
+        // Navigate to chat with the specific conversation
+        navigate('/chat', { 
+          state: { 
+            conversationId: conversation.id,
+            freelancerId: freelancerId,
+            freelancerName: professional.name 
+          }
+        });
+        
+        toast({
+          title: "Conversa iniciada",
+          description: `Conversa iniciada com ${professional.name}`,
+        });
+      }
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error starting conversation:', error);
+      }
+      toast({
+        title: "Erro",
+        description: "Erro ao iniciar conversa. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleHire = () => {

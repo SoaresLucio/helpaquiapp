@@ -62,7 +62,9 @@ const OffersSection: React.FC<OffersSectionProps> = ({
           <Button 
             variant="outline" 
             onClick={() => {
-              console.log('🔄 Recarregando ofertas manualmente...');
+              if (process.env.NODE_ENV === 'development') {
+                console.log('🔄 Recarregando ofertas manualmente...');
+              }
               onReload();
             }}
           >

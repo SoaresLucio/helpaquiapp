@@ -29,14 +29,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (!isAuthenticated) {
-    console.log('User not authenticated, redirecting to login from:', location.pathname);
     return <Navigate to={redirectTo} state={{ from: location.pathname }} replace />;
   }
 
-  // Check if user type matches required type
-  if (requiredUserType && userType !== requiredUserType) {
-    console.warn(`Access denied: User type '${userType}' cannot access '${requiredUserType}' content`);
-    
+    if (requiredUserType && userType !== requiredUserType) {
     // Redirect to appropriate home based on user type
     if (userType === 'solicitante') {
       return <Navigate to="/solicitante-plans" replace />;

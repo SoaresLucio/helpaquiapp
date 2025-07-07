@@ -43,7 +43,7 @@ export const useFreelancerOffers = () => {
 
       // Mapear dados para o formato Professional esperado pelos componentes
       const mappedProfessionals: Professional[] = offers.map(offer => ({
-        id: offer.id,
+        id: `${offer.freelancer_id}/${offer.id}`, // Formato: freelancer_id/offer_id
         name: offer.title,
         avatar: offer.photos?.[0] || '/placeholder.svg',
         rating: 4.5, // Valor padrão por enquanto
@@ -62,7 +62,9 @@ export const useFreelancerOffers = () => {
 
       setProfessionals(mappedProfessionals);
     } catch (err) {
-      console.error('Erro ao buscar freelancers:', err);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Erro ao buscar freelancers:', err);
+      }
       setError(err instanceof Error ? err.message : 'Erro desconhecido');
     } finally {
       setIsLoading(false);
