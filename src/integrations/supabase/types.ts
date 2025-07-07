@@ -557,33 +557,6 @@ export type Database = {
         }
         Relationships: []
       }
-      messages: {
-        Row: {
-          content: string | null
-          conversation_id: string | null
-          created_at: string
-          id: number
-          receiver_id: string | null
-          sender_id: string | null
-        }
-        Insert: {
-          content?: string | null
-          conversation_id?: string | null
-          created_at?: string
-          id?: number
-          receiver_id?: string | null
-          sender_id?: string | null
-        }
-        Update: {
-          content?: string | null
-          conversation_id?: string | null
-          created_at?: string
-          id?: number
-          receiver_id?: string | null
-          sender_id?: string | null
-        }
-        Relationships: []
-      }
       notes: {
         Row: {
           content: string | null
