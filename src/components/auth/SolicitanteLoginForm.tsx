@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SecureInput } from '@/components/security/SecureInput';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
@@ -86,24 +86,22 @@ const SolicitanteLoginForm: React.FC<SolicitanteLoginFormProps> = ({
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="solicitante-email">Email</Label>
-            <Input 
-              id="solicitante-email" 
+            <SecureInput 
               type="email" 
               placeholder="seu@email.com" 
               value={email} 
-              onChange={e => setEmail(e.target.value)} 
-              required 
+              onChange={setEmail}
+              showSecurityIndicator
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="solicitante-password">Senha</Label>
-            <Input 
-              id="solicitante-password" 
+            <SecureInput 
               type="password" 
               placeholder="Digite sua senha"
               value={password} 
-              onChange={e => setPassword(e.target.value)} 
-              required 
+              onChange={setPassword}
+              autoSanitize={false}
             />
             <div className="flex justify-end">
               <Button variant="link" size="sm" className="text-xs p-0" onClick={() => navigate('/reset-password')}>

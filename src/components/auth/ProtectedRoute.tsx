@@ -2,6 +2,9 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { SecurityBadge } from '@/components/security/SecurityBadge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,7 +17,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredUserType, 
   redirectTo = "/login" 
 }) => {
-  const { isAuthenticated, loading, userType } = useAuth();
+  const { isAuthenticated, loading, userType, securityScore, isSecure } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -32,7 +35,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to={redirectTo} state={{ from: location.pathname }} replace />;
   }
 
-    if (requiredUserType && userType !== requiredUserType) {
+  if (requiredUserType && userType !== requiredUserType) {
     // Redirect to appropriate home based on user type
     if (userType === 'solicitante') {
       return <Navigate to="/solicitante-plans" replace />;
@@ -42,7 +45,25 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/" replace />;
   }
 
-  return <>{children}</>;
+  // Show security warning for low security score
+  const showSecurityWarning = securityScore < 50 && location.pathname !== '/profile-verification';
+
+  return (
+    <>
+      {showSecurityWarning && (
+        <div className="p-4">
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>Sua conta possui baixa segurança. Complete a verificação do perfil.</span>
+              <SecurityBadge />
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+      {children}
+    </>
+  );
 };
 
 export default ProtectedRoute;

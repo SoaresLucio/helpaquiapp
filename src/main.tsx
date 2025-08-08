@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
+import { SecurityProvider } from "./components/security/SecurityProvider";
 import { ThemeProvider } from "./hooks/useTheme";
 import App from "./App";
 import "./index.css";
@@ -17,12 +18,14 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
-          </TooltipProvider>
+          <SecurityProvider>
+            <TooltipProvider>
+              <Toaster />
+              <BrowserRouter>
+                <App />
+              </BrowserRouter>
+            </TooltipProvider>
+          </SecurityProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
