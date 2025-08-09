@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { Wrapper, Status } from '@googlemaps/react-wrapper';
+import { config } from '@/config/environment';
 import { supabase } from '@/integrations/supabase/client';
 import { serviceCategories } from '@/data/mockData';
 
@@ -269,7 +270,7 @@ const HelpRequestsMap: React.FC<HelpRequestsMapProps> = ({ onRequestSelect }) =>
       
       {/* Map Area */}
       <div className="relative bg-gray-200 h-[400px] w-full">
-        <Wrapper apiKey="AIzaSyBpWI8pUwTvmUOhQ3UvXO6WBnEJ_Qz_wQs" render={render}>
+        <Wrapper apiKey={config.googleMaps.apiKey} render={render}>
           <GoogleMapComponent userLocation={userLocation} serviceRequests={filteredRequests} onRequestSelect={onRequestSelect} />
         </Wrapper>
       </div>

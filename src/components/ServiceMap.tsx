@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { mockProfessionals } from '@/data/mockData';
 import { useToast } from '@/components/ui/use-toast';
 import { Wrapper, Status } from '@googlemaps/react-wrapper';
+import { config } from '@/config/environment';
 
 // Declare global google types
 declare global {
@@ -188,7 +189,7 @@ const ServiceMap: React.FC<ServiceMapProps> = ({ selectedCategory }) => {
       
       {/* Área do mapa */}
       <div className="relative bg-gray-200 h-[300px] w-full">
-        <Wrapper apiKey="AIzaSyBpWI8pUwTvmUOhQ3UvXO6WBnEJ_Qz_wQs" render={render}>
+        <Wrapper apiKey={config.googleMaps.apiKey} render={render}>
           <GoogleMapComponent userLocation={userLocation} filteredProfessionals={filteredProfessionals} radius={radius[0]} />
         </Wrapper>
       </div>
