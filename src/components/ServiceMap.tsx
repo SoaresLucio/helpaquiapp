@@ -35,6 +35,42 @@ const ServiceMap: React.FC<ServiceMapProps> = ({ selectedCategory }) => {
   const [isLocating, setIsLocating] = useState(false);
   const [watchId, setWatchId] = useState<number | null>(null);
   const { toast } = useToast();
+
+  // Async wrapper component to handle Google Maps API key loading
+  const AsyncWrapper = ({ render }: { render: (status: Status) => React.ReactElement }) => {
+    const [apiKey, setApiKey] = useState<string | null>(null);
+    const [keyLoading, setKeyLoading] = useState(true);
+
+    useEffect(() => {
+      const loadApiKey = async () => {
+        try {
+          const key = await config.googleMaps.getApiKey();
+          setApiKey(key);
+        } catch (error) {
+          console.error('Failed to load Google Maps API key:', error);
+          setApiKey('YOUR_GOOGLE_MAPS_API_KEY_HERE');
+        } finally {
+          setKeyLoading(false);
+        }
+      };
+
+      loadApiKey();
+    }, []);
+
+    if (keyLoading || !apiKey) {
+      return <div className="h-96 flex items-center justify-center">Carregando configuração do mapa...</div>;
+    }
+
+    if (apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
+      return (
+        <div className="h-96 flex items-center justify-center text-red-500">
+          ⚠️ Google Maps API key não configurada. Configure nas configurações do projeto.
+        </div>
+      );
+    }
+
+    return <Wrapper apiKey={apiKey} render={render} />;
+  };
   
   // Filtragem de profissionais por categoria
   const filteredProfessionals = selectedCategory 
@@ -189,9 +225,9 @@ const ServiceMap: React.FC<ServiceMapProps> = ({ selectedCategory }) => {
       
       {/* Área do mapa */}
       <div className="relative bg-gray-200 h-[300px] w-full">
-        <Wrapper apiKey={config.googleMaps.apiKey} render={render}>
-          <GoogleMapComponent userLocation={userLocation} filteredProfessionals={filteredProfessionals} radius={radius[0]} />
-        </Wrapper>
+        <AsyncWrapper 
+          render={render}
+        />
       </div>
     </div>
   );
