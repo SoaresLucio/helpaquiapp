@@ -1017,6 +1017,33 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          action_type: string
+          count: number | null
+          created_at: string | null
+          id: string
+          user_id: string
+          window_start: string | null
+        }
+        Insert: {
+          action_type: string
+          count?: number | null
+          created_at?: string | null
+          id?: string
+          user_id: string
+          window_start?: string | null
+        }
+        Update: {
+          action_type?: string
+          count?: number | null
+          created_at?: string | null
+          id?: string
+          user_id?: string
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           comment: string | null
@@ -1625,6 +1652,15 @@ export type Database = {
         Args: { p_user_id: string; p_other_user_id: string }
         Returns: boolean
       }
+      check_rate_limit: {
+        Args: {
+          p_user_id: string
+          p_action_type: string
+          p_max_requests?: number
+          p_window_minutes?: number
+        }
+        Returns: boolean
+      }
       check_request_limit: {
         Args: { p_user_id: string }
         Returns: boolean
@@ -1705,6 +1741,20 @@ export type Database = {
               p_error_message?: string
               p_metadata?: Json
             }
+        Returns: undefined
+      }
+      log_security_event_enhanced: {
+        Args: {
+          p_user_id: string
+          p_action: string
+          p_resource_type: string
+          p_resource_id?: string
+          p_ip_address?: unknown
+          p_user_agent?: string
+          p_success?: boolean
+          p_error_message?: string
+          p_metadata?: Json
+        }
         Returns: undefined
       }
     }

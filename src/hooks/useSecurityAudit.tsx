@@ -53,8 +53,8 @@ export const useSecurityAudit = () => {
         score -= 25;
       }
 
-      // Log security audit
-      await supabase.rpc('log_security_event', {
+      // Log security audit com função aprimorada
+      await supabase.rpc('log_security_event_enhanced', {
         p_user_id: user.id,
         p_action: 'security_audit',
         p_resource_type: 'user_profile',

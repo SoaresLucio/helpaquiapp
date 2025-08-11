@@ -1,13 +1,15 @@
 
 import React from 'react';
 import { Shield, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useSecurityAudit } from '@/hooks/useSecurityAudit';
+import { useSecurityMonitor } from '@/hooks/useSecurityMonitor';
 
-const SecurityDashboard: React.FC = () => {
+export const SecurityDashboard: React.FC = () => {
   const { auditResult, loading, runSecurityAudit } = useSecurityAudit();
+  const { securityStats, securityEvents } = useSecurityMonitor();
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600';
@@ -15,94 +17,133 @@ const SecurityDashboard: React.FC = () => {
     return 'text-red-600';
   };
 
-  const getSecurityBadge = (isSecure: boolean) => {
-    return isSecure ? (
-      <Badge variant="default" className="bg-green-100 text-green-800">
-        <CheckCircle className="w-3 h-3 mr-1" />
-        Seguro
-      </Badge>
-    ) : (
-      <Badge variant="destructive">
-        <AlertTriangle className="w-3 h-3 mr-1" />
-        Atenção Necessária
-      </Badge>
-    );
+  const getScoreBadge = (score: number) => {
+    if (score >= 80) return 'default';
+    if (score >= 60) return 'secondary';
+    return 'destructive';
   };
 
-  if (loading || !auditResult) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Shield className="w-5 h-5 mr-2" />
-            Painel de Segurança
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <RefreshCw className="w-6 h-6 animate-spin mr-2" />
-            Executando auditoria de segurança...
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Shield className="w-5 h-5 mr-2" />
-            Painel de Segurança
-          </div>
-          <Button variant="outline" size="sm" onClick={runSecurityAudit}>
-            <RefreshCw className="w-4 h-4 mr-1" />
-            Atualizar
-          </Button>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Status Geral:</span>
-          {getSecurityBadge(auditResult.isSecure)}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Shield className="h-6 w-6 text-primary" />
+          <h2 className="text-2xl font-bold">Dashboard de Segurança</h2>
         </div>
+        <Button 
+          onClick={runSecurityAudit} 
+          disabled={loading}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Executar Auditoria
+        </Button>
+      </div>
 
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Pontuação de Segurança:</span>
-          <span className={`text-2xl font-bold ${getScoreColor(auditResult.score)}`}>
-            {auditResult.score}/100
-          </span>
-        </div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Security Score */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pontuação de Segurança</CardTitle>
+            <Shield className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${getScoreColor(auditResult?.score || 0)}`}>
+              {auditResult?.score || 0}/100
+            </div>
+            <Badge variant={getScoreBadge(auditResult?.score || 0)} className="mt-2">
+              {auditResult?.isSecure ? 'Seguro' : 'Requer Atenção'}
+            </Badge>
+          </CardContent>
+        </Card>
 
-        {auditResult.warnings.length > 0 && (
-          <div>
-            <h4 className="text-sm font-medium text-orange-600 mb-2">Avisos:</h4>
-            <ul className="space-y-1">
+        {/* Security Events */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Eventos de Segurança</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{securityStats.totalEvents}</div>
+            <p className="text-xs text-muted-foreground">
+              {securityStats.failedAttempts} tentativas falharam
+            </p>
+            {securityStats.suspiciousActivity && (
+              <Badge variant="destructive" className="mt-2">
+                Atividade Suspeita Detectada
+              </Badge>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Last Activity */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Última Atividade</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm">
+              {securityStats.lastActivity 
+                ? new Date(securityStats.lastActivity).toLocaleString('pt-BR')
+                : 'Nenhuma atividade registrada'
+              }
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Security Warnings */}
+      {auditResult?.warnings && auditResult.warnings.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-600" />
+              Avisos de Segurança
+            </CardTitle>
+            <CardDescription>
+              Questões que requerem atenção para melhorar a segurança
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
               {auditResult.warnings.map((warning, index) => (
-                <li key={index} className="text-sm text-orange-600 flex items-center">
-                  <AlertTriangle className="w-3 h-3 mr-1" />
-                  {warning}
+                <li key={index} className="flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">{warning}</span>
                 </li>
               ))}
             </ul>
-          </div>
-        )}
+          </CardContent>
+        </Card>
+      )}
 
-        {auditResult.recommendations.length > 0 && (
-          <div>
-            <h4 className="text-sm font-medium text-blue-600 mb-2">Recomendações:</h4>
-            <ul className="space-y-1">
-              {auditResult.recommendations.map((rec, index) => (
-                <li key={index} className="text-sm text-blue-600">
-                  • {rec}
+      {/* Security Recommendations */}
+      {auditResult?.recommendations && auditResult.recommendations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Recomendações
+            </CardTitle>
+            <CardDescription>
+              Ações sugeridas para melhorar a segurança
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {auditResult.recommendations.map((recommendation, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">{recommendation}</span>
                 </li>
               ))}
             </ul>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 

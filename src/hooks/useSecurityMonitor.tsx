@@ -94,7 +94,7 @@ export const useSecurityMonitor = () => {
     if (!user?.id) return;
 
     try {
-      await supabase.rpc('log_security_event', {
+      await supabase.rpc('log_security_event_enhanced', {
         p_user_id: user.id,
         p_action: action,
         p_resource_type: resourceType,

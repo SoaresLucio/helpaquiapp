@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { secureApiManager } from '@/utils/secureApiManager';
 
 // Environment configuration for secure API key management
 class EnvironmentConfig {
@@ -10,16 +10,20 @@ class EnvironmentConfig {
     }
     
     try {
-      const { data, error } = await supabase.functions.invoke('get-secret', {
-        body: { name: 'GOOGLE_MAPS_API_KEY' }
-      });
+      const key = await secureApiManager.getApiKey('GOOGLE_MAPS_API_KEY');
       
-      if (error) {
-        console.error('Error fetching Google Maps API key:', error);
+      if (!key) {
+        console.warn('Google Maps API key not found in Supabase secrets');
         return 'YOUR_GOOGLE_MAPS_API_KEY_HERE';
       }
       
-      this._googleMapsApiKey = data.value || 'YOUR_GOOGLE_MAPS_API_KEY_HERE';
+      // Validate key format
+      if (!secureApiManager.validateApiKeyFormat(key, 'google')) {
+        console.warn('Invalid Google Maps API key format');
+        return 'YOUR_GOOGLE_MAPS_API_KEY_HERE';
+      }
+      
+      this._googleMapsApiKey = key;
       return this._googleMapsApiKey;
     } catch (error) {
       console.error('Error fetching Google Maps API key:', error);
