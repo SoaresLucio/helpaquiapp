@@ -50,33 +50,26 @@ export const calculatePlatformFee = (amount: number): { fee: number; freelancerA
   return { fee, freelancerAmount };
 };
 
-// Create payment with Asaas
+// Create payment with Asaas using Supabase Edge Functions
 export const createAsaasPayment = async (paymentRequest: AsaasPaymentRequest): Promise<AsaasPaymentResponse> => {
   try {
-    const { fee, freelancerAmount } = calculatePlatformFee(paymentRequest.amount);
+    const { supabase } = await import('@/integrations/supabase/client');
     
-    const response = await fetch('/api/asaas/create-payment', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    const { data, error } = await supabase.functions.invoke('process-asaas-payment', {
+      body: {
         ...paymentRequest,
-        platformFee: fee,
-        freelancerAmount
-      })
+        clientId: 'client-placeholder' // Will be updated with actual client ID
+      }
     });
 
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to create payment');
+    if (error) {
+      throw new Error(error.message);
     }
     
     return {
       success: true,
-      url: data.invoiceUrl,
-      paymentId: data.id
+      url: `data:image/png;base64,${data.qrCodeUrl}`,
+      paymentId: data.paymentId
     };
   } catch (error) {
     console.error('Asaas payment creation error:', error);
@@ -87,13 +80,21 @@ export const createAsaasPayment = async (paymentRequest: AsaasPaymentRequest): P
   }
 };
 
-// Check payment status
+// Check payment status using Supabase Edge Functions
 export const checkAsaasPaymentStatus = async (paymentId: string): Promise<boolean> => {
   try {
-    const response = await fetch(`/api/asaas/check-payment/${paymentId}`);
-    const data = await response.json();
+    const { supabase } = await import('@/integrations/supabase/client');
     
-    return data.status === 'RECEIVED';
+    const { data, error } = await supabase.functions.invoke('check-asaas-payment', {
+      body: { paymentId }
+    });
+
+    if (error) {
+      console.error('Error checking payment status:', error);
+      return false;
+    }
+
+    return data?.isPaid || false;
   } catch (error) {
     console.error('Asaas payment status check error:', error);
     return false;

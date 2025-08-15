@@ -1,0 +1,52 @@
+{
+  "appName": "HelpAqui",
+  "appId": "app.lovable.526c08defd31451ba6a1412472dd4406",
+  "version": "1.0.0",
+  "buildNumber": "1",
+  "description": {
+    "pt-BR": "Conecte-se com freelancers qualificados para todos os seus projetos. A maior plataforma de serviços freelancer do Brasil.",
+    "en-US": "Connect with qualified freelancers for all your projects. Brazil's largest freelance services platform."
+  },
+  "keywords": [
+    "freelancer",
+    "serviços",
+    "trabalho",
+    "projetos",
+    "contratação",
+    "Brasil",
+    "freelance",
+    "services",
+    "work",
+    "projects",
+    "hiring",
+    "Brazil"
+  ],
+  "category": "Business",
+  "contentRating": "4+",
+  "supportEmail": "support@helpaqui.com",
+  "privacyPolicyUrl": "https://helpaqui.com/privacy",
+  "termsOfServiceUrl": "https://helpaqui.com/terms",
+  "screenshots": {
+    "ios": [
+      "screenshot-1.png",
+      "screenshot-2.png",
+      "screenshot-3.png"
+    ],
+    "android": [
+      "screenshot-1.png",
+      "screenshot-2.png", 
+      "screenshot-3.png"
+    ]
+  },
+  "appIcon": {
+    "1024x1024": "app-icon-1024.png"
+  },
+  "features": [
+    "Busca de freelancers por categoria",
+    "Sistema de avaliações",
+    "Chat em tempo real",
+    "Pagamentos seguros via PIX",
+    "Perfis verificados",
+    "Notificações push"
+  ]
+}

@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -1649,14 +1649,14 @@ export type Database = {
     }
     Functions: {
       check_message_limit: {
-        Args: { p_user_id: string; p_other_user_id: string }
+        Args: { p_other_user_id: string; p_user_id: string }
         Returns: boolean
       }
       check_rate_limit: {
         Args: {
-          p_user_id: string
           p_action_type: string
           p_max_requests?: number
+          p_user_id: string
           p_window_minutes?: number
         }
         Returns: boolean
@@ -1680,15 +1680,15 @@ export type Database = {
       get_bank_details_decrypted: {
         Args: { p_user_id: string }
         Returns: {
-          id: string
-          user_id: string
-          bank_name: string
-          account_type: string
           account_number: string
+          account_type: string
+          bank_name: string
           branch: string
-          document: string
           created_at: string
+          document: string
+          id: string
           updated_at: string
+          user_id: string
         }[]
       }
       get_current_user_role: {
@@ -1698,32 +1698,32 @@ export type Database = {
       has_role: {
         Args:
           | {
-              _user_id: string
               _role: Database["public"]["Enums"]["user_role"]
+              _user_id: string
             }
-          | { _user_id: string; _role: string }
-          | { user_id: number; role_name: string }
+          | { _role: string; _user_id: string }
+          | { role_name: string; user_id: number }
         Returns: boolean
       }
       insert_bank_details: {
         Args: {
-          p_user_id: string
-          p_bank_name: string
-          p_account_type: string
           p_account_number: string
+          p_account_type: string
+          p_bank_name: string
           p_branch: string
           p_document: string
+          p_user_id: string
         }
         Returns: boolean
       }
       insert_bank_details_encrypted: {
         Args: {
-          p_user_id: string
-          p_bank_name: string
-          p_account_type: string
           p_account_number: string
+          p_account_type: string
+          p_bank_name: string
           p_branch: string
           p_document: string
+          p_user_id: string
         }
         Returns: boolean
       }
@@ -1731,29 +1731,29 @@ export type Database = {
         Args:
           | Record<PropertyKey, never>
           | {
-              p_user_id: string
               p_action: string
-              p_resource_type: string
-              p_resource_id?: string
-              p_ip_address?: unknown
-              p_user_agent?: string
-              p_success?: boolean
               p_error_message?: string
+              p_ip_address?: unknown
               p_metadata?: Json
+              p_resource_id?: string
+              p_resource_type: string
+              p_success?: boolean
+              p_user_agent?: string
+              p_user_id: string
             }
         Returns: undefined
       }
       log_security_event_enhanced: {
         Args: {
-          p_user_id: string
           p_action: string
-          p_resource_type: string
-          p_resource_id?: string
-          p_ip_address?: unknown
-          p_user_agent?: string
-          p_success?: boolean
           p_error_message?: string
+          p_ip_address?: unknown
           p_metadata?: Json
+          p_resource_id?: string
+          p_resource_type: string
+          p_success?: boolean
+          p_user_agent?: string
+          p_user_id: string
         }
         Returns: undefined
       }
