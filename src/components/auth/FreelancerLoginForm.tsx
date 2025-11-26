@@ -2,12 +2,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SecureInput } from '@/components/security/SecureInput';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { signIn, signInWithGoogle } from '@/services/authService';
+import { validateEmail } from '@/utils/inputValidation';
+import { useRateLimit } from '@/hooks/useRateLimit';
 import GoogleIcon from './GoogleIcon';
 
 interface FreelancerLoginFormProps {
@@ -25,11 +27,41 @@ const FreelancerLoginForm: React.FC<FreelancerLoginFormProps> = ({
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { checkRateLimit } = useRateLimit();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loginAttempts, setLoginAttempts] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate email format
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      toast({
+        title: "Erro de validação",
+        description: emailValidation.errors[0],
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Password length check
+    if (!password || password.length < 6) {
+      toast({
+        title: "Erro de validação",
+        description: "A senha deve ter pelo menos 6 caracteres",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Rate limiting
+    const isLimited = await checkRateLimit('login', 5, 60);
+    if (isLimited) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -42,10 +74,12 @@ const FreelancerLoginForm: React.FC<FreelancerLoginFormProps> = ({
       
       navigate('/');
     } catch (error) {
-      console.error("Login error:", error);
-      let errorMessage = "Email ou senha incorretos. Por favor, tente novamente.";
-      if (error instanceof Error) {
-        errorMessage = error.message;
+      setLoginAttempts(prev => prev + 1);
+      
+      let errorMessage = "Credenciais inválidas. Verifique seu email e senha.";
+      
+      if (loginAttempts >= 3) {
+        errorMessage = "Múltiplas tentativas de login falhadas. Sua conta pode ser temporariamente bloqueada por segurança.";
       }
       
       toast({
@@ -86,24 +120,22 @@ const FreelancerLoginForm: React.FC<FreelancerLoginFormProps> = ({
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="freelancer-email">Email</Label>
-            <Input 
-              id="freelancer-email" 
+            <SecureInput 
               type="email" 
               placeholder="seu@email.com" 
               value={email} 
-              onChange={e => setEmail(e.target.value)} 
-              required 
+              onChange={setEmail}
+              showSecurityIndicator
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="freelancer-password">Senha</Label>
-            <Input 
-              id="freelancer-password" 
+            <SecureInput 
               type="password" 
               placeholder="Digite sua senha"
               value={password} 
-              onChange={e => setPassword(e.target.value)} 
-              required 
+              onChange={setPassword}
+              autoSanitize={false}
             />
             <div className="flex justify-end">
               <Button variant="link" size="sm" className="text-xs p-0" onClick={() => navigate('/reset-password')}>
