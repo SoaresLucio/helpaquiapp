@@ -329,6 +329,30 @@ export type Database = {
           },
         ]
       }
+      failed_login_attempts: {
+        Row: {
+          attempted_at: string | null
+          email: string
+          id: string
+          ip_address: unknown
+          user_agent: string | null
+        }
+        Insert: {
+          attempted_at?: string | null
+          email: string
+          id?: string
+          ip_address?: unknown
+          user_agent?: string | null
+        }
+        Update: {
+          attempted_at?: string | null
+          email?: string
+          id?: string
+          ip_address?: unknown
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       freelancer_offers: {
         Row: {
           availability: string | null
@@ -1092,7 +1116,7 @@ export type Database = {
           created_at: string | null
           error_message: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           resource_id: string | null
           resource_type: string
@@ -1105,7 +1129,7 @@ export type Database = {
           created_at?: string | null
           error_message?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           resource_id?: string | null
           resource_type: string
@@ -1118,7 +1142,7 @@ export type Database = {
           created_at?: string | null
           error_message?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           resource_id?: string | null
           resource_type?: string
@@ -1661,22 +1685,13 @@ export type Database = {
         }
         Returns: boolean
       }
-      check_request_limit: {
-        Args: { p_user_id: string }
-        Returns: boolean
-      }
+      check_request_limit: { Args: { p_user_id: string }; Returns: boolean }
       decrypt_sensitive_data: {
         Args: { encrypted_data: string }
         Returns: string
       }
-      encrypt_sensitive_data: {
-        Args: { data: string }
-        Returns: string
-      }
-      generate_pix_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      encrypt_sensitive_data: { Args: { data: string }; Returns: string }
+      generate_pix_code: { Args: never; Returns: string }
       get_bank_details_decrypted: {
         Args: { p_user_id: string }
         Returns: {
@@ -1691,20 +1706,17 @@ export type Database = {
           user_id: string
         }[]
       }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      has_role: {
-        Args:
-          | {
+      get_current_user_role: { Args: never; Returns: string }
+      has_role:
+        | { Args: { role_name: string; user_id: number }; Returns: boolean }
+        | { Args: { _role: string; _user_id: string }; Returns: boolean }
+        | {
+            Args: {
               _role: Database["public"]["Enums"]["user_role"]
               _user_id: string
             }
-          | { _role: string; _user_id: string }
-          | { role_name: string; user_id: number }
-        Returns: boolean
-      }
+            Returns: boolean
+          }
       insert_bank_details: {
         Args: {
           p_account_number: string
@@ -1727,10 +1739,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      log_security_event: {
-        Args:
-          | Record<PropertyKey, never>
-          | {
+      log_security_event:
+        | {
+            Args: {
               p_action: string
               p_error_message?: string
               p_ip_address?: unknown
@@ -1741,8 +1752,9 @@ export type Database = {
               p_user_agent?: string
               p_user_id: string
             }
-        Returns: undefined
-      }
+            Returns: undefined
+          }
+        | { Args: never; Returns: undefined }
       log_security_event_enhanced: {
         Args: {
           p_action: string

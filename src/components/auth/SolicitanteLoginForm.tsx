@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { signIn, signInWithGoogle } from '@/services/authService';
+import { validateEmail } from '@/utils/inputValidation';
+import { useRateLimit } from '@/hooks/useRateLimit';
 import GoogleIcon from './GoogleIcon';
 
 interface SolicitanteLoginFormProps {
@@ -25,11 +27,41 @@ const SolicitanteLoginForm: React.FC<SolicitanteLoginFormProps> = ({
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { checkRateLimit } = useRateLimit();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loginAttempts, setLoginAttempts] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate email format before proceeding
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      toast({
+        title: "Erro de validação",
+        description: emailValidation.errors[0],
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Password length check
+    if (!password || password.length < 6) {
+      toast({
+        title: "Erro de validação",
+        description: "A senha deve ter pelo menos 6 caracteres",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check rate limit (max 5 attempts per hour)
+    const isLimited = await checkRateLimit('login', 5, 60);
+    if (isLimited) {
+      return; // Toast is shown by useRateLimit hook
+    }
+
     setIsLoading(true);
 
     try {
@@ -42,10 +74,14 @@ const SolicitanteLoginForm: React.FC<SolicitanteLoginFormProps> = ({
       
       navigate('/');
     } catch (error) {
-      console.error("Login error:", error);
-      let errorMessage = "Email ou senha incorretos. Por favor, tente novamente.";
-      if (error instanceof Error) {
-        errorMessage = error.message;
+      setLoginAttempts(prev => prev + 1);
+      
+      // Generic error message for security - don't reveal if email exists
+      let errorMessage = "Credenciais inválidas. Verifique seu email e senha.";
+      
+      // Show specific lockout warning after multiple attempts
+      if (loginAttempts >= 3) {
+        errorMessage = "Múltiplas tentativas de login falhadas. Sua conta pode ser temporariamente bloqueada por segurança.";
       }
       
       toast({
