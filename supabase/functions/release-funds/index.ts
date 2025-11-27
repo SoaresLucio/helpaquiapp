@@ -26,6 +26,19 @@ serve(async (req) => {
       throw new Error("Authorization required");
     }
 
+    // Validar token JWT e obter usuário
+    const token = authHeader.replace('Bearer ', '');
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    if (authError || !user) {
+      throw new Error("Invalid authentication token");
+    }
+
     const { paymentId } = await req.json();
 
     // Get payment details
@@ -37,6 +50,11 @@ serve(async (req) => {
 
     if (paymentError || !payment) {
       throw new Error("Payment not found");
+    }
+
+    // Verificar se o usuário autenticado é o cliente que fez o pagamento
+    if (payment.client_id !== user.id) {
+      throw new Error("Unauthorized: Only the payment client can release funds");
     }
 
     if (payment.status !== "processing") {

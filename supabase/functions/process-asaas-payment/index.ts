@@ -12,7 +12,40 @@ serve(async (req) => {
   }
 
   try {
+    // Validação de autenticação
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Validar token JWT
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    })
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser()
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const { amount, description, freelancerId, serviceId, clientId } = await req.json()
+    
+    // Verificar se o usuário autenticado é o cliente
+    if (user.id !== clientId) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: User cannot create payment for another client' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
     
     if (!amount || !description || !freelancerId || !serviceId || !clientId) {
       return new Response(
@@ -73,8 +106,6 @@ serve(async (req) => {
     const asaasPayment = await asaasResponse.json()
 
     // Store payment in database
-    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
