@@ -50,13 +50,19 @@ const Index = () => {
     navigate('/chat');
   };
 
+  // Handle user type redirect properly in useEffect
+  useEffect(() => {
+    if (!loading && !userType) {
+      navigate('/user-type');
+    }
+  }, [loading, userType, navigate]);
+
   if (loading) {
     return <LoadingScreen />;
   }
 
   if (!userType) {
-    navigate('/user-type');
-    return null;
+    return <LoadingScreen />;
   }
 
   return (

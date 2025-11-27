@@ -63,14 +63,12 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-                helpaqui: {
-                    blue: '#1E40AF',
-                    green: '#10B981',
-                    lightBlue: '#93C5FD',
-                    lightGreen: '#A7F3D0',
-                    gray: '#F3F4F6',
-                    darkGray: '#4B5563'
-                }
+                'helpaqui-blue': 'hsl(var(--helpaqui-blue))',
+                'helpaqui-green': 'hsl(var(--helpaqui-green))',
+                'helpaqui-light-blue': 'hsl(var(--helpaqui-light-blue))',
+                'helpaqui-light-green': 'hsl(var(--helpaqui-light-green))',
+                'helpaqui-gray': 'hsl(var(--helpaqui-gray))',
+                'helpaqui-dark-gray': 'hsl(var(--helpaqui-dark-gray))'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

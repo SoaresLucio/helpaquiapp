@@ -30,6 +30,14 @@
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
   --radius: 0.5rem;
+  
+  /* HelpAqui brand colors in HSL */
+  --helpaqui-blue: 217 91% 40%;
+  --helpaqui-green: 160 84% 39%;
+  --helpaqui-light-blue: 213 97% 79%;
+  --helpaqui-light-green: 160 83% 80%;
+  --helpaqui-gray: 220 13% 96%;
+  --helpaqui-dark-gray: 220 9% 35%;
 }
 
 .dark {
@@ -81,22 +89,6 @@ body {
 /* Custom styles for HelpAqui */
 .helpaqui-container {
   @apply max-w-7xl mx-auto px-4;
-}
-
-.helpaqui-blue {
-  color: #2563eb;
-}
-
-.bg-helpaqui-blue {
-  background-color: #2563eb;
-}
-
-.helpaqui-green {
-  color: #10b981;
-}
-
-.bg-helpaqui-green {
-  background-color: #10b981;
 }
 
 .border-helpaqui-blue {
