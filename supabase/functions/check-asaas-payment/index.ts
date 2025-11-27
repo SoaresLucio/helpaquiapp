@@ -12,6 +12,31 @@ serve(async (req) => {
   }
 
   try {
+    // Validação de autenticação
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Validar token JWT
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    })
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser()
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const { paymentId } = await req.json()
     
     if (!paymentId) {
