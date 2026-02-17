@@ -1708,7 +1708,6 @@ export type Database = {
       }
       get_current_user_role: { Args: never; Returns: string }
       has_role:
-        | { Args: { role_name: string; user_id: number }; Returns: boolean }
         | { Args: { _role: string; _user_id: string }; Returns: boolean }
         | {
             Args: {
@@ -1717,6 +1716,7 @@ export type Database = {
             }
             Returns: boolean
           }
+        | { Args: { role_name: string; user_id: number }; Returns: boolean }
       insert_bank_details: {
         Args: {
           p_account_number: string
@@ -1740,6 +1740,7 @@ export type Database = {
         Returns: boolean
       }
       log_security_event:
+        | { Args: never; Returns: undefined }
         | {
             Args: {
               p_action: string
@@ -1754,7 +1755,6 @@ export type Database = {
             }
             Returns: undefined
           }
-        | { Args: never; Returns: undefined }
       log_security_event_enhanced: {
         Args: {
           p_action: string

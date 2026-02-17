@@ -20,10 +20,12 @@ const validateAndSanitizeInput = (input: any) => {
     throw new Error('Message content is required');
   }
   
-  // Sanitize content
+  // Sanitize content - strip HTML tags and limit length
   const sanitizedContent = content
     .trim()
-    .replace(/[<>]/g, '') // Remove potential XSS characters
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/on\w+\s*=/gi, '') // Remove event handlers
     .slice(0, 2000); // Limit length
   
   const allowedMessageTypes = ['text', 'image', 'file', 'schedule_suggestion'];
