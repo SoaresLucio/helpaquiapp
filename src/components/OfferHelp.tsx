@@ -29,10 +29,8 @@ const OfferHelp: React.FC = () => {
     handleAddCustomCategory
   } = useOfferForm();
 
-  const handleAddPhoto = () => {
-    // Simulação de upload de foto
-    const newPhoto = '/placeholder.svg';
-    setPhotos([...photos, newPhoto]);
+  const handleAddPhoto = (url: string) => {
+    setPhotos([...photos, url]);
   };
   
   const handleRemovePhoto = (index: number) => {

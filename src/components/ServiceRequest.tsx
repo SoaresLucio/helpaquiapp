@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Camera, 
   MapPin, 
   Calendar, 
   DollarSign,
   Plus,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +40,8 @@ const ServiceRequest: React.FC = () => {
   const [isVerified, setIsVerified] = useState(false);
   const [hasPaymentMethod, setHasPaymentMethod] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   React.useEffect(() => {
     setTimeout(() => {
@@ -75,9 +78,37 @@ const ServiceRequest: React.FC = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
   
-  const handleAddPhoto = () => {
-    if (photos.length < 5) {
-      setPhotos([...photos, '/placeholder.svg']);
+  const handleAddPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || photos.length >= 5) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({ title: "Formato inválido", description: "Apenas JPG, PNG, WebP e GIF.", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Muito grande", description: "Máximo 5MB por foto.", variant: "destructive" });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Não autenticado');
+
+      const ext = file.name.split('.').pop();
+      const path = `${user.id}/request-${Date.now()}.${ext}`;
+      const { data, error } = await supabase.storage.from('avatars').upload(path, file, { cacheControl: '3600' });
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(data.path);
+      setPhotos(prev => [...prev, urlData.publicUrl]);
+    } catch {
+      toast({ title: "Erro", description: "Falha no upload da foto.", variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
   
@@ -335,14 +366,21 @@ const ServiceRequest: React.FC = () => {
         
         <div>
           <label className="block text-sm font-medium mb-2">Fotos</label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            onChange={handleAddPhoto}
+            className="hidden"
+          />
           <div className="flex flex-wrap gap-2">
             {photos.map((photo, index) => (
-              <div key={index} className="relative w-20 h-20 rounded-md overflow-hidden border border-gray-200">
+              <div key={index} className="relative w-20 h-20 rounded-md overflow-hidden border border-border">
                 <img src={photo} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
                 <button
                   type="button"
                   onClick={() => handleRemovePhoto(index)}
-                  className="absolute top-0 right-0 bg-red-500 text-white rounded-bl-md p-1"
+                  className="absolute top-0 right-0 bg-destructive text-destructive-foreground rounded-bl-md p-1"
                 >
                   ×
                 </button>
@@ -352,15 +390,20 @@ const ServiceRequest: React.FC = () => {
             {photos.length < 5 && (
               <button
                 type="button"
-                onClick={handleAddPhoto}
-                className="w-20 h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-md hover:border-helpaqui-blue"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-20 h-20 flex items-center justify-center border border-dashed border-muted-foreground/40 rounded-md hover:border-primary"
               >
-                <Plus className="h-6 w-6 text-gray-400" />
+                {uploading ? (
+                  <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+                ) : (
+                  <Plus className="h-6 w-6 text-muted-foreground" />
+                )}
               </button>
             )}
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Adicione até 5 fotos para ajudar os freelancers
+          <p className="text-xs text-muted-foreground mt-1">
+            Adicione até 5 fotos (JPG, PNG, WebP - máx. 5MB cada)
           </p>
         </div>
         

@@ -11,8 +11,11 @@ import {
   Calendar,
   Clock,
   Image,
-  FileText
+  FileText,
+  ShieldAlert
 } from 'lucide-react';
+import { filterChatMessage } from '@/utils/chatContentFilter';
+import { useToast } from '@/components/ui/use-toast';
 import {
   Popover,
   PopoverContent,
@@ -33,6 +36,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [message, setMessage] = useState('');
   const [showQuickMessages, setShowQuickMessages] = useState(false);
   const [showSchedulePicker, setShowSchedulePicker] = useState(false);
+  const [blockWarning, setBlockWarning] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Mensagens rápidas baseadas no tipo de usuário
   const quickMessages = {
@@ -61,6 +66,20 @@ const ChatInput: React.FC<ChatInputProps> = ({
     e.preventDefault();
     if (!message.trim()) return;
 
+    // Check for blocked content (phone numbers, WhatsApp, etc.)
+    const filterResult = filterChatMessage(message.trim());
+    if (filterResult.isBlocked) {
+      setBlockWarning(filterResult.reason || 'Mensagem bloqueada');
+      toast({
+        title: "⚠️ Mensagem bloqueada",
+        description: filterResult.reason,
+        variant: "destructive"
+      });
+      setTimeout(() => setBlockWarning(null), 5000);
+      return;
+    }
+
+    setBlockWarning(null);
     const success = onSendMessage(message.trim());
     if (success) {
       setMessage('');
@@ -104,7 +123,15 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="p-4 border-t bg-white">
+    <div className="p-4 border-t bg-background">
+      {/* Block warning */}
+      {blockWarning && (
+        <div className="mb-3 p-3 bg-destructive/10 border border-destructive/30 rounded-lg flex items-center gap-2">
+          <ShieldAlert className="h-4 w-4 text-destructive shrink-0" />
+          <span className="text-sm text-destructive">{blockWarning}</span>
+        </div>
+      )}
+
       {/* Mensagens rápidas */}
       {showQuickMessages && (
         <div className="mb-3 p-3 bg-gray-50 rounded-lg">

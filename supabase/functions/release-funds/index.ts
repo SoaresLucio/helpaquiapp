@@ -1,6 +1,4 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -14,126 +12,163 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
     // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      throw new Error("Authorization required");
+      return new Response(
+        JSON.stringify({ error: "Authorization required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Validar token JWT e obter usuário
-    const token = authHeader.replace('Bearer ', '');
-    const supabaseAuth = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
 
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
     if (authError || !user) {
-      throw new Error("Invalid authentication token");
+      return new Response(
+        JSON.stringify({ error: "Invalid authentication" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const { paymentId } = await req.json();
+    if (!paymentId) {
+      return new Response(
+        JSON.stringify({ error: "Payment ID is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false }
+    });
 
     // Get payment details
-    const { data: payment, error: paymentError } = await supabaseClient
+    const { data: payment, error: paymentError } = await supabase
       .from("payments")
       .select("*")
       .eq("id", paymentId)
       .single();
 
     if (paymentError || !payment) {
-      throw new Error("Payment not found");
+      return new Response(
+        JSON.stringify({ error: "Payment not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Verificar se o usuário autenticado é o cliente que fez o pagamento
+    // Only the client who made the payment can release funds
     if (payment.client_id !== user.id) {
-      throw new Error("Unauthorized: Only the payment client can release funds");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    if (payment.status !== "processing") {
-      throw new Error("Payment not in processing status");
+    if (payment.status !== "processing" && payment.status !== "completed") {
+      return new Response(
+        JSON.stringify({ error: "Payment not eligible for fund release" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2023-10-16",
-    });
+    // Use Asaas API to create a transfer to the freelancer
+    const asaasApiKey = Deno.env.get("ASAAS_API_KEY");
+    if (!asaasApiKey) {
+      return new Response(
+        JSON.stringify({ error: "Payment provider not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Get freelancer bank details
-    const { data: bankDetails, error: bankError } = await supabaseClient
+    const { data: bankDetails, error: bankError } = await supabase
       .from("bank_details")
       .select("*")
       .eq("user_id", payment.freelancer_id)
       .single();
 
     if (bankError || !bankDetails) {
-      throw new Error("Freelancer bank details not found");
+      return new Response(
+        JSON.stringify({ error: "Freelancer bank details not found" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // In a real implementation, you would:
-    // 1. Create a Stripe transfer to the freelancer's connected account
-    // 2. Or use a third-party payment processor for bank transfers
-    // For now, we'll simulate the transfer
-
-    console.log("Simulating fund transfer:", {
-      amount: payment.freelancer_amount,
-      freelancerId: payment.freelancer_id,
-      bankDetails: {
-        bank: bankDetails.bank_name,
-        account: bankDetails.account_number.slice(-4), // Only log last 4 digits
-      }
+    // Create Asaas transfer
+    const transferResponse = await fetch("https://www.asaas.com/api/v3/transfers", {
+      method: "POST",
+      headers: {
+        "access_token": asaasApiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        value: payment.freelancer_amount / 100, // Convert cents to reais
+        bankAccount: {
+          bank: { code: bankDetails.bank_name },
+          accountName: "Freelancer",
+          account: bankDetails.account_number,
+          accountDigit: "",
+          agency: bankDetails.branch,
+          agencyDigit: "",
+          ownerName: "Freelancer",
+          cpfCnpj: bankDetails.document,
+          type: bankDetails.account_type === "corrente" ? "CONTA_CORRENTE" : "CONTA_POUPANCA",
+        },
+        operationType: "PIX",
+        description: `Repasse serviço ${payment.service_id}`,
+      }),
     });
 
-    // Update payment status to completed
-    const { error: updateError } = await supabaseClient
-      .from("payments")
-      .update({ 
-        status: "completed",
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", paymentId);
+    if (!transferResponse.ok) {
+      // Update status but don't expose API details
+      await supabase
+        .from("payments")
+        .update({ status: "transfer_failed", updated_at: new Date().toISOString() })
+        .eq("id", paymentId);
 
-    if (updateError) {
-      throw updateError;
+      return new Response(
+        JSON.stringify({ error: "Fund transfer failed" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Log the transaction for audit trail
-    await supabaseClient.from("payment_logs").insert({
+    // Update payment status to completed
+    await supabase
+      .from("payments")
+      .update({ status: "completed", updated_at: new Date().toISOString() })
+      .eq("id", paymentId);
+
+    // Log the transaction
+    await supabase.from("payment_logs").insert({
       payment_id: paymentId,
       action: "funds_released",
       amount: payment.freelancer_amount,
-      created_at: new Date().toISOString(),
+    });
+
+    // Notify freelancer
+    await supabase.from("notifications").insert({
+      user_id: payment.freelancer_id,
+      title: "Pagamento recebido!",
+      message: `Você recebeu R$ ${(payment.freelancer_amount / 100).toFixed(2)} pelo serviço realizado.`,
+      type: "success",
+      metadata: { payment_id: paymentId },
     });
 
     return new Response(
-      JSON.stringify({ 
-        success: true,
-        message: "Funds released successfully"
-      }),
-      { 
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200 
-      }
+      JSON.stringify({ success: true, message: "Funds released successfully" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-
   } catch (error) {
-    console.error("Fund release error:", error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message || "Fund release failed"
-      }),
-      { 
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400 
-      }
+      JSON.stringify({ error: "Fund release failed" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BriefcaseBusiness, UserRound } from 'lucide-react';
+import { BriefcaseBusiness, UserRound, Shield, Zap } from 'lucide-react';
 import LoginHeader from '@/components/auth/LoginHeader';
 import SolicitanteLoginForm from '@/components/auth/SolicitanteLoginForm';
 import FreelancerLoginForm from '@/components/auth/FreelancerLoginForm';
@@ -11,16 +11,16 @@ const Login = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex flex-col items-center justify-center p-4">
       <LoginHeader />
 
       <Tabs defaultValue="solicitante" className="w-full max-w-md">
-        <TabsList className="grid grid-cols-2 mb-8">
-          <TabsTrigger value="solicitante" className="flex items-center gap-2">
+        <TabsList className="grid grid-cols-2 mb-6 h-12">
+          <TabsTrigger value="solicitante" className="flex items-center gap-2 text-sm font-medium">
             <UserRound className="h-4 w-4" />
             Solicitante
           </TabsTrigger>
-          <TabsTrigger value="freelancer" className="flex items-center gap-2">
+          <TabsTrigger value="freelancer" className="flex items-center gap-2 text-sm font-medium">
             <BriefcaseBusiness className="h-4 w-4" />
             Freelancer
           </TabsTrigger>
@@ -44,6 +44,25 @@ const Login = () => {
           />
         </TabsContent>
       </Tabs>
+
+      {/* Security badges */}
+      <div className="mt-6 flex items-center gap-4 text-xs text-muted-foreground">
+        <div className="flex items-center gap-1">
+          <Shield className="h-3 w-3" />
+          <span>SSL Protegido</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Zap className="h-3 w-3" />
+          <span>Dados criptografados</span>
+        </div>
+      </div>
+
+      {/* Footer links */}
+      <div className="mt-4 flex items-center gap-3 text-xs text-muted-foreground">
+        <button type="button" className="hover:underline" onClick={() => {}}>Política de Privacidade</button>
+        <span>•</span>
+        <button type="button" className="hover:underline" onClick={() => {}}>Termos de Uso</button>
+      </div>
     </div>
   );
 };
