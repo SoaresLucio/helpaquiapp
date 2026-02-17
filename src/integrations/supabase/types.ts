@@ -527,6 +527,13 @@ export type Database = {
             referencedRelation: "job_listings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "job_applications_job_listing_id_fkey"
+            columns: ["job_listing_id"]
+            isOneToOne: false
+            referencedRelation: "public_job_listings"
+            referencedColumns: ["id"]
+          },
         ]
       }
       job_listings: {
@@ -1102,10 +1109,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reviews_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reviews_reviewer_id_fkey"
             columns: ["reviewer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1635,7 +1656,101 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "reviews_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      public_job_listings: {
+        Row: {
+          benefits: string | null
+          company_name: string | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          is_active: boolean | null
+          job_type: string | null
+          location: string | null
+          location_address: string | null
+          location_lat: number | null
+          location_lng: number | null
+          requirements: string | null
+          salary_range: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          benefits?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          job_type?: string | null
+          location?: string | null
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          requirements?: string | null
+          salary_range?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          benefits?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          job_type?: string | null
+          location?: string | null
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          requirements?: string | null
+          salary_range?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          cover_photo: string | null
+          created_at: string | null
+          first_name: string | null
+          id: string | null
+          last_name: string | null
+          user_type: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          cover_photo?: string | null
+          created_at?: string | null
+          first_name?: string | null
+          id?: string | null
+          last_name?: string | null
+          user_type?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          avatar_url?: string | null
+          cover_photo?: string | null
+          created_at?: string | null
+          first_name?: string | null
+          id?: string | null
+          last_name?: string | null
+          user_type?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
       }
       verificacoes: {
         Row: {
@@ -1769,6 +1884,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      user_owns_job_listing: { Args: { listing_id: string }; Returns: boolean }
     }
     Enums: {
       user_role: "user" | "helpadmin"

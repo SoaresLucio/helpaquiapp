@@ -6,7 +6,53 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Input validation and sanitization
+// Input validation, sanitization, and phone number blocking
+const PHONE_PATTERNS = [
+  /\(?\d{2}\)?\s*\d{4,5}[-.\s]?\d{4}/g,
+  /(\d[\s\-._]*){8,}/g,
+  /(\d\s+){6,}\d/g,
+  /\+?\d{1,3}[\s\-]?\(?\d{2}\)?[\s\-]?\d{4,5}[\s\-]?\d{4}/g,
+];
+
+const BLOCKED_KEYWORDS = [
+  /whats\s*app/gi, /wpp/gi, /w\.a/gi, /zap/gi, /zapzap/gi,
+  /telegram/gi, /t\.me/gi, /signal/gi, /discord/gi,
+  /meu\s*(numero|número|tel|telefone|celular|cell|fone)/gi,
+];
+
+const LINK_PATTERNS = [
+  /https?:\/\/[^\s]+/gi,
+  /www\.[^\s]+/gi,
+];
+
+const containsBlockedContent = (text: string): string | null => {
+  for (const p of BLOCKED_KEYWORDS) {
+    p.lastIndex = 0;
+    if (p.test(text)) return 'Contatos externos não permitidos';
+  }
+  for (const p of LINK_PATTERNS) {
+    p.lastIndex = 0;
+    if (p.test(text)) return 'Links não permitidos';
+  }
+  for (const p of PHONE_PATTERNS) {
+    p.lastIndex = 0;
+    const matches = text.match(p);
+    if (matches) {
+      for (const m of matches) {
+        if (m.replace(/\D/g, '').length >= 8) return 'Números de telefone não permitidos';
+      }
+    }
+  }
+  // Check overall digit count in sequences
+  const seqs = text.match(/[\d\s\-._]{8,}/g);
+  if (seqs) {
+    for (const s of seqs) {
+      if (s.replace(/\D/g, '').length >= 8) return 'Sequências numéricas não permitidas';
+    }
+  }
+  return null;
+};
+
 const validateAndSanitizeInput = (input: any) => {
   if (!input) throw new Error('Input is required');
   
@@ -20,13 +66,19 @@ const validateAndSanitizeInput = (input: any) => {
     throw new Error('Message content is required');
   }
   
-  // Sanitize content - strip HTML tags and limit length
+  // Sanitize content
   const sanitizedContent = content
     .trim()
-    .replace(/<[^>]*>/g, '') // Remove HTML tags
-    .replace(/javascript:/gi, '') // Remove javascript: protocol
-    .replace(/on\w+\s*=/gi, '') // Remove event handlers
-    .slice(0, 2000); // Limit length
+    .replace(/<[^>]*>/g, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+\s*=/gi, '')
+    .slice(0, 2000);
+  
+  // Check for blocked content (phone numbers, WhatsApp, etc.)
+  const blockReason = containsBlockedContent(sanitizedContent);
+  if (blockReason) {
+    throw new Error(blockReason);
+  }
   
   const allowedMessageTypes = ['text', 'image', 'file', 'schedule_suggestion'];
   if (!allowedMessageTypes.includes(messageType)) {

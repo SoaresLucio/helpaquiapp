@@ -48,11 +48,7 @@ export const useOfferForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('🚀 Iniciando submissão de oferta de Help...');
-    console.log('👤 Usuário logado:', user);
-    
     if (!user) {
-      console.error('❌ Usuário não logado');
       toast({
         title: "Erro",
         description: "Você precisa estar logado para oferecer serviços.",
@@ -61,9 +57,7 @@ export const useOfferForm = () => {
       return;
     }
     
-    // Validação básica
     if (!title || !description || categories.length === 0 || !rate) {
-      console.error('❌ Campos obrigatórios não preenchidos:', { title, description, categories, rate });
       toast({
         title: "Atenção",
         description: "Por favor, preencha todos os campos obrigatórios.",
@@ -75,19 +69,12 @@ export const useOfferForm = () => {
     setIsSubmitting(true);
     
     try {
-      console.log('🔄 Criando oferta de Help...');
-      console.log('👤 Usuário:', user.id);
-      console.log('📝 Dados da oferta:', { title, description, categories, location, rate, photos });
-      
-      // Separar categorias padrão das personalizadas
       const standardCategories = categories.filter(cat => 
         serviceCategories.some(c => c.id === cat)
       );
       const customCategories = categories.filter(cat => 
         !serviceCategories.some(c => c.id === cat)
       );
-      
-      console.log('📂 Categorias separadas:', { standardCategories, customCategories });
       
       const offerData = {
         freelancer_id: user.id,
@@ -101,52 +88,25 @@ export const useOfferForm = () => {
         is_active: true
       };
 
-      console.log('📤 Dados finais para inserção:', offerData);
-
-      // Primeiro vamos testar se conseguimos acessar a tabela
-      const { data: testQuery, error: testError } = await supabase
-        .from('freelancer_service_offers')
-        .select('count(*)')
-        .single();
-      
-      console.log('🧪 Teste de acesso à tabela:', { testQuery, testError });
-
       const { data, error } = await supabase
         .from('freelancer_service_offers')
         .insert([offerData])
         .select();
 
-      if (error) {
-        console.error('❌ Erro ao inserir oferta:', error);
-        console.error('❌ Detalhes do erro:', JSON.stringify(error, null, 2));
-        throw error;
-      }
-
-      console.log('✅ Oferta criada com sucesso:', data);
+      if (error) throw error;
 
       toast({
         title: "Oferta publicada! 🎉",
         description: "Sua oferta de Help foi publicada e já está visível para os solicitantes!",
       });
       
-      // Resetar o formulário
       resetForm();
-      
-      // Trigger a custom event to notify other components
-      console.log('📢 Disparando evento customizado...');
       window.dispatchEvent(new CustomEvent('newOfferCreated', { detail: data[0] }));
       
-      // Force page reload para garantir que as ofertas apareçam
-      console.log('🔄 Forçando reload da página em 2 segundos...');
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-      
     } catch (error) {
-      console.error('💥 Erro ao salvar oferta:', error);
       toast({
         title: "Erro",
-        description: `Erro ao publicar oferta: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+        description: "Erro ao publicar oferta. Tente novamente.",
         variant: "destructive",
       });
     } finally {
