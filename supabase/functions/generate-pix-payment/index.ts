@@ -131,7 +131,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Generate PIX payment error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'PIX payment generation failed' }),
       { 
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

@@ -86,8 +86,6 @@ serve(async (req) => {
     const asaasPayment = await asaasResponse.json()
 
     // Update payment status in database
-    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
@@ -127,7 +125,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error checking ASAAS payment:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Payment check failed' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

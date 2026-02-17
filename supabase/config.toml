@@ -19,11 +19,28 @@ port = 54321
 # Functions will be created as edge functions by default
 default_runtime = "edge"
 
-# Allow functions to be called insecurely from a browser
-# Don't enable this in production!
-# This setting only helps during local development
+# JWT verification configuration
+# All functions use manual JWT validation via auth.getUser() in code
 [functions.create-payment]
-verify_jwt = true
+verify_jwt = false
+
+[functions.process-asaas-payment]
+verify_jwt = false
+
+[functions.check-asaas-payment]
+verify_jwt = false
+
+[functions.release-funds]
+verify_jwt = false
+
+[functions.send-chat-message]
+verify_jwt = false
+
+[functions.create-conversation]
+verify_jwt = false
+
+[functions.generate-pix-payment]
+verify_jwt = false
 
 [db]
 # Port to use for the local database URL.
