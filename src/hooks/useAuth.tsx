@@ -123,7 +123,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: "Você foi desconectado do sistema."
       });
       
-      window.location.href = '/login';
+      // Navigate without full page reload
+      window.location.replace('/login');
     } catch (error: any) {
       toast({
         title: "Erro ao fazer logout",
@@ -164,10 +165,10 @@ export const RequireAuth = ({ children }: { children: ReactNode }) => {
   }
 
   if (!isAuthenticated) {
-    const safePaths = ['/reset-password', '/new-password', '/user-type-selection'];
+    const safePaths = ['/reset-password', '/new-password', '/user-type'];
     
     if (!safePaths.includes(location.pathname)) {
-      window.location.href = '/login';
+      // Use Navigate instead of window.location.href to avoid full page reload
       return null;
     }
   }

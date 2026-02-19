@@ -1,60 +1,74 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Star, Clock, DollarSign, Calendar, TrendingUp, Users, Briefcase, CreditCard, Settings } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import BannerCarousel from '@/components/banners/BannerCarousel';
+import ServiceMap from '@/components/ServiceMap';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { usePromotionalBanners } from '@/hooks/usePromotionalBanners';
+import { supabase } from '@/integrations/supabase/client';
 
 const FreelancerHome: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  // Hook para buscar banners promocionais - SEMPRE buscar para freelancer
   const { banners, loading: bannersLoading, error: bannersError } = usePromotionalBanners('freelancer');
   
-  // Mock data - in a real app, this would come from the API
-  const stats = {
-    completedJobs: 47,
-    averageRating: 4.8,
-    totalEarnings: 'R$ 12.450',
-    pendingRequests: 3,
-    responseTime: '2h',
-    responseRate: 98
-  };
+  const [stats, setStats] = useState({
+    completedJobs: 0,
+    averageRating: 0,
+    totalEarnings: 'R$ 0',
+    pendingRequests: 0,
+    responseTime: '-',
+    responseRate: 0
+  });
 
-  const recentJobs = [
-    {
-      id: '1',
-      title: 'Instalação elétrica residencial',
-      client: 'Maria Silva',
-      date: '2024-01-15',
-      status: 'completed',
-      rating: 5,
-      amount: 'R$ 350'
-    },
-    {
-      id: '2',
-      title: 'Reparo de torneira',
-      client: 'João Santos',
-      date: '2024-01-12',
-      status: 'completed',
-      rating: 4.5,
-      amount: 'R$ 120'
-    },
-    {
-      id: '3',
-      title: 'Limpeza residencial',
-      client: 'Ana Costa',
-      date: '2024-01-10',
-      status: 'pending',
-      rating: null,
-      amount: 'R$ 200'
-    }
-  ];
+  const [recentJobs, setRecentJobs] = useState<any[]>([]);
+
+  // Fetch real stats
+  useEffect(() => {
+    if (!user) return;
+    const fetchStats = async () => {
+      try {
+        // Count completed payments
+        const { data: payments } = await supabase
+          .from('payments')
+          .select('amount, status')
+          .eq('freelancer_id', user.id);
+
+        const completed = (payments || []).filter(p => p.status === 'completed');
+        const totalEarnings = completed.reduce((sum, p) => sum + (p.amount || 0), 0);
+
+        // Get average rating
+        const { data: ratings } = await supabase
+          .from('freelancer_ratings')
+          .select('avg_rating, rating_count')
+          .eq('freelancer_id', user.id)
+          .maybeSingle();
+
+        // Pending requests count
+        const { count: pendingCount } = await supabase
+          .from('service_requests')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'open');
+
+        setStats({
+          completedJobs: completed.length,
+          averageRating: ratings?.avg_rating ? Number(ratings.avg_rating) : 0,
+          totalEarnings: `R$ ${(totalEarnings / 100).toLocaleString('pt-BR')}`,
+          pendingRequests: pendingCount || 0,
+          responseTime: '-',
+          responseRate: ratings?.rating_count ? 100 : 0
+        });
+      } catch (err) {
+        // Silently fail, keep defaults
+      }
+    };
+    fetchStats();
+  }, [user]);
 
   // Get user categories from user metadata or default categories
   const userCategories = user?.user_metadata?.categories || ['eletrica', 'hidraulica'];
@@ -153,6 +167,9 @@ const FreelancerHome: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Map showing service requests */}
+      <ServiceMap />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
