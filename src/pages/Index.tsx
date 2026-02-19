@@ -30,21 +30,7 @@ const Index = () => {
 
   const { currentUser } = useUserData(authUser, userType);
 
-  // Development logging
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🏠 Index component mounted/re-rendered');
-      console.log('📊 Index state:', {
-        userType,
-        loading,
-        authUser: authUser?.id,
-        selectedCategory,
-        activeTab,
-        currentNotification: !!currentNotification,
-        currentUser: !!currentUser
-      });
-    }
-  });
+  // Removed verbose dev logging for performance
 
   const handleChatRedirect = () => {
     navigate('/chat');
