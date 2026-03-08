@@ -2,7 +2,6 @@
 import { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { useLocation } from 'react-router-dom';
-import { signOut } from '@/services/authService';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuthSession } from './auth/useAuthSession';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,80 +38,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [securityScore, setSecurityScore] = useState(0);
   const [isSecure, setIsSecure] = useState(false);
 
-  // Fetch user profile and validate security
   useEffect(() => {
-    const fetchProfileAndValidateSecurity = async () => {
-      if (!authState.user || !authState.isAuthenticated) {
-        setProfile(null);
-        setSecurityScore(0);
-        setIsSecure(false);
-        return;
-      }
+    if (!authState.user || !authState.isAuthenticated) {
+      setProfile(null);
+      setSecurityScore(0);
+      setIsSecure(false);
+      return;
+    }
 
+    let cancelled = false;
+
+    const fetchProfile = async () => {
       try {
-        // Fetch user profile
         const { data: profileData, error } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', authState.user.id)
+          .eq('id', authState.user!.id)
           .maybeSingle();
+
+        if (cancelled) return;
 
         if (error) {
           console.error('Error fetching profile:', error);
-          // Log security event
-          await supabase.rpc('log_security_event', {
-            p_user_id: authState.user.id,
-            p_action: 'profile_fetch_failed',
-            p_resource_type: 'profile',
-            p_success: false,
-            p_error_message: error.message
-          });
-        } else {
-          setProfile(profileData);
-          
-          // Calculate security score
-          let score = 0;
-          const userValidation = validateUserSession(authState.user);
-          const userTypeValidation = validateUserType(authState.userType);
-          
-          if (userValidation.isValid) score += 25;
-          if (userTypeValidation.isValid) score += 25;
-          if (profileData?.verified) score += 30;
-          if (authState.user.email_confirmed_at) score += 20;
-          
-          setSecurityScore(score);
-          setIsSecure(score >= 70);
-          
-          // Log successful profile access
-          await supabase.rpc('log_security_event', {
-            p_user_id: authState.user.id,
-            p_action: 'profile_accessed',
-            p_resource_type: 'profile',
-            p_success: true,
-            p_metadata: { security_score: score }
-          });
+          return;
         }
+
+        setProfile(profileData);
+
+        // Calculate security score
+        let score = 0;
+        const userValidation = validateUserSession(authState.user!);
+        const userTypeValidation = validateUserType(authState.userType);
+        
+        if (userValidation.isValid) score += 25;
+        if (userTypeValidation.isValid) score += 25;
+        if (profileData?.verified) score += 30;
+        if (authState.user!.email_confirmed_at) score += 20;
+        
+        setSecurityScore(score);
+        setIsSecure(score >= 70);
       } catch (error) {
-        console.error('Security validation error:', error);
+        if (!cancelled) console.error('Profile fetch error:', error);
       }
     };
 
-    fetchProfileAndValidateSecurity();
-  }, [authState.user, authState.isAuthenticated, authState.userType]);
+    fetchProfile();
+    return () => { cancelled = true; };
+  }, [authState.user?.id, authState.isAuthenticated, authState.userType]);
 
   const logout = async () => {
     try {
-      // Log security event
-      if (authState.user) {
-        await supabase.rpc('log_security_event', {
-          p_user_id: authState.user.id,
-          p_action: 'user_logout',
-          p_resource_type: 'auth',
-          p_success: true
-        });
-      }
-      
-      await signOut();
+      await supabase.auth.signOut();
       localStorage.removeItem('userType');
       setProfile(null);
       setSecurityScore(0);
@@ -122,10 +98,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         title: "Logout realizado com sucesso",
         description: "Você foi desconectado do sistema."
       });
-      
-      // Navigate without full page reload
-      window.location.replace('/login');
     } catch (error: any) {
+      // Force local cleanup even if signOut fails
+      localStorage.removeItem('userType');
+      setProfile(null);
       toast({
         title: "Erro ao fazer logout",
         description: error.message,
@@ -166,9 +142,7 @@ export const RequireAuth = ({ children }: { children: ReactNode }) => {
 
   if (!isAuthenticated) {
     const safePaths = ['/reset-password', '/new-password', '/user-type'];
-    
     if (!safePaths.includes(location.pathname)) {
-      // Use Navigate instead of window.location.href to avoid full page reload
       return null;
     }
   }
