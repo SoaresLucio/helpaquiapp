@@ -1,66 +1,58 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { setupAuthListener, getCurrentSession, getUserType } from '@/services/authService';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useAuthSession = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [userType, setUserType] = useState<'solicitante' | 'freelancer' | null>(null);
   const [loading, setLoading] = useState(true);
+  const initRef = useRef(false);
 
   useEffect(() => {
-    const handleAuthChange = async (session: Session | null) => {
-      
-      let fetchedUserType: 'solicitante' | 'freelancer' | null = null;
-      
-      if (session?.user) {
-        try {
-          fetchedUserType = await getUserType();
-          
-          if (!fetchedUserType) {
-            fetchedUserType = session.user.user_metadata?.user_type || localStorage.getItem('userType') as 'solicitante' | 'freelancer';
-          }
-          
-          if (fetchedUserType) {
-            localStorage.setItem('userType', fetchedUserType);
-          }
-          
-        } catch (error) {
-          if (process.env.NODE_ENV === 'development') {
-            console.error("Error getting user type:", error);
-          }
-          fetchedUserType = 'solicitante'; // Default fallback
-        }
-      } else {
-        localStorage.removeItem('userType');
-      }
+    if (initRef.current) return;
+    initRef.current = true;
 
+    const resolveUserType = (session: Session | null): 'solicitante' | 'freelancer' | null => {
+      if (!session?.user) return null;
+      const meta = session.user.user_metadata?.user_type;
+      if (meta && ['solicitante', 'freelancer'].includes(meta)) return meta;
+      const stored = localStorage.getItem('userType');
+      if (stored && ['solicitante', 'freelancer'].includes(stored)) return stored as any;
+      return 'solicitante';
+    };
+
+    const handleSession = (session: Session | null) => {
+      const ut = resolveUserType(session);
+      if (ut) localStorage.setItem('userType', ut);
+      else localStorage.removeItem('userType');
       setSession(session);
       setUser(session?.user ?? null);
-      setUserType(fetchedUserType);
+      setUserType(ut);
       setLoading(false);
     };
 
-    const checkInitialSession = async () => {
-      try {
-        const currentSession = await getCurrentSession();
-        
-        if (currentSession) {
-          await handleAuthChange(currentSession);
-        } else {
-          setLoading(false);
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
+          handleSession(session);
         }
-        } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error("Error checking session:", error);
-        }
-        setLoading(false);
       }
-    };
+    );
 
-    const subscription = setupAuthListener(handleAuthChange);
-    checkInitialSession();
+    // Check initial session - use getSession (no network call) to avoid retry loops
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.warn('Session retrieval failed, clearing auth state:', error.message);
+        // Clear stale tokens to stop retry loops
+        supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+        handleSession(null);
+      } else {
+        handleSession(session);
+      }
+    });
 
     return () => {
       subscription.unsubscribe();
