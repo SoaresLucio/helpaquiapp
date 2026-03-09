@@ -5,10 +5,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Copy, QrCode, Clock, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { Copy, QrCode, Clock, CheckCircle2, Loader2, AlertCircle, CreditCard, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
 import { SubscriptionPlan } from '@/services/subscriptionService';
 import { supabase } from '@/integrations/supabase/client';
+import CardPaymentForm from './CardPaymentForm';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -18,6 +19,8 @@ interface PaymentModalProps {
   isLoading?: boolean;
 }
 
+type PaymentMethod = 'select' | 'pix' | 'card';
+
 const PaymentModal: React.FC<PaymentModalProps> = ({
   isOpen,
   onClose,
@@ -25,6 +28,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   onPaymentSuccess,
   isLoading = false
 }) => {
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('select');
   const [pixCode, setPixCode] = useState('');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [pixExpiry, setPixExpiry] = useState<Date | null>(null);
@@ -33,52 +37,45 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [isVerifying, setIsVerifying] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
 
-  // Generate real PIX code via edge function when modal opens
   useEffect(() => {
-    if (isOpen && plan && plan.price_monthly > 0) {
-      generateRealPixCode();
-    }
-    // Reset state when modal closes
     if (!isOpen) {
+      setPaymentMethod('select');
       setPixCode('');
       setQrCodeUrl('');
       setPixExpiry(null);
       setPixPaymentId(null);
       setGenerateError(null);
     }
-  }, [isOpen, plan]);
+  }, [isOpen]);
 
   const generateRealPixCode = async () => {
     if (!plan) return;
-
     setIsGenerating(true);
     setGenerateError(null);
 
     try {
       const { data, error } = await supabase.functions.invoke('generate-pix-payment', {
-        body: {
-          planId: plan.id,
-          amount: plan.price_monthly,
-        },
+        body: { planId: plan.id, amount: plan.price_monthly },
       });
-
       if (error) throw new Error(error.message || 'Erro ao gerar PIX');
       if (data?.error) throw new Error(data.error);
 
       setPixCode(data.pixCode || '');
       setQrCodeUrl(data.qrCodeUrl || '');
       setPixPaymentId(data.pixPaymentId || null);
-
-      if (data.expiresAt) {
-        setPixExpiry(new Date(data.expiresAt));
-      }
+      if (data.expiresAt) setPixExpiry(new Date(data.expiresAt));
     } catch (error: any) {
       console.error('Error generating PIX:', error);
-      setGenerateError(error.message || 'Erro ao gerar código PIX. Tente novamente.');
+      setGenerateError(error.message || 'Erro ao gerar código PIX.');
       toast.error('Erro ao gerar código PIX');
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleSelectPix = () => {
+    setPaymentMethod('pix');
+    generateRealPixCode();
   };
 
   const copyPixCode = () => {
@@ -88,21 +85,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   };
 
   const handleVerifyPayment = async () => {
-    if (!pixPaymentId || !plan) {
-      toast.error('Gere um novo código PIX');
-      return;
-    }
-
+    if (!pixPaymentId || !plan) { toast.error('Gere um novo código PIX'); return; }
     setIsVerifying(true);
-
     try {
       const { data, error } = await supabase.functions.invoke('verify-subscription-payment', {
-        body: {
-          pixPaymentId,
-          planId: plan.id,
-        },
+        body: { pixPaymentId, planId: plan.id },
       });
-
       if (error) throw new Error(error.message || 'Erro ao verificar pagamento');
       if (data?.error) throw new Error(data.error);
 
@@ -110,11 +98,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         toast.success('Pagamento confirmado! Assinatura ativada.');
         onPaymentSuccess();
       } else {
-        const message = data?.message || 'Pagamento não identificado. Aguarde alguns minutos após o pagamento e tente novamente.';
-        toast.error(message, { duration: 6000 });
+        toast.error(data?.message || 'Pagamento não identificado. Aguarde e tente novamente.', { duration: 6000 });
       }
     } catch (error: any) {
-      console.error('Error verifying payment:', error);
       toast.error(error.message || 'Erro ao verificar pagamento');
     } finally {
       setIsVerifying(false);
@@ -144,112 +130,135 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 <div className="text-lg font-bold text-primary">
                   R$ {plan.price_monthly.toFixed(2).replace('.', ',')}
                 </div>
-                <Badge variant="secondary" className="text-xs">
-                  /mês
-                </Badge>
+                <Badge variant="secondary" className="text-xs">/mês</Badge>
               </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* Payment method selection */}
+        {paymentMethod === 'select' && (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground text-center">Escolha o método de pagamento:</p>
+            <Button
+              onClick={handleSelectPix}
+              variant="outline"
+              className="w-full h-16 flex items-center justify-start gap-4 px-4"
+            >
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <Smartphone className="h-6 w-6 text-primary" />
+              </div>
+              <div className="text-left">
+                <div className="font-semibold text-foreground">PIX</div>
+                <div className="text-xs text-muted-foreground">Pagamento único via QR Code</div>
+              </div>
+            </Button>
+            <Button
+              onClick={() => setPaymentMethod('card')}
+              variant="outline"
+              className="w-full h-16 flex items-center justify-start gap-4 px-4"
+            >
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <CreditCard className="h-6 w-6 text-primary" />
+              </div>
+              <div className="text-left">
+                <div className="font-semibold text-foreground">Cartão de Crédito/Débito</div>
+                <div className="text-xs text-muted-foreground">Cobrança mensal automática</div>
+              </div>
+            </Button>
+            <Button onClick={onClose} variant="ghost" className="w-full" disabled={isLoading}>
+              Cancelar
+            </Button>
+          </div>
+        )}
+
         {/* PIX Payment */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center space-y-4">
-              {isGenerating ? (
-                <div className="py-8 space-y-3">
-                  <Loader2 className="h-12 w-12 mx-auto text-primary animate-spin" />
-                  <p className="text-sm text-muted-foreground">Gerando código PIX...</p>
-                </div>
-              ) : generateError ? (
-                <div className="py-8 space-y-3">
-                  <AlertCircle className="h-12 w-12 mx-auto text-destructive" />
-                  <p className="text-sm text-destructive">{generateError}</p>
-                  <Button onClick={generateRealPixCode} variant="outline" size="sm">
-                    Tentar novamente
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  {qrCodeUrl ? (
-                    <img
-                      src={qrCodeUrl}
-                      alt="QR Code PIX"
-                      className="h-48 w-48 mx-auto rounded-lg border"
-                    />
-                  ) : (
-                    <QrCode className="h-24 w-24 mx-auto text-primary" />
-                  )}
-
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-2">
-                      Escaneie o QR Code ou copie o código PIX
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Use o app do seu banco para pagar
-                    </p>
+        {paymentMethod === 'pix' && (
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-center space-y-4">
+                {isGenerating ? (
+                  <div className="py-8 space-y-3">
+                    <Loader2 className="h-12 w-12 mx-auto text-primary animate-spin" />
+                    <p className="text-sm text-muted-foreground">Gerando código PIX...</p>
                   </div>
-
-                  {pixExpiry && (
-                    <div className="flex items-center justify-center gap-2 text-sm text-orange-600">
-                      <Clock className="h-4 w-4" />
-                      Expira em: {pixExpiry.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                ) : generateError ? (
+                  <div className="py-8 space-y-3">
+                    <AlertCircle className="h-12 w-12 mx-auto text-destructive" />
+                    <p className="text-sm text-destructive">{generateError}</p>
+                    <div className="flex gap-2 justify-center">
+                      <Button onClick={generateRealPixCode} variant="outline" size="sm">
+                        Tentar novamente
+                      </Button>
+                      <Button onClick={() => setPaymentMethod('select')} variant="ghost" size="sm">
+                        Outro método
+                      </Button>
                     </div>
-                  )}
-
-                  {pixCode && (
-                    <div className="space-y-2">
-                      <Label htmlFor="pix-code">Código PIX Copia e Cola:</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="pix-code"
-                          value={pixCode}
-                          readOnly
-                          className="font-mono text-xs"
-                        />
-                        <Button onClick={copyPixCode} variant="outline" size="sm">
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  <Button
-                    onClick={handleVerifyPayment}
-                    className="w-full"
-                    disabled={isLoading || isVerifying || !pixPaymentId}
-                  >
-                    {isVerifying ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Verificando pagamento...
-                      </>
+                  </div>
+                ) : (
+                  <>
+                    {qrCodeUrl ? (
+                      <img src={qrCodeUrl} alt="QR Code PIX" className="h-48 w-48 mx-auto rounded-lg border" />
                     ) : (
-                      <>
-                        <CheckCircle2 className="h-4 w-4 mr-2" />
-                        Já Paguei - Verificar
-                      </>
+                      <QrCode className="h-24 w-24 mx-auto text-primary" />
                     )}
-                  </Button>
 
-                  <p className="text-xs text-muted-foreground">
-                    Após efetuar o pagamento, aguarde alguns segundos e clique no botão acima.
-                    O sistema verificará automaticamente a confirmação do pagamento.
-                  </p>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-2">Escaneie o QR Code ou copie o código PIX</h3>
+                      <p className="text-sm text-muted-foreground">Use o app do seu banco para pagar</p>
+                    </div>
 
-        <Button
-          onClick={onClose}
-          variant="outline"
-          className="w-full"
-          disabled={isLoading || isVerifying}
-        >
-          Cancelar
-        </Button>
+                    {pixExpiry && (
+                      <div className="flex items-center justify-center gap-2 text-sm text-orange-600">
+                        <Clock className="h-4 w-4" />
+                        Expira em: {pixExpiry.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    )}
+
+                    {pixCode && (
+                      <div className="space-y-2">
+                        <Label htmlFor="pix-code">Código PIX Copia e Cola:</Label>
+                        <div className="flex gap-2">
+                          <Input id="pix-code" value={pixCode} readOnly className="font-mono text-xs" />
+                          <Button onClick={copyPixCode} variant="outline" size="sm">
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    <Button onClick={handleVerifyPayment} className="w-full" disabled={isLoading || isVerifying || !pixPaymentId}>
+                      {isVerifying ? (
+                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Verificando pagamento...</>
+                      ) : (
+                        <><CheckCircle2 className="h-4 w-4 mr-2" />Já Paguei - Verificar</>
+                      )}
+                    </Button>
+
+                    <p className="text-xs text-muted-foreground">
+                      Após efetuar o pagamento, aguarde alguns segundos e clique no botão acima.
+                    </p>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Card Payment */}
+        {paymentMethod === 'card' && (
+          <CardPaymentForm
+            plan={plan}
+            onSuccess={onPaymentSuccess}
+            onCancel={() => setPaymentMethod('select')}
+          />
+        )}
+
+        {paymentMethod === 'pix' && (
+          <Button onClick={() => setPaymentMethod('select')} variant="outline" className="w-full" disabled={isLoading || isVerifying}>
+            ← Voltar aos métodos
+          </Button>
+        )}
       </DialogContent>
     </Dialog>
   );

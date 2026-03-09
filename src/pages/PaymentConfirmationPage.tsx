@@ -8,11 +8,14 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import BackButton from '@/components/ui/back-button';
 import TermsOfUseDialog from '@/components/TermsOfUseDialog';
-import { CheckCircle, QrCode, Copy, Loader2, AlertCircle, Clock } from 'lucide-react';
+import CardPaymentForm from '@/components/subscription/CardPaymentForm';
+import { CheckCircle, QrCode, Copy, Loader2, AlertCircle, Clock, CreditCard, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
 import { getSubscriptionPlans, type SubscriptionPlan } from '@/services/subscriptionService';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+
+type PaymentMethodType = 'select' | 'pix' | 'card';
 
 const PaymentConfirmationPage: React.FC = () => {
   const { planId } = useParams<{ planId: string }>();
@@ -24,6 +27,7 @@ const PaymentConfirmationPage: React.FC = () => {
   const [isTermsDialogOpen, setIsTermsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('select');
 
   // PIX state from edge function
   const [pixCode, setPixCode] = useState('');
@@ -53,8 +57,7 @@ const PaymentConfirmationPage: React.FC = () => {
 
       if (plan) {
         setPlanData(plan);
-        // Generate PIX after plan is loaded
-        generatePixPayment(plan);
+        // Don't auto-generate PIX - let user select payment method first
       } else {
         toast.error('Plano não encontrado');
         navigate(-1);
@@ -240,132 +243,162 @@ const PaymentConfirmationPage: React.FC = () => {
               <CardTitle className="text-xl font-bold text-foreground">Realize o Pagamento</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Payment Method Selection */}
+              {paymentMethod === 'select' && (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground text-center">Escolha o método de pagamento:</p>
+                  <Button
+                    onClick={() => {
+                      setPaymentMethod('pix');
+                      if (planData) generatePixPayment(planData);
+                    }}
+                    variant="outline"
+                    className="w-full h-16 flex items-center justify-start gap-4 px-4"
+                  >
+                    <div className="bg-primary/10 p-2 rounded-lg">
+                      <Smartphone className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold text-foreground">PIX</div>
+                      <div className="text-xs text-muted-foreground">Pagamento único via QR Code</div>
+                    </div>
+                  </Button>
+                  <Button
+                    onClick={() => setPaymentMethod('card')}
+                    variant="outline"
+                    className="w-full h-16 flex items-center justify-start gap-4 px-4"
+                  >
+                    <div className="bg-primary/10 p-2 rounded-lg">
+                      <CreditCard className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold text-foreground">Cartão de Crédito/Débito</div>
+                      <div className="text-xs text-muted-foreground">Cobrança mensal automática</div>
+                    </div>
+                  </Button>
+                </div>
+              )}
+
               {/* PIX Section */}
-              <div className="text-center space-y-4">
-                {isGeneratingPix ? (
-                  <div className="py-8 space-y-3">
-                    <Loader2 className="h-12 w-12 mx-auto text-primary animate-spin" />
-                    <p className="text-sm text-muted-foreground">Gerando código PIX via ASAAS...</p>
-                  </div>
-                ) : pixError ? (
-                  <div className="py-8 space-y-3">
-                    <AlertCircle className="h-12 w-12 mx-auto text-destructive" />
-                    <p className="text-sm text-destructive">{pixError}</p>
-                    <Button
-                      onClick={() => planData && generatePixPayment(planData)}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Tentar novamente
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex justify-center">
-                      {qrCodeUrl ? (
-                        <img
-                          src={qrCodeUrl}
-                          alt="QR Code PIX"
-                          className="h-48 w-48 rounded-lg border"
-                        />
-                      ) : (
-                        <div className="border-2 border-dashed border-border rounded-lg p-8 flex items-center justify-center bg-muted/30">
-                          <QrCode className="h-48 w-48 text-muted-foreground" />
+              {paymentMethod === 'pix' && (
+                <div className="text-center space-y-4">
+                  {isGeneratingPix ? (
+                    <div className="py-8 space-y-3">
+                      <Loader2 className="h-12 w-12 mx-auto text-primary animate-spin" />
+                      <p className="text-sm text-muted-foreground">Gerando código PIX via ASAAS...</p>
+                    </div>
+                  ) : pixError ? (
+                    <div className="py-8 space-y-3">
+                      <AlertCircle className="h-12 w-12 mx-auto text-destructive" />
+                      <p className="text-sm text-destructive">{pixError}</p>
+                      <div className="flex gap-2 justify-center">
+                        <Button onClick={() => planData && generatePixPayment(planData)} variant="outline" size="sm">
+                          Tentar novamente
+                        </Button>
+                        <Button onClick={() => setPaymentMethod('select')} variant="ghost" size="sm">
+                          Outro método
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-center">
+                        {qrCodeUrl ? (
+                          <img src={qrCodeUrl} alt="QR Code PIX" className="h-48 w-48 rounded-lg border" />
+                        ) : (
+                          <div className="border-2 border-dashed border-border rounded-lg p-8 flex items-center justify-center bg-muted/30">
+                            <QrCode className="h-48 w-48 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+
+                      {pixExpiry && (
+                        <div className="flex items-center justify-center gap-2 text-sm text-orange-600">
+                          <Clock className="h-4 w-4" />
+                          Expira em: {pixExpiry.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       )}
-                    </div>
 
-                    {pixExpiry && (
-                      <div className="flex items-center justify-center gap-2 text-sm text-orange-600">
-                        <Clock className="h-4 w-4" />
-                        Expira em:{' '}
-                        {pixExpiry.toLocaleTimeString('pt-BR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground font-medium">
-                        1. Abra o app do seu banco e escaneie o código
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        2. Confirme o pagamento no seu banco
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        3. Volte aqui e clique em "Verificar Pagamento"
-                      </p>
-                    </div>
-
-                    {pixCode && (
                       <div className="space-y-2">
-                        <Label htmlFor="pix-code">Código PIX Copia e Cola:</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id="pix-code"
-                            value={pixCode}
-                            readOnly
-                            className="font-mono text-xs"
-                          />
-                          <Button onClick={handleCopyPixCode} variant="outline" size="sm">
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        <p className="text-sm text-muted-foreground font-medium">1. Abra o app do seu banco e escaneie o código</p>
+                        <p className="text-sm text-muted-foreground">2. Confirme o pagamento no seu banco</p>
+                        <p className="text-sm text-muted-foreground">3. Volte aqui e clique em "Verificar Pagamento"</p>
                       </div>
-                    )}
-                  </>
-                )}
-              </div>
 
-              {/* Terms of Use */}
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <Checkbox
-                    id="terms"
-                    checked={termsAccepted}
-                    onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
-                  />
-                  <Label
-                    htmlFor="terms"
-                    className="text-sm text-muted-foreground leading-relaxed cursor-pointer"
-                  >
-                    Eu li e concordo com os{' '}
-                    <button
-                      type="button"
-                      onClick={() => setIsTermsDialogOpen(true)}
-                      className="font-semibold text-primary hover:underline"
-                    >
-                      Termos de Uso do Plano
-                    </button>
-                  </Label>
+                      {pixCode && (
+                        <div className="space-y-2">
+                          <Label htmlFor="pix-code">Código PIX Copia e Cola:</Label>
+                          <div className="flex gap-2">
+                            <Input id="pix-code" value={pixCode} readOnly className="font-mono text-xs" />
+                            <Button onClick={handleCopyPixCode} variant="outline" size="sm">
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Terms for PIX */}
+                      <div className="flex items-start space-x-3 text-left">
+                        <Checkbox id="terms-pix" checked={termsAccepted} onCheckedChange={(checked) => setTermsAccepted(checked as boolean)} />
+                        <Label htmlFor="terms-pix" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
+                          Eu li e concordo com os{' '}
+                          <button type="button" onClick={() => setIsTermsDialogOpen(true)} className="font-semibold text-primary hover:underline">
+                            Termos de Uso do Plano
+                          </button>
+                        </Label>
+                      </div>
+
+                      <Button
+                        onClick={handleConfirmPayment}
+                        disabled={!termsAccepted || processing || !pixPaymentId || isGeneratingPix}
+                        className="w-full"
+                        size="lg"
+                      >
+                        {processing ? (
+                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Verificando pagamento...</>
+                        ) : (
+                          <><CheckCircle className="h-4 w-4 mr-2" />Já paguei - Verificar Pagamento</>
+                        )}
+                      </Button>
+
+                      <Button onClick={() => setPaymentMethod('select')} variant="ghost" size="sm" className="w-full">
+                        ← Voltar aos métodos
+                      </Button>
+                    </>
+                  )}
                 </div>
-              </div>
+              )}
 
-              {/* Confirm Button */}
-              <Button
-                onClick={handleConfirmPayment}
-                disabled={!termsAccepted || processing || !pixPaymentId || isGeneratingPix}
-                className="w-full"
-                size="lg"
-              >
-                {processing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Verificando pagamento...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Já paguei - Verificar Pagamento
-                  </>
-                )}
-              </Button>
-
-              <p className="text-xs text-muted-foreground text-center">
-                Após efetuar o pagamento via PIX, aguarde alguns segundos e clique no botão acima.
-                O sistema verificará automaticamente a confirmação junto ao gateway de pagamento.
-              </p>
+              {/* Card Section */}
+              {paymentMethod === 'card' && planData && (
+                <div className="space-y-4">
+                  {/* Terms for Card */}
+                  <div className="flex items-start space-x-3">
+                    <Checkbox id="terms-card" checked={termsAccepted} onCheckedChange={(checked) => setTermsAccepted(checked as boolean)} />
+                    <Label htmlFor="terms-card" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
+                      Eu li e concordo com os{' '}
+                      <button type="button" onClick={() => setIsTermsDialogOpen(true)} className="font-semibold text-primary hover:underline">
+                        Termos de Uso do Plano
+                      </button>
+                    </Label>
+                  </div>
+                  
+                  {termsAccepted ? (
+                    <CardPaymentForm
+                      plan={planData}
+                      onSuccess={() => {
+                        toast.success('Assinatura ativada com sucesso!');
+                        setTimeout(() => navigate('/', { replace: true }), 2000);
+                      }}
+                      onCancel={() => setPaymentMethod('select')}
+                    />
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-muted-foreground">Aceite os termos de uso acima para continuar.</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

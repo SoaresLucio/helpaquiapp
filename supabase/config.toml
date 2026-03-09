@@ -45,6 +45,9 @@ verify_jwt = false
 [functions.verify-subscription-payment]
 verify_jwt = false
 
+[functions.create-card-subscription]
+verify_jwt = false
+
 [db]
 # Port to use for the local database URL.
 port = 54322

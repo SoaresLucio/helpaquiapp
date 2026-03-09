@@ -8,6 +8,24 @@ const corsHeaders = {
 
 const ASAAS_BASE_URL = 'https://www.asaas.com/api/v3';
 
+function isValidCpf(cpf: string): boolean {
+  const cleaned = cpf.replace(/\D/g, '');
+  if (cleaned.length !== 11) return false;
+  if (/^(\d)\1+$/.test(cleaned)) return false;
+  
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += parseInt(cleaned[i]) * (10 - i);
+  let remainder = (sum * 10) % 11;
+  if (remainder === 10) remainder = 0;
+  if (remainder !== parseInt(cleaned[9])) return false;
+  
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += parseInt(cleaned[i]) * (11 - i);
+  remainder = (sum * 10) % 11;
+  if (remainder === 10) remainder = 0;
+  return remainder === parseInt(cleaned[10]);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -20,7 +38,6 @@ serve(async (req) => {
   );
 
   try {
-    // Authenticate user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) throw new Error('Authorization header is required');
 
@@ -28,13 +45,10 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) throw new Error('Invalid authentication');
 
-    const requestData = await req.json();
-    const { planId, amount } = requestData;
-
+    const { planId, amount } = await req.json();
     if (!planId || typeof planId !== 'string') throw new Error('Valid plan ID is required');
     if (!amount || typeof amount !== 'number' || amount <= 0) throw new Error('Valid amount is required');
 
-    // Get plan details
     const { data: plan, error: planError } = await supabase
       .from('subscription_plans')
       .select('*')
@@ -42,13 +56,8 @@ serve(async (req) => {
       .single();
 
     if (planError || !plan) throw new Error('Plan not found');
+    if (Math.abs(plan.price_monthly - amount) > 0.01) throw new Error('Amount does not match plan price');
 
-    // Validate amount matches plan price
-    if (Math.abs(plan.price_monthly - amount) > 0.01) {
-      throw new Error('Amount does not match plan price');
-    }
-
-    // Get user profile for ASAAS customer creation
     const { data: profile } = await supabase
       .from('profiles')
       .select('first_name, last_name, email, phone')
@@ -71,9 +80,9 @@ serve(async (req) => {
       .maybeSingle();
 
     const additionalData = verification?.additional_data as Record<string, unknown> | null;
-    const cpf = (additionalData?.cpf as string) || 
-                (additionalData?.document_number as string) ||
-                user.id.replace(/-/g, '').substring(0, 11);
+    const rawCpf = (additionalData?.cpf as string) || (additionalData?.document_number as string) || '';
+    const cleanCpf = rawCpf.replace(/\D/g, '');
+    const validCpf = isValidCpf(cleanCpf) ? cleanCpf : null;
 
     const asaasApiKey = Deno.env.get('ASAAS_API_KEY');
     if (!asaasApiKey) throw new Error('ASAAS_API_KEY not configured');
@@ -91,26 +100,29 @@ serve(async (req) => {
       if (searchData.data?.length > 0) {
         asaasCustomerId = searchData.data[0].id;
       } else {
-        // Create new customer
+        // Create customer - cpfCnpj is required by ASAAS
+        if (!validCpf) {
+          throw new Error('CPF não encontrado ou inválido. Por favor, verifique seu perfil e adicione um CPF válido na seção de verificação de documentos.');
+        }
+
+        const customerBody: Record<string, unknown> = {
+          name: userName,
+          email: userEmail,
+          cpfCnpj: validCpf,
+          externalReference: user.id,
+        };
+        if (profile?.phone) customerBody.phone = profile.phone;
+
         const customerResponse = await fetch(`${ASAAS_BASE_URL}/customers`, {
           method: 'POST',
-          headers: {
-            'access_token': asaasApiKey,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: userName,
-            email: userEmail,
-            cpfCnpj: cpf,
-            phone: profile?.phone || undefined,
-            externalReference: user.id,
-          }),
+          headers: { 'access_token': asaasApiKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify(customerBody),
         });
 
         if (!customerResponse.ok) {
           const errText = await customerResponse.text();
           console.error('ASAAS customer creation failed:', errText);
-          throw new Error('Falha ao criar cliente no gateway de pagamento. Verifique seus dados cadastrais.');
+          throw new Error('Falha ao criar cliente no gateway de pagamento. Verifique seus dados cadastrais e CPF.');
         }
 
         const customerData = await customerResponse.json();
@@ -126,10 +138,7 @@ serve(async (req) => {
 
     const paymentResponse = await fetch(`${ASAAS_BASE_URL}/payments`, {
       method: 'POST',
-      headers: {
-        'access_token': asaasApiKey,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'access_token': asaasApiKey, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         customer: asaasCustomerId,
         billingType: 'PIX',
@@ -148,7 +157,7 @@ serve(async (req) => {
 
     const asaasPayment = await paymentResponse.json();
 
-    // Step 3: Get PIX QR Code from ASAAS
+    // Step 3: Get PIX QR Code
     let pixCode = '';
     let qrCodeUrl = '';
 
@@ -160,9 +169,7 @@ serve(async (req) => {
     if (pixQrResponse.ok) {
       const pixData = await pixQrResponse.json();
       pixCode = pixData.payload || '';
-      qrCodeUrl = pixData.encodedImage
-        ? `data:image/png;base64,${pixData.encodedImage}`
-        : '';
+      qrCodeUrl = pixData.encodedImage ? `data:image/png;base64,${pixData.encodedImage}` : '';
     } else {
       console.error('Failed to get PIX QR code, using fallback');
       pixCode = asaasPayment.invoiceUrl || '';
@@ -176,7 +183,7 @@ serve(async (req) => {
       .from('pix_payments')
       .insert({
         user_id: user.id,
-        amount: amount,
+        amount,
         pix_code: pixCode,
         qr_code_url: qrCodeUrl,
         expires_at: expiresAt.toISOString(),
@@ -186,20 +193,15 @@ serve(async (req) => {
       .select()
       .single();
 
-    if (pixError) {
-      throw new Error(`Failed to create PIX payment record: ${pixError.message}`);
-    }
+    if (pixError) throw new Error(`Failed to create PIX payment record: ${pixError.message}`);
 
-    // Create notification
-    await supabase
-      .from('notifications')
-      .insert({
-        user_id: user.id,
-        title: 'PIX gerado com sucesso',
-        message: `PIX para assinatura ${plan.name} gerado. Valor: R$ ${amount.toFixed(2).replace('.', ',')}`,
-        type: 'success',
-        metadata: { pix_payment_id: pixPayment.id, plan_id: planId },
-      });
+    await supabase.from('notifications').insert({
+      user_id: user.id,
+      title: 'PIX gerado com sucesso',
+      message: `PIX para assinatura ${plan.name} gerado. Valor: R$ ${amount.toFixed(2).replace('.', ',')}`,
+      type: 'success',
+      metadata: { pix_payment_id: pixPayment.id, plan_id: planId },
+    });
 
     return new Response(
       JSON.stringify({
@@ -209,6 +211,7 @@ serve(async (req) => {
         amount,
         expiresAt: expiresAt.toISOString(),
         pixPaymentId: pixPayment.id,
+        asaasCustomerId,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -216,10 +219,7 @@ serve(async (req) => {
     console.error('Generate PIX payment error:', error);
     return new Response(
       JSON.stringify({ error: error.message || 'PIX payment generation failed' }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
