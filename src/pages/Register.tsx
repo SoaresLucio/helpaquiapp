@@ -32,17 +32,14 @@ const Register = () => {
   const [emailError, setEmailError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Verificar se o usuário já está autenticado
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/');
-      }
+      if (session) navigate('/');
     };
     checkUser();
   }, [navigate]);
 
-  // Password validation - must match authValidation.ts rules (8 chars, upper, lower, number)
+  // Password validation — must match authValidation.ts (8 chars, upper, lower, number)
   useEffect(() => {
     setValidations({
       length: password.length >= 8,
@@ -52,45 +49,44 @@ const Register = () => {
     });
   }, [password]);
 
-  // Email validation
-  const validateEmail = (email: string): boolean => {
+  const validateEmailField = (value: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const isValid = emailRegex.test(email);
+    const isValid = emailRegex.test(value);
     setEmailError(isValid ? null : "Email inválido");
     return isValid;
   };
 
+  const isPasswordValid = validations.length && validations.hasNumber && validations.hasUppercase && validations.hasLowercase;
+
   const handleSignUp = async (e: React.FormEvent, userType: 'solicitante' | 'freelancer') => {
     e.preventDefault();
-    
-    if (!validateEmail(email)) {
-      return;
-    }
-    
-    if (!firstName || !lastName) {
+
+    if (!validateEmailField(email)) return;
+
+    if (!firstName.trim() || !lastName.trim()) {
       setError("Nome e sobrenome são obrigatórios");
       return;
     }
-    
-    if (!validations.length || !validations.hasNumber || !validations.hasLetter) {
+
+    if (!isPasswordValid) {
       setError("A senha não atende aos requisitos mínimos");
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
-      const { session } = await signUp(email, password, firstName, lastName, userType);
-      
+      const result = await signUp(email, password, firstName, lastName, userType);
+      const session = result?.session;
+
       toast({
         title: "Cadastro realizado",
-        description: session 
-          ? "Conta criada com sucesso!" 
+        description: session
+          ? "Conta criada com sucesso!"
           : "Verifique seu e-mail para confirmar seu cadastro."
       });
-      
-      // Se não for necessário confirmar o e-mail
+
       if (session) {
         navigate('/');
       } else {
@@ -100,12 +96,12 @@ const Register = () => {
         });
         navigate('/login');
       }
-    } catch (error: any) {
-      console.error("Erro de cadastro:", error);
-      setError(error.message || "Erro ao criar conta. Verifique os dados e tente novamente.");
+    } catch (err: any) {
+      console.error("Erro de cadastro:", err);
+      setError(err.message || "Erro ao criar conta. Verifique os dados e tente novamente.");
       toast({
         title: "Erro no cadastro",
-        description: error.message || "Ocorreu um erro no cadastro",
+        description: err.message || "Ocorreu um erro no cadastro",
         variant: "destructive"
       });
     } finally {
@@ -113,13 +109,113 @@ const Register = () => {
     }
   };
 
+  const PasswordChecklist = () => (
+    <div className="mt-2 space-y-1">
+      {[
+        { ok: validations.length, label: "Pelo menos 8 caracteres" },
+        { ok: validations.hasUppercase, label: "Pelo menos uma letra maiúscula" },
+        { ok: validations.hasLowercase, label: "Pelo menos uma letra minúscula" },
+        { ok: validations.hasNumber, label: "Pelo menos um número" }
+      ].map(({ ok, label }) => (
+        <div key={label} className="flex items-center">
+          <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${ok ? 'bg-green-500' : 'bg-gray-300'}`}>
+            {ok && <Check className="h-3 w-3 text-white" />}
+          </div>
+          <span className={`text-xs ${ok ? 'text-green-600' : 'text-muted-foreground'}`}>{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  const RegisterForm = ({ userType, color }: { userType: 'solicitante' | 'freelancer'; color: string }) => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Cadastro de {userType === 'solicitante' ? 'Solicitante' : 'Freelancer'}</CardTitle>
+        <CardDescription>
+          {userType === 'solicitante'
+            ? 'Precisa encontrar freelancers qualificados para seus projetos'
+            : 'Quero oferecer meus serviços e encontrar novas oportunidades'}
+        </CardDescription>
+      </CardHeader>
+      <form onSubmit={(e) => handleSignUp(e, userType)}>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor={`${userType}-first-name`}>Nome</Label>
+              <Input
+                id={`${userType}-first-name`}
+                type="text"
+                placeholder="Seu nome"
+                value={firstName}
+                onChange={e => setFirstName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`${userType}-last-name`}>Sobrenome</Label>
+              <Input
+                id={`${userType}-last-name`}
+                type="text"
+                placeholder="Seu sobrenome"
+                value={lastName}
+                onChange={e => setLastName(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={`${userType}-email`}>Email</Label>
+            <Input
+              id={`${userType}-email`}
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={e => { setEmail(e.target.value); if (e.target.value) validateEmailField(e.target.value); }}
+              className={emailError ? "border-destructive" : ""}
+              required
+            />
+            {emailError && <p className="text-xs text-destructive">{emailError}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={`${userType}-password`}>Senha</Label>
+            <Input
+              id={`${userType}-password`}
+              type="password"
+              placeholder="Crie uma senha segura"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              className={password && !isPasswordValid ? "border-destructive" : ""}
+            />
+            <PasswordChecklist />
+          </div>
+        </CardContent>
+        <div className="px-6 pb-6">
+          <Button
+            type="submit"
+            className={`w-full ${color}`}
+            disabled={loading || !isPasswordValid || !firstName.trim() || !lastName.trim() || !email || !!emailError}
+          >
+            {loading ? "Cadastrando..." : `Cadastrar como ${userType === 'solicitante' ? 'Solicitante' : 'Freelancer'}`}
+          </Button>
+          <div className="text-sm text-center mt-4">
+            <span className="text-muted-foreground">Já tem uma conta? </span>
+            <Button variant="link" className="p-0" onClick={() => navigate('/login')}>
+              Fazer login
+            </Button>
+          </div>
+        </div>
+      </form>
+    </Card>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-muted flex flex-col items-center justify-center p-4">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-helpaqui-blue">
           Help<span className="text-helpaqui-green">Aqui</span>
         </h1>
-        <p className="text-gray-600 mt-2">Crie sua conta no HelpAqui</p>
+        <p className="text-muted-foreground mt-2">Crie sua conta no HelpAqui</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md">
@@ -142,205 +238,11 @@ const Register = () => {
         )}
 
         <TabsContent value="solicitante">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cadastro de Solicitante</CardTitle>
-              <CardDescription>
-                Precisa encontrar freelancers qualificados para seus projetos
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={(e) => handleSignUp(e, 'solicitante')}>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="solicitante-first-name">Nome</Label>
-                    <Input 
-                      id="solicitante-first-name" 
-                      type="text" 
-                      placeholder="Seu nome" 
-                      value={firstName} 
-                      onChange={e => setFirstName(e.target.value)} 
-                      required 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="solicitante-last-name">Sobrenome</Label>
-                    <Input 
-                      id="solicitante-last-name" 
-                      type="text" 
-                      placeholder="Seu sobrenome" 
-                      value={lastName} 
-                      onChange={e => setLastName(e.target.value)} 
-                      required 
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="solicitante-email">Email</Label>
-                  <Input 
-                    id="solicitante-email" 
-                    type="email" 
-                    placeholder="seu@email.com" 
-                    value={email} 
-                    onChange={e => {
-                      setEmail(e.target.value);
-                      if (e.target.value) validateEmail(e.target.value);
-                    }}
-                    className={emailError ? "border-red-500" : ""}
-                    required 
-                  />
-                  {emailError && <p className="text-xs text-red-500">{emailError}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="solicitante-password">Senha</Label>
-                  <Input 
-                    id="solicitante-password" 
-                    type="password" 
-                    value={password} 
-                    onChange={e => setPassword(e.target.value)} 
-                    required 
-                    className={!validations.length ? "border-red-300" : ""}
-                  />
-                  <div className="mt-2 space-y-2">
-                    <div className="flex items-center">
-                      <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${validations.length ? 'bg-green-500' : 'bg-gray-300'}`}>
-                        {validations.length && <Check className="h-3 w-3 text-white" />}
-                      </div>
-                      <span className="text-xs text-gray-600">Pelo menos 6 caracteres</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${validations.hasNumber ? 'bg-green-500' : 'bg-gray-300'}`}>
-                        {validations.hasNumber && <Check className="h-3 w-3 text-white" />}
-                      </div>
-                      <span className="text-xs text-gray-600">Pelo menos um número</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${validations.hasLetter ? 'bg-green-500' : 'bg-gray-300'}`}>
-                        {validations.hasLetter && <Check className="h-3 w-3 text-white" />}
-                      </div>
-                      <span className="text-xs text-gray-600">Pelo menos uma letra</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <div className="px-6 pb-6">
-                <Button 
-                  type="submit" 
-                  className="w-full bg-helpaqui-blue" 
-                  disabled={loading || !validations.length || !validations.hasNumber || !validations.hasLetter || !firstName || !lastName || !email || !!emailError}
-                >
-                  {loading ? "Cadastrando..." : "Cadastrar como Solicitante"}
-                </Button>
-                <div className="text-sm text-center mt-4">
-                  <span className="text-gray-600">Já tem uma conta? </span>
-                  <Button variant="link" className="p-0" onClick={() => navigate('/login')}>
-                    Fazer login
-                  </Button>
-                </div>
-              </div>
-            </form>
-          </Card>
+          <RegisterForm userType="solicitante" color="bg-helpaqui-blue" />
         </TabsContent>
 
         <TabsContent value="freelancer">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cadastro de Freelancer</CardTitle>
-              <CardDescription>
-                Quero oferecer meus serviços e encontrar novas oportunidades
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={(e) => handleSignUp(e, 'freelancer')}>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="freelancer-first-name">Nome</Label>
-                    <Input 
-                      id="freelancer-first-name" 
-                      type="text" 
-                      placeholder="Seu nome" 
-                      value={firstName} 
-                      onChange={e => setFirstName(e.target.value)} 
-                      required 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="freelancer-last-name">Sobrenome</Label>
-                    <Input 
-                      id="freelancer-last-name" 
-                      type="text" 
-                      placeholder="Seu sobrenome" 
-                      value={lastName} 
-                      onChange={e => setLastName(e.target.value)} 
-                      required 
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="freelancer-email">Email</Label>
-                  <Input 
-                    id="freelancer-email" 
-                    type="email" 
-                    placeholder="seu@email.com" 
-                    value={email} 
-                    onChange={e => {
-                      setEmail(e.target.value);
-                      if (e.target.value) validateEmail(e.target.value);
-                    }}
-                    className={emailError ? "border-red-500" : ""}
-                    required 
-                  />
-                  {emailError && <p className="text-xs text-red-500">{emailError}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="freelancer-password">Senha</Label>
-                  <Input 
-                    id="freelancer-password" 
-                    type="password" 
-                    value={password} 
-                    onChange={e => setPassword(e.target.value)} 
-                    required 
-                    className={!validations.length ? "border-red-300" : ""}
-                  />
-                  <div className="mt-2 space-y-2">
-                    <div className="flex items-center">
-                      <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${validations.length ? 'bg-green-500' : 'bg-gray-300'}`}>
-                        {validations.length && <Check className="h-3 w-3 text-white" />}
-                      </div>
-                      <span className="text-xs text-gray-600">Pelo menos 6 caracteres</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${validations.hasNumber ? 'bg-green-500' : 'bg-gray-300'}`}>
-                        {validations.hasNumber && <Check className="h-3 w-3 text-white" />}
-                      </div>
-                      <span className="text-xs text-gray-600">Pelo menos um número</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${validations.hasLetter ? 'bg-green-500' : 'bg-gray-300'}`}>
-                        {validations.hasLetter && <Check className="h-3 w-3 text-white" />}
-                      </div>
-                      <span className="text-xs text-gray-600">Pelo menos uma letra</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <div className="px-6 pb-6">
-                <Button 
-                  type="submit" 
-                  className="w-full bg-helpaqui-green" 
-                  disabled={loading || !validations.length || !validations.hasNumber || !validations.hasLetter || !firstName || !lastName || !email || !!emailError}
-                >
-                  {loading ? "Cadastrando..." : "Cadastrar como Freelancer"}
-                </Button>
-                <div className="text-sm text-center mt-4">
-                  <span className="text-gray-600">Já tem uma conta? </span>
-                  <Button variant="link" className="p-0" onClick={() => navigate('/login')}>
-                    Fazer login
-                  </Button>
-                </div>
-              </div>
-            </form>
-          </Card>
+          <RegisterForm userType="freelancer" color="bg-helpaqui-green" />
         </TabsContent>
       </Tabs>
     </div>
