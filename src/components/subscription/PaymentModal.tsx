@@ -258,7 +258,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     </div>
 
                     {pixExpiry && (
-                      <div className="flex items-center justify-center gap-2 text-sm text-orange-600">
+                      <div className="flex items-center justify-center gap-2 text-sm text-warning">
                         <Clock className="h-4 w-4" />
                         Expira em: {pixExpiry.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       </div>
