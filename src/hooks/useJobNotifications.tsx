@@ -1,6 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 
 interface JobNotification {
   id: string;
@@ -13,128 +15,123 @@ interface JobNotification {
   clientName: string;
   urgency: 'low' | 'medium' | 'high' | 'urgent';
   timestamp: number;
+  serviceRequestId?: string;
+  clientId?: string;
 }
 
 export const useJobNotifications = () => {
   const [notifications, setNotifications] = useState<JobNotification[]>([]);
   const [currentNotification, setCurrentNotification] = useState<JobNotification | null>(null);
-  const { userType } = useAuth();
+  const { userType, user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Only freelancers should receive job notifications
-    if (userType !== 'freelancer') return;
+    if (userType !== 'freelancer' || !user) return;
 
-    // Simulate receiving job notifications
-    const simulateNotifications = () => {
-      const mockJobs: JobNotification[] = [
-        {
-          id: '1',
-          title: 'Reparo Elétrico Urgente',
-          description: 'Preciso de um eletricista para consertar tomadas queimadas',
-          category: 'Elétrica',
-          location: 'Vila Madalena, São Paulo',
-          budget: 'R$ 150-200',
-          date: 'Hoje à tarde',
-          clientName: 'João Silva',
-          urgency: 'urgent',
-          timestamp: Date.now()
-        },
-        {
-          id: '2',
-          title: 'Limpeza Residencial',
-          description: 'Limpeza completa de casa para mudança',
-          category: 'Limpeza',
-          location: 'Pinheiros, São Paulo',
-          budget: 'R$ 200-300',
-          date: 'Amanhã de manhã',
-          clientName: 'Maria Santos',
-          urgency: 'medium',
-          timestamp: Date.now() + 60000
-        }
-      ];
+    // Poll open service_requests from Supabase in real-time
+    const fetchOpenRequests = async () => {
+      const { data: requests, error } = await supabase
+        .from('service_requests')
+        .select('id, title, description, category, location_address, budget_min, budget_max, urgency, created_at, client_id')
+        .eq('status', 'open')
+        .order('created_at', { ascending: false })
+        .limit(5);
 
-      let index = 0;
-      const showNotification = () => {
-        if (index < mockJobs.length) {
-          const job = mockJobs[index];
-          setCurrentNotification(job);
-          setNotifications(prev => [...prev, job]);
-          index++;
-          
-          // Schedule next notification in 30 seconds
-          setTimeout(showNotification, 30000);
-        }
-      };
+      if (error || !requests?.length) return;
 
-      // Show first notification after 5 seconds
-      setTimeout(showNotification, 5000);
-    };
+      // Fetch client names
+      const clientIds = requests.map(r => r.client_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .in('id', clientIds);
 
-    simulateNotifications();
+      const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
 
-    // Listen for real-time job notifications from backend
-    const eventSource = new EventSource('/api/job-notifications');
-    
-    eventSource.onmessage = (event) => {
-      const jobData = JSON.parse(event.data);
-      const notification: JobNotification = {
-        ...jobData,
-        timestamp: Date.now()
-      };
-      
-      setCurrentNotification(notification);
-      setNotifications(prev => [...prev, notification]);
-    };
+      const mapped: JobNotification[] = requests.map(r => {
+        const profile = profileMap[r.client_id];
+        const clientName = profile
+          ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Cliente'
+          : 'Cliente';
 
-    return () => {
-      eventSource.close();
-    };
-  }, [userType]);
+        const budget = r.budget_min && r.budget_max
+          ? `R$ ${r.budget_min} - R$ ${r.budget_max}`
+          : r.budget_min ? `R$ ${r.budget_min}` : 'A combinar';
 
-  const acceptJob = async (jobId: string) => {
-    try {
-      const response = await fetch('/api/jobs/accept', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ jobId })
+        const urgency: JobNotification['urgency'] =
+          r.urgency === 'urgent' ? 'urgent'
+          : r.urgency === 'high' ? 'high'
+          : r.urgency === 'medium' ? 'medium'
+          : 'low';
+
+        return {
+          id: r.id,
+          title: r.title,
+          description: r.description || '',
+          category: r.category,
+          location: r.location_address || 'Não informado',
+          budget,
+          date: new Date(r.created_at).toLocaleDateString('pt-BR'),
+          clientName,
+          urgency,
+          timestamp: Date.now(),
+          serviceRequestId: r.id,
+          clientId: r.client_id,
+        };
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to accept job');
-      }
+      setNotifications(mapped);
 
-      // Remove notification after accepting
-      setNotifications(prev => prev.filter(n => n.id !== jobId));
-      setCurrentNotification(null);
-    } catch (error) {
-      console.error('Error accepting job:', error);
-      throw error;
+      // Show the most recent notification if none is showing
+      setCurrentNotification(prev => {
+        if (prev) return prev; // don't override one already visible
+        return mapped[0] ?? null;
+      });
+    };
+
+    fetchOpenRequests();
+
+    // Real-time subscription
+    const channel = supabase
+      .channel('job-notifications-channel')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'service_requests' },
+        () => { fetchOpenRequests(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [userType, user]);
+
+  const acceptJob = async (jobId: string) => {
+    if (!user) throw new Error('Não autenticado');
+
+    // Insert a service proposal (accept = send proposal with status pending)
+    const { error } = await supabase
+      .from('service_proposals')
+      .insert({
+        service_request_id: jobId,
+        freelancer_id: user.id,
+        message: 'Aceito esta solicitação de serviço e estou disponível.',
+        status: 'pending',
+      });
+
+    if (error) {
+      // If duplicate, just dismiss gracefully
+      if (!error.message.includes('duplicate') && !error.message.includes('unique')) {
+        throw new Error(error.message);
+      }
     }
+
+    setNotifications(prev => prev.filter(n => n.id !== jobId));
+    setCurrentNotification(null);
   };
 
   const rejectJob = async (jobId: string) => {
-    try {
-      const response = await fetch('/api/jobs/reject', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ jobId })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to reject job');
-      }
-
-      // Remove notification after rejecting
-      setNotifications(prev => prev.filter(n => n.id !== jobId));
-      setCurrentNotification(null);
-    } catch (error) {
-      console.error('Error rejecting job:', error);
-      throw error;
-    }
+    // No DB action needed for reject — just dismiss the notification locally
+    setNotifications(prev => prev.filter(n => n.id !== jobId));
+    setCurrentNotification(null);
   };
 
   const dismissNotification = () => {
@@ -146,6 +143,6 @@ export const useJobNotifications = () => {
     currentNotification,
     acceptJob,
     rejectJob,
-    dismissNotification
+    dismissNotification,
   };
 };

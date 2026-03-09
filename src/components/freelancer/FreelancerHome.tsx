@@ -150,7 +150,7 @@ const FreelancerHome: React.FC = () => {
             </Button>
             <Button 
               variant="outline"
-              onClick={() => navigate('/payments')}
+              onClick={() => navigate('/payment-freelancer-settings')}
               className="h-16 flex flex-col gap-1 bg-blue-50 hover:bg-blue-100 border-blue-200"
             >
               <CreditCard className="h-5 w-5" />
