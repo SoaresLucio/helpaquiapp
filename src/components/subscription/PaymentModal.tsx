@@ -70,8 +70,32 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       const { data, error } = await supabase.functions.invoke('generate-pix-payment', {
         body: requestBody,
       });
-      if (error) throw new Error(error.message || 'Erro ao gerar PIX');
-      if (data?.error) throw new Error(data.error);
+      
+      // Handle error from edge function - extract message from various possible locations
+      let errorMessage = '';
+      if (error) {
+        // Try to get message from error context (response body) or error message
+        const contextData = (error as any)?.context;
+        if (contextData?.error) {
+          errorMessage = contextData.error;
+        } else if (typeof contextData === 'string') {
+          try {
+            const parsed = JSON.parse(contextData);
+            errorMessage = parsed.error || error.message;
+          } catch {
+            errorMessage = error.message || 'Erro ao gerar PIX';
+          }
+        } else {
+          errorMessage = error.message || 'Erro ao gerar PIX';
+        }
+      }
+      if (data?.error) {
+        errorMessage = data.error;
+      }
+      
+      if (errorMessage) {
+        throw new Error(errorMessage);
+      }
 
       setPixCode(data.pixCode || '');
       setQrCodeUrl(data.qrCodeUrl || '');
