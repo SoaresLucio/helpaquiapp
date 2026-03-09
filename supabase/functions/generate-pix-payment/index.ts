@@ -45,7 +45,7 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) throw new Error('Invalid authentication');
 
-    const { planId, amount } = await req.json();
+    const { planId, amount, cpf: providedCpf } = await req.json();
     if (!planId || typeof planId !== 'string') throw new Error('Valid plan ID is required');
     if (!amount || typeof amount !== 'number' || amount <= 0) throw new Error('Valid amount is required');
 
