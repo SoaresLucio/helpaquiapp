@@ -17,7 +17,7 @@ export const useSubscriptionFlow = () => {
     try {
       setIsLoading(true);
       
-      // Verificar se já tem assinatura ativa
+      // Check if user already has an active subscription
       const currentSub = await getCurrentSubscription();
       
       if (currentSub && currentSub.status === 'active') {
@@ -44,7 +44,7 @@ export const useSubscriptionFlow = () => {
     try {
       setIsLoading(true);
       
-      // Se for plano gratuito, ativar diretamente
+      // Free plan: activate directly
       if (selectedPlan.price_monthly === 0) {
         const success = await subscribeToPlan(selectedPlan.id);
         
@@ -56,7 +56,7 @@ export const useSubscriptionFlow = () => {
           toast.error('Erro ao ativar plano');
         }
       } else {
-        // Para planos pagos, ir para tela de pagamento
+        // Paid plans: go to payment modal (PIX via ASAAS)
         setIsSubscriptionModalOpen(false);
         setIsPaymentModalOpen(true);
       }
@@ -68,28 +68,13 @@ export const useSubscriptionFlow = () => {
     }
   }, [selectedPlan]);
 
-  const handlePaymentSuccess = useCallback(async () => {
-    if (!selectedPlan) return;
-
-    try {
-      setIsLoading(true);
-      
-      const success = await subscribeToPlan(selectedPlan.id);
-      
-      if (success) {
-        setIsPaymentModalOpen(false);
-        setIsSuccessModalOpen(true);
-        toast.success('Pagamento realizado com sucesso!');
-      } else {
-        toast.error('Erro ao processar pagamento');
-      }
-    } catch (error) {
-      console.error('Error processing payment:', error);
-      toast.error('Erro ao processar pagamento');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [selectedPlan]);
+  // Called after payment is verified by the edge function
+  // Subscription is already activated by verify-subscription-payment edge function
+  const handlePaymentSuccess = useCallback(() => {
+    setIsPaymentModalOpen(false);
+    setIsSuccessModalOpen(true);
+    // No need to call subscribeToPlan - the edge function already activated it
+  }, []);
 
   const handleGoToDashboard = useCallback(() => {
     setIsSuccessModalOpen(false);

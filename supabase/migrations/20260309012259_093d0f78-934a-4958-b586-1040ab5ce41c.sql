@@ -1,0 +1,1 @@
+ALTER TABLE public.pix_payments ADD COLUMN IF NOT EXISTS asaas_payment_id TEXT;
