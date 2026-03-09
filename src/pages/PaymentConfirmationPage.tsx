@@ -306,13 +306,48 @@ const PaymentConfirmationPage: React.FC = () => {
                       <p className="text-sm text-muted-foreground">Gerando código PIX via ASAAS...</p>
                     </div>
                   ) : pixError ? (
-                    <div className="py-8 space-y-3">
+                    <div className="py-4 space-y-4">
                       <AlertCircle className="h-12 w-12 mx-auto text-destructive" />
                       <p className="text-sm text-destructive">{pixError}</p>
+                      
+                      {needsCpf && (
+                        <div className="space-y-3 text-left bg-muted/30 p-4 rounded-lg">
+                          <Label htmlFor="pix-cpf" className="text-sm font-medium">
+                            Informe seu CPF para continuar:
+                          </Label>
+                          <Input
+                            id="pix-cpf"
+                            value={pixCpf}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/\D/g, '').slice(0, 11);
+                              if (value.length > 9) {
+                                value = `${value.slice(0, 3)}.${value.slice(3, 6)}.${value.slice(6, 9)}-${value.slice(9)}`;
+                              } else if (value.length > 6) {
+                                value = `${value.slice(0, 3)}.${value.slice(3, 6)}.${value.slice(6)}`;
+                              } else if (value.length > 3) {
+                                value = `${value.slice(0, 3)}.${value.slice(3)}`;
+                              }
+                              setPixCpf(value);
+                            }}
+                            placeholder="000.000.000-00"
+                            className="text-center"
+                          />
+                          <Button 
+                            onClick={() => planData && generatePixPayment(planData, pixCpf)}
+                            className="w-full"
+                            disabled={pixCpf.replace(/\D/g, '').length !== 11}
+                          >
+                            Gerar PIX com CPF
+                          </Button>
+                        </div>
+                      )}
+                      
                       <div className="flex gap-2 justify-center">
-                        <Button onClick={() => planData && generatePixPayment(planData)} variant="outline" size="sm">
-                          Tentar novamente
-                        </Button>
+                        {!needsCpf && (
+                          <Button onClick={() => planData && generatePixPayment(planData)} variant="outline" size="sm">
+                            Tentar novamente
+                          </Button>
+                        )}
                         <Button onClick={() => setPaymentMethod('select')} variant="ghost" size="sm">
                           Outro método
                         </Button>
