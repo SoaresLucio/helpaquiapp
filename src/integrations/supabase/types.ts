@@ -550,6 +550,7 @@ export type Database = {
           location_address: string | null
           location_lat: number | null
           location_lng: number | null
+          owner_id: string | null
           requirements: string | null
           salary_range: string | null
           title: string
@@ -568,6 +569,7 @@ export type Database = {
           location_address?: string | null
           location_lat?: number | null
           location_lng?: number | null
+          owner_id?: string | null
           requirements?: string | null
           salary_range?: string | null
           title: string
@@ -586,6 +588,7 @@ export type Database = {
           location_address?: string | null
           location_lat?: number | null
           location_lng?: number | null
+          owner_id?: string | null
           requirements?: string | null
           salary_range?: string | null
           title?: string
