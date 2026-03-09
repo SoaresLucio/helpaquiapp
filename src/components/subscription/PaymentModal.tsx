@@ -36,6 +36,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [pixCpf, setPixCpf] = useState('');
+  const [needsCpf, setNeedsCpf] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
@@ -45,6 +47,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       setPixExpiry(null);
       setPixPaymentId(null);
       setGenerateError(null);
+      setPixCpf('');
+      setNeedsCpf(false);
     }
   }, [isOpen]);
 
