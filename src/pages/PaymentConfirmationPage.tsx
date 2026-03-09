@@ -15,6 +15,8 @@ import { getSubscriptionPlans, type SubscriptionPlan } from '@/services/subscrip
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
+type PaymentMethodType = 'select' | 'pix' | 'card';
+
 const PaymentConfirmationPage: React.FC = () => {
   const { planId } = useParams<{ planId: string }>();
   const navigate = useNavigate();
@@ -25,6 +27,7 @@ const PaymentConfirmationPage: React.FC = () => {
   const [isTermsDialogOpen, setIsTermsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('select');
 
   // PIX state from edge function
   const [pixCode, setPixCode] = useState('');
