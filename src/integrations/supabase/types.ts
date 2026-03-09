@@ -831,6 +831,7 @@ export type Database = {
       pix_payments: {
         Row: {
           amount: number
+          asaas_payment_id: string | null
           created_at: string
           expires_at: string
           id: string
@@ -842,6 +843,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          asaas_payment_id?: string | null
           created_at?: string
           expires_at: string
           id?: string
@@ -853,6 +855,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          asaas_payment_id?: string | null
           created_at?: string
           expires_at?: string
           id?: string
