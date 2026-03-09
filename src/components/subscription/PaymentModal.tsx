@@ -52,14 +52,23 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
   }, [isOpen]);
 
-  const generateRealPixCode = async () => {
+  const generateRealPixCode = async (cpfInput?: string) => {
     if (!plan) return;
     setIsGenerating(true);
     setGenerateError(null);
+    setNeedsCpf(false);
 
     try {
+      const requestBody: Record<string, unknown> = { 
+        planId: plan.id, 
+        amount: plan.price_monthly 
+      };
+      if (cpfInput) {
+        requestBody.cpf = cpfInput.replace(/\D/g, '');
+      }
+
       const { data, error } = await supabase.functions.invoke('generate-pix-payment', {
-        body: { planId: plan.id, amount: plan.price_monthly },
+        body: requestBody,
       });
       if (error) throw new Error(error.message || 'Erro ao gerar PIX');
       if (data?.error) throw new Error(data.error);
@@ -67,10 +76,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       setPixCode(data.pixCode || '');
       setQrCodeUrl(data.qrCodeUrl || '');
       setPixPaymentId(data.pixPaymentId || null);
+      setNeedsCpf(false);
       if (data.expiresAt) setPixExpiry(new Date(data.expiresAt));
     } catch (error: any) {
       console.error('Error generating PIX:', error);
-      setGenerateError(error.message || 'Erro ao gerar código PIX.');
+      const errorMessage = error.message || 'Erro ao gerar código PIX.';
+      setGenerateError(errorMessage);
+      if (errorMessage.toLowerCase().includes('cpf')) {
+        setNeedsCpf(true);
+      }
       toast.error('Erro ao gerar código PIX');
     } finally {
       setIsGenerating(false);
