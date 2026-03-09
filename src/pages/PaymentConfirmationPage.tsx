@@ -57,8 +57,7 @@ const PaymentConfirmationPage: React.FC = () => {
 
       if (plan) {
         setPlanData(plan);
-        // Generate PIX after plan is loaded
-        generatePixPayment(plan);
+        // Don't auto-generate PIX - let user select payment method first
       } else {
         toast.error('Plano não encontrado');
         navigate(-1);
