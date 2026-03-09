@@ -73,18 +73,26 @@ const PaymentConfirmationPage: React.FC = () => {
     }
   };
 
-  const generatePixPayment = async (plan: SubscriptionPlan) => {
+  const generatePixPayment = async (plan: SubscriptionPlan, cpfInput?: string) => {
     if (plan.price_monthly <= 0) return;
 
     setIsGeneratingPix(true);
     setPixError(null);
+    setNeedsCpf(false);
 
     try {
+      const requestBody: Record<string, unknown> = {
+        planId: plan.id,
+        amount: plan.price_monthly,
+      };
+      
+      // Include CPF if provided
+      if (cpfInput) {
+        requestBody.cpf = cpfInput.replace(/\D/g, '');
+      }
+
       const { data, error } = await supabase.functions.invoke('generate-pix-payment', {
-        body: {
-          planId: plan.id,
-          amount: plan.price_monthly,
-        },
+        body: requestBody,
       });
 
       if (error) throw new Error(error.message || 'Erro ao gerar PIX');
@@ -93,13 +101,21 @@ const PaymentConfirmationPage: React.FC = () => {
       setPixCode(data.pixCode || '');
       setQrCodeUrl(data.qrCodeUrl || '');
       setPixPaymentId(data.pixPaymentId || null);
+      setNeedsCpf(false);
 
       if (data.expiresAt) {
         setPixExpiry(new Date(data.expiresAt));
       }
     } catch (error: any) {
       console.error('Error generating PIX:', error);
-      setPixError(error.message || 'Erro ao gerar código PIX');
+      const errorMessage = error.message || 'Erro ao gerar código PIX';
+      setPixError(errorMessage);
+      
+      // Check if error is related to CPF
+      if (errorMessage.toLowerCase().includes('cpf')) {
+        setNeedsCpf(true);
+      }
+      
       toast.error('Erro ao gerar código PIX');
     } finally {
       setIsGeneratingPix(false);
