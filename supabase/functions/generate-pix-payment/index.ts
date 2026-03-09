@@ -45,7 +45,7 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) throw new Error('Invalid authentication');
 
-    const { planId, amount } = await req.json();
+    const { planId, amount, cpf: providedCpf } = await req.json();
     if (!planId || typeof planId !== 'string') throw new Error('Valid plan ID is required');
     if (!amount || typeof amount !== 'number' || amount <= 0) throw new Error('Valid amount is required');
 
@@ -69,20 +69,35 @@ serve(async (req) => {
       : 'Usuário HelpAqui';
     const userEmail = profile?.email || user.email || '';
 
-    // Try to get CPF from profile_verifications
-    const { data: verification } = await supabase
-      .from('profile_verifications')
-      .select('additional_data')
-      .eq('user_id', user.id)
-      .eq('verification_type', 'document')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    // Try to get CPF from: 1) request body, 2) profile_verifications
+    let validCpf: string | null = null;
+    
+    // First check if CPF was provided in the request
+    if (providedCpf) {
+      const cleanedProvidedCpf = providedCpf.replace(/\D/g, '');
+      if (isValidCpf(cleanedProvidedCpf)) {
+        validCpf = cleanedProvidedCpf;
+      }
+    }
+    
+    // If not provided or invalid, try profile_verifications
+    if (!validCpf) {
+      const { data: verification } = await supabase
+        .from('profile_verifications')
+        .select('additional_data')
+        .eq('user_id', user.id)
+        .eq('verification_type', 'document')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-    const additionalData = verification?.additional_data as Record<string, unknown> | null;
-    const rawCpf = (additionalData?.cpf as string) || (additionalData?.document_number as string) || '';
-    const cleanCpf = rawCpf.replace(/\D/g, '');
-    const validCpf = isValidCpf(cleanCpf) ? cleanCpf : null;
+      const additionalData = verification?.additional_data as Record<string, unknown> | null;
+      const rawCpf = (additionalData?.cpf as string) || (additionalData?.document_number as string) || '';
+      const cleanCpf = rawCpf.replace(/\D/g, '');
+      if (isValidCpf(cleanCpf)) {
+        validCpf = cleanCpf;
+      }
+    }
 
     const asaasApiKey = Deno.env.get('ASAAS_API_KEY');
     if (!asaasApiKey) throw new Error('ASAAS_API_KEY not configured');

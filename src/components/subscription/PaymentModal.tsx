@@ -36,6 +36,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [pixCpf, setPixCpf] = useState('');
+  const [needsCpf, setNeedsCpf] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
@@ -45,17 +47,28 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       setPixExpiry(null);
       setPixPaymentId(null);
       setGenerateError(null);
+      setPixCpf('');
+      setNeedsCpf(false);
     }
   }, [isOpen]);
 
-  const generateRealPixCode = async () => {
+  const generateRealPixCode = async (cpfInput?: string) => {
     if (!plan) return;
     setIsGenerating(true);
     setGenerateError(null);
+    setNeedsCpf(false);
 
     try {
+      const requestBody: Record<string, unknown> = { 
+        planId: plan.id, 
+        amount: plan.price_monthly 
+      };
+      if (cpfInput) {
+        requestBody.cpf = cpfInput.replace(/\D/g, '');
+      }
+
       const { data, error } = await supabase.functions.invoke('generate-pix-payment', {
-        body: { planId: plan.id, amount: plan.price_monthly },
+        body: requestBody,
       });
       if (error) throw new Error(error.message || 'Erro ao gerar PIX');
       if (data?.error) throw new Error(data.error);
@@ -63,10 +76,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       setPixCode(data.pixCode || '');
       setQrCodeUrl(data.qrCodeUrl || '');
       setPixPaymentId(data.pixPaymentId || null);
+      setNeedsCpf(false);
       if (data.expiresAt) setPixExpiry(new Date(data.expiresAt));
     } catch (error: any) {
       console.error('Error generating PIX:', error);
-      setGenerateError(error.message || 'Erro ao gerar código PIX.');
+      const errorMessage = error.message || 'Erro ao gerar código PIX.';
+      setGenerateError(errorMessage);
+      if (errorMessage.toLowerCase().includes('cpf')) {
+        setNeedsCpf(true);
+      }
       toast.error('Erro ao gerar código PIX');
     } finally {
       setIsGenerating(false);
@@ -183,13 +201,44 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     <p className="text-sm text-muted-foreground">Gerando código PIX...</p>
                   </div>
                 ) : generateError ? (
-                  <div className="py-8 space-y-3">
+                  <div className="py-4 space-y-4">
                     <AlertCircle className="h-12 w-12 mx-auto text-destructive" />
                     <p className="text-sm text-destructive">{generateError}</p>
+                    
+                    {needsCpf && (
+                      <div className="space-y-3 text-left bg-muted/30 p-4 rounded-lg">
+                        <Label htmlFor="modal-pix-cpf" className="text-sm font-medium">
+                          Informe seu CPF para continuar:
+                        </Label>
+                        <Input
+                          id="modal-pix-cpf"
+                          value={pixCpf}
+                          onChange={(e) => {
+                            let value = e.target.value.replace(/\D/g, '').slice(0, 11);
+                            if (value.length > 9) value = `${value.slice(0, 3)}.${value.slice(3, 6)}.${value.slice(6, 9)}-${value.slice(9)}`;
+                            else if (value.length > 6) value = `${value.slice(0, 3)}.${value.slice(3, 6)}.${value.slice(6)}`;
+                            else if (value.length > 3) value = `${value.slice(0, 3)}.${value.slice(3)}`;
+                            setPixCpf(value);
+                          }}
+                          placeholder="000.000.000-00"
+                          className="text-center"
+                        />
+                        <Button
+                          onClick={() => generateRealPixCode(pixCpf)}
+                          className="w-full"
+                          disabled={pixCpf.replace(/\D/g, '').length !== 11}
+                        >
+                          Gerar PIX com CPF
+                        </Button>
+                      </div>
+                    )}
+                    
                     <div className="flex gap-2 justify-center">
-                      <Button onClick={generateRealPixCode} variant="outline" size="sm">
-                        Tentar novamente
-                      </Button>
+                      {!needsCpf && (
+                        <Button onClick={() => generateRealPixCode()} variant="outline" size="sm">
+                          Tentar novamente
+                        </Button>
+                      )}
                       <Button onClick={() => setPaymentMethod('select')} variant="ghost" size="sm">
                         Outro método
                       </Button>
@@ -209,7 +258,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     </div>
 
                     {pixExpiry && (
-                      <div className="flex items-center justify-center gap-2 text-sm text-orange-600">
+                      <div className="flex items-center justify-center gap-2 text-sm text-warning">
                         <Clock className="h-4 w-4" />
                         Expira em: {pixExpiry.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       </div>
