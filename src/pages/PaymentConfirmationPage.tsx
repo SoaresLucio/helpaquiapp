@@ -36,6 +36,8 @@ const PaymentConfirmationPage: React.FC = () => {
   const [pixPaymentId, setPixPaymentId] = useState<string | null>(null);
   const [isGeneratingPix, setIsGeneratingPix] = useState(false);
   const [pixError, setPixError] = useState<string | null>(null);
+  const [pixCpf, setPixCpf] = useState('');
+  const [needsCpf, setNeedsCpf] = useState(false);
 
   // Load plan data
   useEffect(() => {
