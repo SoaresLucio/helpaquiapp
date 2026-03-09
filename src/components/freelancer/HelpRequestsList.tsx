@@ -101,7 +101,7 @@ const HelpRequestsList: React.FC<HelpRequestsListProps> = ({
       // Fetch client profiles separately
       const clientIds = requestsData?.map(req => req.client_id) || [];
       const { data: profilesData } = await supabase
-        .from('profiles')
+        .from('public_profiles')
         .select('id, first_name, last_name, avatar_url')
         .in('id', clientIds);
 

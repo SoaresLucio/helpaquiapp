@@ -16,9 +16,9 @@ export const useFreelancerProfile = (freelancerId: string | undefined) => {
         const fetchProfile = async () => {
             setLoading(true);
 
-            // Fetch profile data
+            // Fetch profile data via public_profiles view for non-owner access
             const { data: profileData, error: profileError } = await supabase
-                .from('profiles')
+                .from('public_profiles')
                 .select('*')
                 .eq('id', freelancerId)
                 .single();

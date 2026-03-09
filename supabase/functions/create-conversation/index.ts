@@ -64,6 +64,11 @@ serve(async (req) => {
       clientId = serviceRequest.client_id;
     }
 
+    // Authorization: caller must be one of the two parties
+    if (user.id !== freelancerId && user.id !== clientId) {
+      throw new Error('Unauthorized: caller must be client or freelancer in the conversation');
+    }
+
     // Check if conversation already exists
     let existingConvQuery = supabase
       .from('conversations')
