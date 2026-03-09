@@ -42,7 +42,7 @@ export const useJobNotifications = () => {
       // Fetch client names
       const clientIds = requests.map(r => r.client_id);
       const { data: profiles } = await supabase
-        .from('profiles')
+        .from('public_profiles')
         .select('id, first_name, last_name')
         .in('id', clientIds);
 
