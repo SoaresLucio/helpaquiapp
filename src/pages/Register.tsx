@@ -26,7 +26,8 @@ const Register = () => {
   const [validations, setValidations] = useState({
     length: false,
     hasNumber: false,
-    hasLetter: false
+    hasUppercase: false,
+    hasLowercase: false
   });
   const [emailError, setEmailError] = useState<string | null>(null);
 
@@ -41,12 +42,13 @@ const Register = () => {
     checkUser();
   }, [navigate]);
 
-  // Password validation
+  // Password validation - must match authValidation.ts rules (8 chars, upper, lower, number)
   useEffect(() => {
     setValidations({
-      length: password.length >= 6,
+      length: password.length >= 8,
       hasNumber: /\d/.test(password),
-      hasLetter: /[a-zA-Z]/.test(password)
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password)
     });
   }, [password]);
 

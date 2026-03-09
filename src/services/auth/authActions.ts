@@ -8,18 +8,17 @@ import {
 } from "@/utils/authValidation";
 
 export const signIn = async (email: string, password: string) => {
-  // Enhanced validation using centralized validators
+  // Basic validation for login - don't enforce complexity rules on existing passwords
   const cleanEmail = sanitizeInput(email).toLowerCase();
-  const cleanPassword = password; // Don't modify password
+  const cleanPassword = password;
   
   const emailValidation = validateEmail(cleanEmail);
   if (!emailValidation.isValid) {
     throw new Error(emailValidation.error);
   }
   
-  const passwordValidation = validatePassword(cleanPassword);
-  if (!passwordValidation.isValid) {
-    throw new Error(passwordValidation.error);
+  if (!cleanPassword || cleanPassword.length < 6) {
+    throw new Error("A senha deve ter pelo menos 6 caracteres");
   }
   
   try {

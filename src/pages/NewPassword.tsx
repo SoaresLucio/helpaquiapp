@@ -27,21 +27,41 @@ const NewPassword = () => {
     match: false
   });
 
-  // Verificar se há token de reset na URL
+  // Supabase sends tokens in the URL hash (#access_token=...&type=recovery)
   useEffect(() => {
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
-    const type = searchParams.get('type');
+    const hash = window.location.hash;
+    const hashParams = new URLSearchParams(hash.replace('#', ''));
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+    const type = hashParams.get('type');
 
-    if (!accessToken || type !== 'recovery') {
-      toast({
-        title: "Link inválido",
-        description: "Este link de recuperação de senha é inválido ou expirou.",
-        variant: "destructive"
-      });
-      navigate('/login');
+    if (accessToken && refreshToken && type === 'recovery') {
+      // Establish the recovery session so updateUser() works
+      supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        .catch((err) => {
+          console.error('Failed to set recovery session:', err);
+          toast({
+            title: "Link inválido",
+            description: "Sessão de recuperação inválida. Solicite um novo link.",
+            variant: "destructive"
+          });
+          navigate('/login');
+        });
+    } else {
+      // Fallback: check query params (some email clients strip the hash)
+      const qAccessToken = searchParams.get('access_token');
+      const qType = searchParams.get('type');
+      if (!qAccessToken || qType !== 'recovery') {
+        toast({
+          title: "Link inválido",
+          description: "Este link de recuperação de senha é inválido ou expirou.",
+          variant: "destructive"
+        });
+        navigate('/login');
+      }
     }
-  }, [searchParams, navigate, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Validação de senha em tempo real
   useEffect(() => {
