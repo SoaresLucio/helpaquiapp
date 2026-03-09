@@ -5,46 +5,56 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import BackButton from '@/components/ui/back-button';
 import TermsOfUseDialog from '@/components/TermsOfUseDialog';
-import { CheckCircle, QrCode, Copy } from 'lucide-react';
+import { CheckCircle, QrCode, Copy, Loader2, AlertCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
-import { getSubscriptionPlans, subscribeToPlan, type SubscriptionPlan } from '@/services/subscriptionService';
+import { getSubscriptionPlans, type SubscriptionPlan } from '@/services/subscriptionService';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 const PaymentConfirmationPage: React.FC = () => {
   const { planId } = useParams<{ planId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   const [planData, setPlanData] = useState<SubscriptionPlan | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isTermsDialogOpen, setIsTermsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [pixCode] = useState('00020126580014BR.GOV.BCB.PIX013654321098-7654-321a-bcde-f0123456789027400014BR.GOV.BCB.PIX2534example.com/qr/v2/99eb3b1ad-4f20-47a0-95e9-3f123');
 
-  // Carregar dados do plano
+  // PIX state from edge function
+  const [pixCode, setPixCode] = useState('');
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const [pixExpiry, setPixExpiry] = useState<Date | null>(null);
+  const [pixPaymentId, setPixPaymentId] = useState<string | null>(null);
+  const [isGeneratingPix, setIsGeneratingPix] = useState(false);
+  const [pixError, setPixError] = useState<string | null>(null);
+
+  // Load plan data
   useEffect(() => {
     loadPlanData();
   }, [planId]);
 
   const loadPlanData = async () => {
     if (!planId) return;
-    
+
     setLoading(true);
     try {
-      // Buscar ambos os tipos de planos
       const [solicitantePlans, freelancerPlans] = await Promise.all([
         getSubscriptionPlans('solicitante'),
-        getSubscriptionPlans('freelancer')
+        getSubscriptionPlans('freelancer'),
       ]);
-      
+
       const allPlans = [...solicitantePlans, ...freelancerPlans];
-      const plan = allPlans.find(p => p.id === planId);
-      
+      const plan = allPlans.find((p) => p.id === planId);
+
       if (plan) {
         setPlanData(plan);
+        // Generate PIX after plan is loaded
+        generatePixPayment(plan);
       } else {
         toast.error('Plano não encontrado');
         navigate(-1);
@@ -58,11 +68,45 @@ const PaymentConfirmationPage: React.FC = () => {
     }
   };
 
+  const generatePixPayment = async (plan: SubscriptionPlan) => {
+    if (plan.price_monthly <= 0) return;
+
+    setIsGeneratingPix(true);
+    setPixError(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-pix-payment', {
+        body: {
+          planId: plan.id,
+          amount: plan.price_monthly,
+        },
+      });
+
+      if (error) throw new Error(error.message || 'Erro ao gerar PIX');
+      if (data?.error) throw new Error(data.error);
+
+      setPixCode(data.pixCode || '');
+      setQrCodeUrl(data.qrCodeUrl || '');
+      setPixPaymentId(data.pixPaymentId || null);
+
+      if (data.expiresAt) {
+        setPixExpiry(new Date(data.expiresAt));
+      }
+    } catch (error: any) {
+      console.error('Error generating PIX:', error);
+      setPixError(error.message || 'Erro ao gerar código PIX');
+      toast.error('Erro ao gerar código PIX');
+    } finally {
+      setIsGeneratingPix(false);
+    }
+  };
+
   const handleCopyPixCode = async () => {
+    if (!pixCode) return;
     try {
       await navigator.clipboard.writeText(pixCode);
       toast.success('Código PIX copiado!');
-    } catch (error) {
+    } catch {
       toast.error('Erro ao copiar código PIX');
     }
   };
@@ -73,23 +117,37 @@ const PaymentConfirmationPage: React.FC = () => {
       return;
     }
 
-    if (!planData) return;
+    if (!planData || !pixPaymentId) {
+      toast.error('Gere um novo código PIX antes de confirmar');
+      return;
+    }
 
     setProcessing(true);
     try {
-      const success = await subscribeToPlan(planData.id);
-      
-      if (success) {
-        toast.success('Pagamento confirmado! Redirecionando...');
+      const { data, error } = await supabase.functions.invoke('verify-subscription-payment', {
+        body: {
+          pixPaymentId,
+          planId: planData.id,
+        },
+      });
+
+      if (error) throw new Error(error.message || 'Erro ao verificar pagamento');
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.isPaid) {
+        toast.success('Pagamento confirmado! Assinatura ativada com sucesso!');
         setTimeout(() => {
           navigate('/', { replace: true });
         }, 2000);
       } else {
-        toast.error('Erro ao processar pagamento');
+        const message =
+          data?.message ||
+          'Pagamento não identificado. Aguarde alguns minutos após o pagamento e tente novamente.';
+        toast.error(message, { duration: 6000 });
       }
-    } catch (error) {
-      console.error('Error processing payment:', error);
-      toast.error('Erro ao processar pagamento');
+    } catch (error: any) {
+      console.error('Error verifying payment:', error);
+      toast.error(error.message || 'Erro ao verificar pagamento');
     } finally {
       setProcessing(false);
     }
@@ -103,10 +161,10 @@ const PaymentConfirmationPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-helpaqui-blue mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando dados do plano...</p>
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Carregando dados do plano...</p>
         </div>
       </div>
     );
@@ -114,9 +172,9 @@ const PaymentConfirmationPage: React.FC = () => {
 
   if (!planData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Plano não encontrado</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-4">Plano não encontrado</h1>
           <BackButton to="/" label="Voltar ao Início" />
         </div>
       </div>
@@ -126,42 +184,36 @@ const PaymentConfirmationPage: React.FC = () => {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL'
+      currency: 'BRL',
     }).format(price);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
           <BackButton to="/" label="Voltar ao Início" />
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Confirme sua Assinatura
-          </h1>
-          <p className="text-lg text-gray-600">
+          <h1 className="text-4xl font-bold text-foreground mb-2">Confirme sua Assinatura</h1>
+          <p className="text-lg text-muted-foreground">
             Revise os detalhes do seu plano e realize o pagamento via PIX
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Coluna Esquerda - Detalhes do Plano */}
+          {/* Left Column - Plan Details */}
           <Card className="h-fit">
             <CardHeader>
-              <CardTitle className="text-xl font-bold text-gray-900">
-                Resumo do Plano
-              </CardTitle>
+              <CardTitle className="text-xl font-bold text-foreground">Resumo do Plano</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="text-center pb-4 border-b border-gray-200">
-                <h3 className="text-2xl font-bold text-primary mb-2">
-                  {planData.name}
-                </h3>
-                <div className="text-3xl font-bold text-gray-900">
+              <div className="text-center pb-4 border-b border-border">
+                <h3 className="text-2xl font-bold text-primary mb-2">{planData.name}</h3>
+                <div className="text-3xl font-bold text-foreground">
                   {formatPrice(planData.price_monthly)}
-                  <span className="text-sm font-normal text-gray-600">/mês</span>
+                  <span className="text-sm font-normal text-muted-foreground">/mês</span>
                 </div>
                 <Badge variant="secondary" className="mt-2">
                   Cobrança mensal
@@ -169,14 +221,12 @@ const PaymentConfirmationPage: React.FC = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold text-gray-900 mb-4">
-                  Benefícios inclusos:
-                </h4>
+                <h4 className="font-semibold text-foreground mb-4">Benefícios inclusos:</h4>
                 <div className="space-y-3">
                   {(planData.features as string[]).map((feature, index) => (
                     <div key={index} className="flex items-start gap-3">
                       <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">{feature}</span>
+                      <span className="text-muted-foreground">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -184,45 +234,91 @@ const PaymentConfirmationPage: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Coluna Direita - Confirmação e Pagamento */}
+          {/* Right Column - Payment */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl font-bold text-gray-900">
-                Realize o Pagamento
-              </CardTitle>
+              <CardTitle className="text-xl font-bold text-foreground">Realize o Pagamento</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Seção PIX */}
+              {/* PIX Section */}
               <div className="text-center space-y-4">
-                <div className="flex justify-center">
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 flex items-center justify-center bg-gray-50">
-                    <QrCode className="h-48 w-48 text-gray-400" />
+                {isGeneratingPix ? (
+                  <div className="py-8 space-y-3">
+                    <Loader2 className="h-12 w-12 mx-auto text-primary animate-spin" />
+                    <p className="text-sm text-muted-foreground">Gerando código PIX via ASAAS...</p>
                   </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-600 font-medium">
-                    1. Abra o app do seu banco e escaneie o código
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    2. Confirme o pagamento no seu banco
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    3. Volte aqui e clique em "Já realizei o pagamento"
-                  </p>
-                </div>
+                ) : pixError ? (
+                  <div className="py-8 space-y-3">
+                    <AlertCircle className="h-12 w-12 mx-auto text-destructive" />
+                    <p className="text-sm text-destructive">{pixError}</p>
+                    <Button
+                      onClick={() => planData && generatePixPayment(planData)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Tentar novamente
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex justify-center">
+                      {qrCodeUrl ? (
+                        <img
+                          src={qrCodeUrl}
+                          alt="QR Code PIX"
+                          className="h-48 w-48 rounded-lg border"
+                        />
+                      ) : (
+                        <div className="border-2 border-dashed border-border rounded-lg p-8 flex items-center justify-center bg-muted/30">
+                          <QrCode className="h-48 w-48 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
 
-                <Button
-                  variant="outline"
-                  onClick={handleCopyPixCode}
-                  className="w-full"
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copiar Código PIX
-                </Button>
+                    {pixExpiry && (
+                      <div className="flex items-center justify-center gap-2 text-sm text-orange-600">
+                        <Clock className="h-4 w-4" />
+                        Expira em:{' '}
+                        {pixExpiry.toLocaleTimeString('pt-BR', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground font-medium">
+                        1. Abra o app do seu banco e escaneie o código
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        2. Confirme o pagamento no seu banco
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        3. Volte aqui e clique em "Verificar Pagamento"
+                      </p>
+                    </div>
+
+                    {pixCode && (
+                      <div className="space-y-2">
+                        <Label htmlFor="pix-code">Código PIX Copia e Cola:</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="pix-code"
+                            value={pixCode}
+                            readOnly
+                            className="font-mono text-xs"
+                          />
+                          <Button onClick={handleCopyPixCode} variant="outline" size="sm">
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
-              {/* Termos de Uso */}
+              {/* Terms of Use */}
               <div className="space-y-4">
                 <div className="flex items-start space-x-3">
                   <Checkbox
@@ -230,9 +326,9 @@ const PaymentConfirmationPage: React.FC = () => {
                     checked={termsAccepted}
                     onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
                   />
-                  <Label 
-                    htmlFor="terms" 
-                    className="text-sm text-gray-700 leading-relaxed cursor-pointer"
+                  <Label
+                    htmlFor="terms"
+                    className="text-sm text-muted-foreground leading-relaxed cursor-pointer"
                   >
                     Eu li e concordo com os{' '}
                     <button
@@ -246,15 +342,30 @@ const PaymentConfirmationPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Botão de Confirmação */}
+              {/* Confirm Button */}
               <Button
                 onClick={handleConfirmPayment}
-                disabled={!termsAccepted || processing}
+                disabled={!termsAccepted || processing || !pixPaymentId || isGeneratingPix}
                 className="w-full"
                 size="lg"
               >
-                {processing ? 'Processando...' : 'Já realizei o pagamento'}
+                {processing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Verificando pagamento...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Já paguei - Verificar Pagamento
+                  </>
+                )}
               </Button>
+
+              <p className="text-xs text-muted-foreground text-center">
+                Após efetuar o pagamento via PIX, aguarde alguns segundos e clique no botão acima.
+                O sistema verificará automaticamente a confirmação junto ao gateway de pagamento.
+              </p>
             </CardContent>
           </Card>
         </div>
