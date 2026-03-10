@@ -94,7 +94,7 @@ const UserTypeSelection = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="text-sm text-gray-600 space-y-2">
+            <ul className="text-sm text-muted-foreground space-y-2">
               <li>• Cadastre seus serviços</li>
               <li>• Encontre clientes próximos</li>
               <li>• Gerencie seus trabalhos</li>

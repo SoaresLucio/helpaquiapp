@@ -1,7 +1,6 @@
 
 import { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { useLocation } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuthSession } from './auth/useAuthSession';
 import { supabase } from '@/integrations/supabase/client';

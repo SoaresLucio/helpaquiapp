@@ -172,7 +172,7 @@ const SolicitanteLoginForm: React.FC<SolicitanteLoginFormProps> = ({
           </Button>
           
           <div className="text-sm text-center">
-            <span className="text-gray-600">Novo por aqui? </span>
+            <span className="text-muted-foreground">Novo por aqui? </span>
             <Button variant="link" className="p-0" onClick={() => navigate('/register?type=solicitante')}>
               Criar conta de solicitante
             </Button>
