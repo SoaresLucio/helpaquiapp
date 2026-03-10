@@ -137,7 +137,7 @@ const Auth = () => {
 
   const ValidationIcon = ({ isValid }: { isValid: boolean }) => (
     <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${isValid ? 'bg-helpaqui-green' : 'bg-muted'}`}>
-      {isValid && <Check className="h-3 w-3 text-white" />}
+      {isValid && <Check className="h-3 w-3 text-primary-foreground" />}
     </div>
   );
 
