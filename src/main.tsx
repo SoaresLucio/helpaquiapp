@@ -8,6 +8,7 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import { SecurityProvider } from "./components/security/SecurityProvider";
 import { ThemeProvider } from "./hooks/useTheme";
+import ErrorBoundary from "./components/ErrorBoundary";
 import App from "./App";
 import "./index.css";
 

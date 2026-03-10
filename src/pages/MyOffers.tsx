@@ -16,9 +16,14 @@ const MyOffers: React.FC = () => {
   const { offers, loading, deleteOffer } = useMyOffers();
 
   // Redirect if not freelancer
-  if (userType !== 'freelancer') {
-    navigate('/');
-    return null;
+  React.useEffect(() => {
+    if (userType && userType !== 'freelancer') {
+      navigate('/');
+    }
+  }, [userType, navigate]);
+
+  if (!userType || userType !== 'freelancer') {
+    return <LoadingState />;
   }
 
   if (loading) {
