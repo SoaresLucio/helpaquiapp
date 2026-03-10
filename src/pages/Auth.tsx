@@ -229,10 +229,10 @@ const Auth = () => {
                     placeholder="seu@email.com" 
                     value={formData.email} 
                     onChange={e => updateFormData('email', e.target.value)}
-                    className={emailError ? "border-red-500" : ""}
+                    className={emailError ? "border-destructive" : ""}
                     required 
                   />
-                  {emailError && <p className="text-xs text-red-500">{emailError}</p>}
+                  {emailError && <p className="text-xs text-destructive">{emailError}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="first-name">Nome</Label>
