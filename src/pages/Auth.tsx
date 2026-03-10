@@ -264,7 +264,7 @@ const Auth = () => {
                     value={formData.password} 
                     onChange={e => updateFormData('password', e.target.value)}
                     required 
-                    className={!validations.length ? "border-red-300" : ""}
+                    className={!validations.length ? "border-destructive/50" : ""}
                   />
                   <div className="mt-2 space-y-2">
                     <div className="flex items-center">
