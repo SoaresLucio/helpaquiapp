@@ -142,7 +142,7 @@ const Auth = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-helpaqui-blue">
           Help<span className="text-helpaqui-green">Aqui</span>
