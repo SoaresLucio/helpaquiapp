@@ -65,10 +65,10 @@ const FreelancerProfile: React.FC = () => {
   const freelancerName = freelancer.first_name && freelancer.last_name ? `${freelancer.first_name} ${freelancer.last_name}` : 'Freelancer';
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       <Header />
       <div className="helpaqui-container py-6">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="flex items-center mb-4 text-gray-700 dark:text-gray-300">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="flex items-center mb-4 text-foreground">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Button>
