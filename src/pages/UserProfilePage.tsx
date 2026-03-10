@@ -11,7 +11,7 @@ const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
   
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="min-h-screen bg-background dark:bg-background">
       <Header />
       <div className="helpaqui-container py-6">
         <Button 

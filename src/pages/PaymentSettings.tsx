@@ -33,7 +33,7 @@ const PaymentSettings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
       
       <main className="flex-1 helpaqui-container py-4">
