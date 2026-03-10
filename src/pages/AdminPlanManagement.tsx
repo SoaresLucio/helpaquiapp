@@ -87,15 +87,19 @@ const AdminPlanManagement: React.FC = () => {
     return userType === 'freelancer' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800';
   };
 
-  if (loading) {
+  if (adminLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando planos...</p>
+          <p className="text-muted-foreground">Carregando planos...</p>
         </div>
       </div>
     );
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
   }
 
   return (
