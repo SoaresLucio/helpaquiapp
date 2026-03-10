@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +10,10 @@ import { Pencil, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { getSubscriptionPlans, type SubscriptionPlan } from '@/services/subscriptionService';
 import { supabase } from '@/integrations/supabase/client';
+import { useAdminAccess } from '@/hooks/useAdminAccess';
 
 const AdminPlanManagement: React.FC = () => {
+  const { isAdmin, loading: adminLoading } = useAdminAccess();
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingPlan, setEditingPlan] = useState<string | null>(null);
