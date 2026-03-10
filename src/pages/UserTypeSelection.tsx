@@ -69,7 +69,7 @@ const UserTypeSelection = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="text-sm text-gray-600 space-y-2">
+            <ul className="text-sm text-muted-foreground space-y-2">
               <li>• Publique suas necessidades</li>
               <li>• Receba propostas de freelancers</li>
               <li>• Escolha o melhor profissional</li>
