@@ -60,7 +60,7 @@ const UserTypeSelection = () => {
           onClick={() => setSelectedType('solicitante')}
         >
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 p-3 bg-blue-100 rounded-full w-fit">
+            <div className="mx-auto mb-4 p-3 bg-helpaqui-light-blue rounded-full w-fit">
               <UserRound className="h-8 w-8 text-helpaqui-blue" />
             </div>
             <CardTitle className="text-helpaqui-blue">Sou Solicitante</CardTitle>
