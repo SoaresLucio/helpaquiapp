@@ -85,7 +85,7 @@ const UserTypeSelection = () => {
           onClick={() => setSelectedType('freelancer')}
         >
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 p-3 bg-green-100 rounded-full w-fit">
+            <div className="mx-auto mb-4 p-3 bg-helpaqui-light-green rounded-full w-fit">
               <BriefcaseBusiness className="h-8 w-8 text-helpaqui-green" />
             </div>
             <CardTitle className="text-helpaqui-green">Sou Freelancer</CardTitle>
