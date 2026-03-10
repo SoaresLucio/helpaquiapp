@@ -23,7 +23,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <TooltipProvider>
               <Toaster />
               <BrowserRouter>
-                <App />
+                <ErrorBoundary>
+                  <App />
+                </ErrorBoundary>
               </BrowserRouter>
             </TooltipProvider>
           </SecurityProvider>
