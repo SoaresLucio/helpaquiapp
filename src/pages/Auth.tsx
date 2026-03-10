@@ -136,18 +136,18 @@ const Auth = () => {
   };
 
   const ValidationIcon = ({ isValid }: { isValid: boolean }) => (
-    <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${isValid ? 'bg-green-500' : 'bg-gray-300'}`}>
-      {isValid && <Check className="h-3 w-3 text-white" />}
+    <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${isValid ? 'bg-helpaqui-green' : 'bg-muted'}`}>
+      {isValid && <Check className="h-3 w-3 text-primary-foreground" />}
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-helpaqui-blue">
           Help<span className="text-helpaqui-green">Aqui</span>
         </h1>
-        <p className="text-gray-600 mt-2">Freelancers profissionais perto de você</p>
+        <p className="text-muted-foreground mt-2">Freelancers profissionais perto de você</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md">
@@ -185,10 +185,10 @@ const Auth = () => {
                     placeholder="seu@email.com" 
                     value={formData.email} 
                     onChange={e => updateFormData('email', e.target.value)}
-                    className={emailError ? "border-red-500" : ""}
+                    className={emailError ? "border-destructive" : ""}
                     required 
                   />
-                  {emailError && <p className="text-xs text-red-500">{emailError}</p>}
+                  {emailError && <p className="text-xs text-destructive">{emailError}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Senha</Label>
@@ -200,7 +200,7 @@ const Auth = () => {
                       onChange={e => updateFormData('password', e.target.value)}
                       required 
                     />
-                    <LockIcon className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+                    <LockIcon className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
               </CardContent>
@@ -229,10 +229,10 @@ const Auth = () => {
                     placeholder="seu@email.com" 
                     value={formData.email} 
                     onChange={e => updateFormData('email', e.target.value)}
-                    className={emailError ? "border-red-500" : ""}
+                    className={emailError ? "border-destructive" : ""}
                     required 
                   />
-                  {emailError && <p className="text-xs text-red-500">{emailError}</p>}
+                  {emailError && <p className="text-xs text-destructive">{emailError}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="first-name">Nome</Label>
@@ -264,20 +264,20 @@ const Auth = () => {
                     value={formData.password} 
                     onChange={e => updateFormData('password', e.target.value)}
                     required 
-                    className={!validations.length ? "border-red-300" : ""}
+                    className={!validations.length ? "border-destructive/50" : ""}
                   />
                   <div className="mt-2 space-y-2">
                     <div className="flex items-center">
                       <ValidationIcon isValid={validations.length} />
-                      <span className="text-xs text-gray-600">Pelo menos 6 caracteres</span>
+                      <span className="text-xs text-muted-foreground">Pelo menos 6 caracteres</span>
                     </div>
                     <div className="flex items-center">
                       <ValidationIcon isValid={validations.hasNumber} />
-                      <span className="text-xs text-gray-600">Pelo menos um número</span>
+                      <span className="text-xs text-muted-foreground">Pelo menos um número</span>
                     </div>
                     <div className="flex items-center">
                       <ValidationIcon isValid={validations.hasLetter} />
-                      <span className="text-xs text-gray-600">Pelo menos uma letra</span>
+                      <span className="text-xs text-muted-foreground">Pelo menos uma letra</span>
                     </div>
                   </div>
                 </div>

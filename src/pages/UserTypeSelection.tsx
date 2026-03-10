@@ -44,12 +44,12 @@ const UserTypeSelection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-helpaqui-blue">
           Help<span className="text-helpaqui-green">Aqui</span>
         </h1>
-        <p className="text-gray-600 mt-2">Como você quer usar o HelpAqui?</p>
+        <p className="text-muted-foreground mt-2">Como você quer usar o HelpAqui?</p>
       </div>
 
       <div className="w-full max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -60,7 +60,7 @@ const UserTypeSelection = () => {
           onClick={() => setSelectedType('solicitante')}
         >
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 p-3 bg-blue-100 rounded-full w-fit">
+            <div className="mx-auto mb-4 p-3 bg-helpaqui-light-blue rounded-full w-fit">
               <UserRound className="h-8 w-8 text-helpaqui-blue" />
             </div>
             <CardTitle className="text-helpaqui-blue">Sou Solicitante</CardTitle>
@@ -69,7 +69,7 @@ const UserTypeSelection = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="text-sm text-gray-600 space-y-2">
+            <ul className="text-sm text-muted-foreground space-y-2">
               <li>• Publique suas necessidades</li>
               <li>• Receba propostas de freelancers</li>
               <li>• Escolha o melhor profissional</li>
@@ -85,7 +85,7 @@ const UserTypeSelection = () => {
           onClick={() => setSelectedType('freelancer')}
         >
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 p-3 bg-green-100 rounded-full w-fit">
+            <div className="mx-auto mb-4 p-3 bg-helpaqui-light-green rounded-full w-fit">
               <BriefcaseBusiness className="h-8 w-8 text-helpaqui-green" />
             </div>
             <CardTitle className="text-helpaqui-green">Sou Freelancer</CardTitle>
@@ -94,7 +94,7 @@ const UserTypeSelection = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="text-sm text-gray-600 space-y-2">
+            <ul className="text-sm text-muted-foreground space-y-2">
               <li>• Cadastre seus serviços</li>
               <li>• Encontre clientes próximos</li>
               <li>• Gerencie seus trabalhos</li>

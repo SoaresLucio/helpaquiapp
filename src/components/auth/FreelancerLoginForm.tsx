@@ -170,7 +170,7 @@ const FreelancerLoginForm: React.FC<FreelancerLoginFormProps> = ({
           </Button>
           
           <div className="text-sm text-center">
-            <span className="text-gray-600">Quer trabalhar conosco? </span>
+            <span className="text-muted-foreground">Quer trabalhar conosco? </span>
             <Button variant="link" className="p-0" onClick={() => navigate('/register?type=freelancer')}>
               Cadastre-se como freelancer
             </Button>
