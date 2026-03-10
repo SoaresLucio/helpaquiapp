@@ -269,15 +269,15 @@ const Auth = () => {
                   <div className="mt-2 space-y-2">
                     <div className="flex items-center">
                       <ValidationIcon isValid={validations.length} />
-                      <span className="text-xs text-gray-600">Pelo menos 6 caracteres</span>
+                      <span className="text-xs text-muted-foreground">Pelo menos 6 caracteres</span>
                     </div>
                     <div className="flex items-center">
                       <ValidationIcon isValid={validations.hasNumber} />
-                      <span className="text-xs text-gray-600">Pelo menos um número</span>
+                      <span className="text-xs text-muted-foreground">Pelo menos um número</span>
                     </div>
                     <div className="flex items-center">
                       <ValidationIcon isValid={validations.hasLetter} />
-                      <span className="text-xs text-gray-600">Pelo menos uma letra</span>
+                      <span className="text-xs text-muted-foreground">Pelo menos uma letra</span>
                     </div>
                   </div>
                 </div>
