@@ -50,7 +50,7 @@ const FreelancerProfile: React.FC = () => {
 
   if (!freelancer) {
       return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="min-h-screen bg-background">
             <Header />
             <div className="helpaqui-container py-6 text-center">
                 <p>Perfil do freelancer não encontrado.</p>
