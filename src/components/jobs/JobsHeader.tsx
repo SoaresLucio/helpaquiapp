@@ -2,7 +2,7 @@
 import React from 'react';
 
 interface JobsHeaderProps {
-  userType: 'freelancer' | 'solicitante' | null;
+  userType: 'freelancer' | 'solicitante' | 'empresa' | null;
 }
 
 const JobsHeader: React.FC<JobsHeaderProps> = ({ userType }) => {

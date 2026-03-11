@@ -4,7 +4,7 @@ import Header from '@/components/Header';
 import CategorySelector from '@/components/CategorySelector';
 
 interface IndexHeaderProps {
-  userType: 'solicitante' | 'freelancer' | null;
+  userType: 'solicitante' | 'freelancer' | 'empresa' | null;
   selectedCategory: string | null;
   onSelectCategory: (category: string | null) => void;
 }

@@ -5,7 +5,7 @@ import { RealUser } from '@/types/user';
 
 export const useRealUser = (
   authUser: User | null, 
-  userType: 'solicitante' | 'freelancer' | null, 
+  userType: 'solicitante' | 'freelancer' | 'empresa' | null, 
   profile: any
 ) => {
   return useMemo(() => {

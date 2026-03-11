@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import MobileNavigation from '@/components/index/MobileNavigation';
 
 interface IndexLayoutWrapperProps {
-  userType: 'solicitante' | 'freelancer' | null;
+  userType: 'solicitante' | 'freelancer' | 'empresa' | null;
   children: React.ReactNode;
 }
 

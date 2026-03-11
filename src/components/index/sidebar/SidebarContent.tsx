@@ -7,7 +7,7 @@ import ChatInterface from '@/components/ChatInterface';
 import { RealUser } from '@/types/user';
 
 interface SidebarContentProps {
-  userType: 'solicitante' | 'freelancer' | null;
+  userType: 'solicitante' | 'freelancer' | 'empresa' | null;
   currentUser: RealUser | null;
 }
 

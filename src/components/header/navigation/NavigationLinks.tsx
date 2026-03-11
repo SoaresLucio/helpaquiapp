@@ -5,7 +5,7 @@ import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { cn } from '@/lib/utils';
 interface NavigationLinksProps {
   currentPath: string;
-  userType: 'solicitante' | 'freelancer' | null;
+  userType: 'solicitante' | 'freelancer' | 'empresa' | null;
 }
 const NavigationLinks: React.FC<NavigationLinksProps> = ({
   currentPath,

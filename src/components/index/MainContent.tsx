@@ -4,7 +4,7 @@ import SolicitanteHome from '@/components/solicitante/SolicitanteHome';
 import FreelancerHome from '@/components/freelancer/FreelancerHome';
 
 interface MainContentProps {
-  userType: 'solicitante' | 'freelancer' | null;
+  userType: 'solicitante' | 'freelancer' | 'empresa' | null;
   selectedCategory: string | null;
   onSelectCategory: (category: string | null) => void;
 }
