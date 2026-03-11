@@ -26,7 +26,15 @@ const NavigationLinks: React.FC<NavigationLinksProps> = ({
           Planos
         </Link>}
       
-      {userType === 'freelancer' && <Link to="/payment-freelancer-settings" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-gray-100 transition-colors", currentPath === "/payment-freelancer-settings" && "text-helpaqui-blue font-medium bg-blue-50")}>
+      {userType === 'empresa' && <Link to="/empresa-plans" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-muted transition-colors", currentPath === "/empresa-plans" && "text-helpaqui-blue font-medium bg-primary/10")}>
+          Planos
+        </Link>}
+
+      {userType === 'empresa' && <Link to="/jobs" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-muted transition-colors", currentPath === "/jobs" && "text-helpaqui-blue font-medium bg-primary/10")}>
+          Vagas
+        </Link>}
+
+      {userType === 'freelancer' && <Link to="/payment-freelancer-settings" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-muted transition-colors", currentPath === "/payment-freelancer-settings" && "text-helpaqui-blue font-medium bg-primary/10")}>
           Pagamentos
         </Link>}
       
