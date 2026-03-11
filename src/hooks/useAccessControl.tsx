@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface UseAccessControlOptions {
-  requiredUserType?: 'solicitante' | 'freelancer';
+  requiredUserType?: 'solicitante' | 'freelancer' | 'empresa';
   redirectOnMismatch?: boolean;
 }
 
