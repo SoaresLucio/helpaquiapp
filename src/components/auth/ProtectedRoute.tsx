@@ -36,11 +36,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (requiredUserType && userType !== requiredUserType) {
-    // Redirect to appropriate home based on user type
     if (userType === 'solicitante') {
       return <Navigate to="/solicitante-plans" replace />;
     } else if (userType === 'freelancer') {
       return <Navigate to="/freelancer-plans" replace />;
+    } else if (userType === 'empresa') {
+      return <Navigate to="/empresa-plans" replace />;
     }
     return <Navigate to="/" replace />;
   }
