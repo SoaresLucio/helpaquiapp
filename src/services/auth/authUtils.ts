@@ -51,21 +51,19 @@ export const getCurrentUser = async (): Promise<User | null> => {
   }
 };
 
-export const getUserType = async (): Promise<'solicitante' | 'freelancer' | null> => {
+export const getUserType = async (): Promise<'solicitante' | 'freelancer' | 'empresa' | null> => {
   try {
     const user = await getCurrentUser();
     if (!user) return null;
     
-    // Try to get from user metadata first
     const userType = user.user_metadata?.user_type;
-    if (userType && ['solicitante', 'freelancer'].includes(userType)) {
-      return userType as 'solicitante' | 'freelancer';
+    if (userType && ['solicitante', 'freelancer', 'empresa'].includes(userType)) {
+      return userType as 'solicitante' | 'freelancer' | 'empresa';
     }
     
-    // Fallback to localStorage (for Google auth users)
     const storedType = localStorage.getItem('userType');
-    if (storedType && ['solicitante', 'freelancer'].includes(storedType)) {
-      return storedType as 'solicitante' | 'freelancer';
+    if (storedType && ['solicitante', 'freelancer', 'empresa'].includes(storedType)) {
+      return storedType as 'solicitante' | 'freelancer' | 'empresa';
     }
     
     if (process.env.NODE_ENV === 'development') {

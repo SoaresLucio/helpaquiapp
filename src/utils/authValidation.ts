@@ -99,7 +99,7 @@ export const validateRegistrationData = (
     return lastNameValidation;
   }
   
-  if (!['solicitante', 'freelancer'].includes(userType)) {
+  if (!['solicitante', 'freelancer', 'empresa'].includes(userType)) {
     return { isValid: false, error: "Tipo de usuário inválido" };
   }
   
