@@ -17,7 +17,7 @@ export interface AuthResponse {
 export interface AuthState {
   session: Session | null;
   user: User | null;
-  userType: 'solicitante' | 'freelancer' | null;
+  userType: 'solicitante' | 'freelancer' | 'empresa' | null;
   loading: boolean;
   isAuthenticated: boolean;
 }

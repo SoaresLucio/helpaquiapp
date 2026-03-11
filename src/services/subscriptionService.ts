@@ -38,7 +38,7 @@ const convertFeaturesToStringArray = (features: Json): string[] => {
 };
 
 // Get all available subscription plans, optionally filtered by user type
-export const getSubscriptionPlans = async (userType?: 'solicitante' | 'freelancer'): Promise<SubscriptionPlan[]> => {
+export const getSubscriptionPlans = async (userType?: 'solicitante' | 'freelancer' | 'empresa'): Promise<SubscriptionPlan[]> => {
   try {
     let query = supabase
       .from('subscription_plans')

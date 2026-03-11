@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, Building2, Crown } from 'lucide-react';
-import { BackButton } from '@/components/ui/back-button';
+import BackButton from '@/components/ui/back-button';
 import { toast } from 'sonner';
 import { getSubscriptionPlans, subscribeToPlan, type SubscriptionPlan } from '@/services/subscriptionService';
 

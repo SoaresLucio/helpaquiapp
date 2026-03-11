@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 export const useAuthSession = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [userType, setUserType] = useState<'solicitante' | 'freelancer' | null>(null);
+  const [userType, setUserType] = useState<'solicitante' | 'freelancer' | 'empresa' | null>(null);
   const [loading, setLoading] = useState(true);
   const initRef = useRef(false);
 
@@ -14,12 +14,12 @@ export const useAuthSession = () => {
     if (initRef.current) return;
     initRef.current = true;
 
-    const resolveUserType = (session: Session | null): 'solicitante' | 'freelancer' | null => {
+    const resolveUserType = (session: Session | null): 'solicitante' | 'freelancer' | 'empresa' | null => {
       if (!session?.user) return null;
       const meta = session.user.user_metadata?.user_type;
-      if (meta && ['solicitante', 'freelancer'].includes(meta)) return meta;
+      if (meta && ['solicitante', 'freelancer', 'empresa'].includes(meta)) return meta;
       const stored = localStorage.getItem('userType');
-      if (stored && ['solicitante', 'freelancer'].includes(stored)) return stored as any;
+      if (stored && ['solicitante', 'freelancer', 'empresa'].includes(stored)) return stored as any;
       return 'solicitante';
     };
 
