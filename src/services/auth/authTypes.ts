@@ -6,7 +6,7 @@ export interface AuthUser {
   email: string;
   firstName?: string;
   lastName?: string;
-  userType?: 'solicitante' | 'freelancer';
+  userType?: 'solicitante' | 'freelancer' | 'empresa';
 }
 
 export interface AuthResponse {
