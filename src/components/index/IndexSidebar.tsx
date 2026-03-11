@@ -6,7 +6,7 @@ import SidebarContent from './sidebar/SidebarContent';
 import { RealUser } from '@/types/user';
 
 interface IndexSidebarProps {
-  userType: 'solicitante' | 'freelancer' | null;
+  userType: 'solicitante' | 'freelancer' | 'empresa' | null;
   activeTab: string;
   onTabChange: (tab: string) => void;
   onChatRedirect: () => void;

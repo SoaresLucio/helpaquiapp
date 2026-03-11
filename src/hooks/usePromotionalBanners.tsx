@@ -13,7 +13,7 @@ interface Banner {
   is_active: boolean;
 }
 
-export const usePromotionalBanners = (targetAudience: 'solicitante' | 'freelancer') => {
+export const usePromotionalBanners = (targetAudience: 'solicitante' | 'freelancer' | 'empresa') => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

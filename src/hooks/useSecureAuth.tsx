@@ -12,7 +12,7 @@ interface SecureAuthContextType {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
-  userType: 'solicitante' | 'freelancer' | null;
+  userType: 'solicitante' | 'freelancer' | 'empresa' | null;
   logout: () => Promise<void>;
   isUserValid: boolean;
   securityErrors: string[];

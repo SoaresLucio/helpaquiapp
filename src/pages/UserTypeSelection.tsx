@@ -1,39 +1,38 @@
 
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BriefcaseBusiness, UserRound } from 'lucide-react';
+import { BriefcaseBusiness, UserRound, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
 
+type UserType = 'solicitante' | 'freelancer' | 'empresa';
+
 const UserTypeSelection = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
-  const [selectedType, setSelectedType] = useState<'solicitante' | 'freelancer' | null>(null);
+  const [selectedType, setSelectedType] = useState<UserType | null>(null);
 
-  const handleTypeSelection = async (userType: 'solicitante' | 'freelancer') => {
+  const handleTypeSelection = async (userType: UserType) => {
     setLoading(true);
     
     try {
-      // Update user metadata with selected user type
       const { error } = await supabase.auth.updateUser({
-        data: {
-          user_type: userType
-        }
+        data: { user_type: userType }
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // Store in localStorage as backup
       localStorage.setItem('userType', userType);
 
-      toast.success(`Tipo de usuário definido como ${userType === 'solicitante' ? 'solicitante' : 'freelancer'}.`);
+      const labels: Record<UserType, string> = {
+        solicitante: 'Solicitante',
+        freelancer: 'Freelancer',
+        empresa: 'Empresa'
+      };
 
-      // Use React Router navigation instead of window.location.href
+      toast.success(`Tipo de usuário definido como ${labels[userType]}.`);
       navigate('/', { replace: true });
     } catch (error: any) {
       console.error("Erro ao definir tipo de usuário:", error);
@@ -42,6 +41,12 @@ const UserTypeSelection = () => {
       setLoading(false);
     }
   };
+
+  const ringColor = selectedType === 'freelancer' 
+    ? 'ring-helpaqui-green' 
+    : selectedType === 'empresa' 
+    ? 'ring-orange-500' 
+    : 'ring-helpaqui-blue';
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
@@ -52,7 +57,7 @@ const UserTypeSelection = () => {
         <p className="text-muted-foreground mt-2">Como você quer usar o HelpAqui?</p>
       </div>
 
-      <div className="w-full max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card 
           className={`cursor-pointer transition-all hover:shadow-lg ${
             selectedType === 'solicitante' ? 'ring-2 ring-helpaqui-blue' : ''
@@ -65,7 +70,7 @@ const UserTypeSelection = () => {
             </div>
             <CardTitle className="text-helpaqui-blue">Sou Solicitante</CardTitle>
             <CardDescription>
-              Preciso encontrar freelancers qualificados para meus projetos
+              Preciso encontrar profissionais para meus projetos
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -73,7 +78,7 @@ const UserTypeSelection = () => {
               <li>• Publique suas necessidades</li>
               <li>• Receba propostas de freelancers</li>
               <li>• Escolha o melhor profissional</li>
-              <li>• Acompanhe o progresso do trabalho</li>
+              <li>• Acompanhe o progresso</li>
             </ul>
           </CardContent>
         </Card>
@@ -90,7 +95,7 @@ const UserTypeSelection = () => {
             </div>
             <CardTitle className="text-helpaqui-green">Sou Freelancer</CardTitle>
             <CardDescription>
-              Quero oferecer meus serviços e encontrar novas oportunidades
+              Quero oferecer meus serviços e encontrar oportunidades
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -102,6 +107,31 @@ const UserTypeSelection = () => {
             </ul>
           </CardContent>
         </Card>
+
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-lg ${
+            selectedType === 'empresa' ? 'ring-2 ring-orange-500' : ''
+          }`}
+          onClick={() => setSelectedType('empresa')}
+        >
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 p-3 bg-orange-100 rounded-full w-fit">
+              <Building2 className="h-8 w-8 text-orange-600" />
+            </div>
+            <CardTitle className="text-orange-600">Sou Empresa</CardTitle>
+            <CardDescription>
+              Quero divulgar vagas, serviços e minha marca
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="text-sm text-muted-foreground space-y-2">
+              <li>• Divulgue vagas de emprego</li>
+              <li>• Promova sua empresa</li>
+              <li>• Encontre freelancers</li>
+              <li>• Ofereça serviços</li>
+            </ul>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="mt-8">
@@ -109,7 +139,11 @@ const UserTypeSelection = () => {
           size="lg"
           disabled={!selectedType || loading}
           onClick={() => selectedType && handleTypeSelection(selectedType)}
-          className={selectedType === 'freelancer' ? 'bg-helpaqui-green' : 'bg-helpaqui-blue'}
+          className={
+            selectedType === 'freelancer' ? 'bg-helpaqui-green' 
+            : selectedType === 'empresa' ? 'bg-orange-500 hover:bg-orange-600' 
+            : 'bg-helpaqui-blue'
+          }
         >
           {loading ? "Configurando..." : "Continuar"}
         </Button>

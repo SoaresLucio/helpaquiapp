@@ -23,6 +23,7 @@ import AIChat from "./pages/AIChat";
 import Subscription from "./pages/Subscription";
 import SolicitantePlans from "./pages/SolicitantePlans";
 import FreelancerPlans from "./pages/FreelancerPlans";
+import EmpresaPlans from "./pages/EmpresaPlans";
 import MyOffers from "./pages/MyOffers";
 import MyRequests from "./pages/MyRequests";
 import OffersPage from "./pages/OffersPage";
@@ -128,8 +129,13 @@ function App() {
           <FreelancerPlans />
         </ProtectedRoute>
       } />
+      <Route path="/empresa-plans" element={
+        <ProtectedRoute requiredUserType="empresa">
+          <EmpresaPlans />
+        </ProtectedRoute>
+      } />
       
-      {/* New management pages */}
+      {/* Management pages */}
       <Route path="/my-offers" element={
         <ProtectedRoute requiredUserType="freelancer">
           <MyOffers />
@@ -141,7 +147,7 @@ function App() {
         </ProtectedRoute>
       } />
       <Route path="/offers" element={
-        <ProtectedRoute requiredUserType="solicitante">
+        <ProtectedRoute>
           <OffersPage />
         </ProtectedRoute>
       } />
@@ -165,7 +171,7 @@ function App() {
         </ProtectedRoute>
       } />
       
-      {/* Catch-all 404 route - MUST be last */}
+      {/* Catch-all 404 route */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

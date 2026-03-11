@@ -6,11 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BriefcaseBusiness, UserRound, AlertCircle, Check } from 'lucide-react';
+import { BriefcaseBusiness, UserRound, AlertCircle, Check, Building2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { signUp } from '@/services/authService';
 import { supabase } from "@/integrations/supabase/client";
+import EmpresaRegisterForm from '@/components/empresa/EmpresaRegisterForm';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -39,7 +40,6 @@ const Register = () => {
     checkUser();
   }, [navigate]);
 
-  // Password validation — must match authValidation.ts (8 chars, upper, lower, number)
   useEffect(() => {
     setValidations({
       length: password.length >= 8,
@@ -90,20 +90,11 @@ const Register = () => {
       if (session) {
         navigate('/');
       } else {
-        toast({
-          title: "Confirmação necessária",
-          description: "Enviamos um email de confirmação. Por favor, verifique sua caixa de entrada."
-        });
         navigate('/login');
       }
     } catch (err: any) {
       console.error("Erro de cadastro:", err);
       setError(err.message || "Erro ao criar conta. Verifique os dados e tente novamente.");
-      toast({
-        title: "Erro no cadastro",
-        description: err.message || "Ocorreu um erro no cadastro",
-        variant: "destructive"
-      });
     } finally {
       setLoading(false);
     }
@@ -118,7 +109,7 @@ const Register = () => {
         { ok: validations.hasNumber, label: "Pelo menos um número" }
       ].map(({ ok, label }) => (
         <div key={label} className="flex items-center">
-          <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${ok ? 'bg-green-500' : 'bg-gray-300'}`}>
+          <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${ok ? 'bg-green-500' : 'bg-muted'}`}>
             {ok && <Check className="h-3 w-3 text-white" />}
           </div>
           <span className={`text-xs ${ok ? 'text-green-600' : 'text-muted-foreground'}`}>{label}</span>
@@ -219,14 +210,18 @@ const Register = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md">
-        <TabsList className="grid grid-cols-2 mb-8">
-          <TabsTrigger value="solicitante" className="flex items-center gap-2">
+        <TabsList className="grid grid-cols-3 mb-8">
+          <TabsTrigger value="solicitante" className="flex items-center gap-1">
             <UserRound className="h-4 w-4" />
-            Solicitante
+            <span className="hidden sm:inline">Solicitante</span>
           </TabsTrigger>
-          <TabsTrigger value="freelancer" className="flex items-center gap-2">
+          <TabsTrigger value="freelancer" className="flex items-center gap-1">
             <BriefcaseBusiness className="h-4 w-4" />
-            Freelancer
+            <span className="hidden sm:inline">Freelancer</span>
+          </TabsTrigger>
+          <TabsTrigger value="empresa" className="flex items-center gap-1">
+            <Building2 className="h-4 w-4" />
+            <span className="hidden sm:inline">Empresa</span>
           </TabsTrigger>
         </TabsList>
 
@@ -243,6 +238,10 @@ const Register = () => {
 
         <TabsContent value="freelancer">
           <RegisterForm userType="freelancer" color="bg-helpaqui-green" />
+        </TabsContent>
+
+        <TabsContent value="empresa">
+          <EmpresaRegisterForm />
         </TabsContent>
       </Tabs>
     </div>

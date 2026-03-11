@@ -3,7 +3,7 @@ import React from 'react';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface SidebarTabsProps {
-  userType: 'solicitante' | 'freelancer' | null;
+  userType: 'solicitante' | 'freelancer' | 'empresa' | null;
   onChatRedirect: () => void;
 }
 

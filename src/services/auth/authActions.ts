@@ -77,7 +77,7 @@ export const signUp = async (
   password: string, 
   firstName: string, 
   lastName: string, 
-  userType: 'solicitante' | 'freelancer',
+  userType: 'solicitante' | 'freelancer' | 'empresa',
   categories?: string[]
 ) => {
   // Enhanced validation using centralized validators

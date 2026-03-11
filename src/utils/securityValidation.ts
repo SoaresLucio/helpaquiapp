@@ -34,7 +34,7 @@ export const validateUserType = (userType: string | null): ValidationResult => {
     return { isValid: false, error: 'User type is required', code: 'MISSING_USER_TYPE' };
   }
 
-  const validTypes = ['solicitante', 'freelancer'];
+  const validTypes = ['solicitante', 'freelancer', 'empresa'];
   if (!validTypes.includes(userType)) {
     return { isValid: false, error: 'Invalid user type', code: 'INVALID_USER_TYPE' };
   }

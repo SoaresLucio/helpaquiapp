@@ -3,7 +3,7 @@ import React from 'react';
 import { MapPin, MessageCircle, PhoneCall } from 'lucide-react';
 
 interface MobileNavigationProps {
-  userType: 'solicitante' | 'freelancer' | null;
+  userType: 'solicitante' | 'freelancer' | 'empresa' | null;
   onNavigate: (section: string) => void;
 }
 

@@ -5,7 +5,7 @@ import IndexSidebar from '@/components/index/IndexSidebar';
 import { RealUser } from '@/types/user';
 
 interface IndexMainContentProps {
-  userType: 'solicitante' | 'freelancer' | null;
+  userType: 'solicitante' | 'freelancer' | 'empresa' | null;
   selectedCategory: string | null;
   onSelectCategory: (category: string | null) => void;
   activeTab: string;

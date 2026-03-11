@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface UseAccessControlOptions {
-  requiredUserType?: 'solicitante' | 'freelancer';
+  requiredUserType?: 'solicitante' | 'freelancer' | 'empresa';
   redirectOnMismatch?: boolean;
 }
 
@@ -42,6 +42,8 @@ export const useAccessControl = (options: UseAccessControlOptions = {}) => {
           navigate('/solicitante-plans');
         } else if (userType === 'freelancer') {
           navigate('/freelancer-plans');
+        } else if (userType === 'empresa') {
+          navigate('/empresa-plans');
         } else {
           navigate('/');
         }
