@@ -77,7 +77,7 @@ export const validateRegistrationData = (
   password: string,
   firstName: string,
   lastName: string,
-  userType: 'solicitante' | 'freelancer'
+  userType: 'solicitante' | 'freelancer' | 'empresa'
 ): ValidationResult => {
   const emailValidation = validateEmail(email);
   if (!emailValidation.isValid) {
