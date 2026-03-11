@@ -8,7 +8,7 @@ import { AlertTriangle } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredUserType?: 'solicitante' | 'freelancer';
+  requiredUserType?: 'solicitante' | 'freelancer' | 'empresa';
   redirectTo?: string;
 }
 
