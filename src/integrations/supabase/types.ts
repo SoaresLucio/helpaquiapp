@@ -329,6 +329,42 @@ export type Database = {
           },
         ]
       }
+      empresa_profiles: {
+        Row: {
+          cnpj: string
+          company_name: string
+          created_at: string
+          employee_count: string | null
+          id: string
+          purpose: string[] | null
+          responsible_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cnpj: string
+          company_name: string
+          created_at?: string
+          employee_count?: string | null
+          id?: string
+          purpose?: string[] | null
+          responsible_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cnpj?: string
+          company_name?: string
+          created_at?: string
+          employee_count?: string | null
+          id?: string
+          purpose?: string[] | null
+          responsible_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       failed_login_attempts: {
         Row: {
           attempted_at: string | null
