@@ -42,6 +42,8 @@ export const useAccessControl = (options: UseAccessControlOptions = {}) => {
           navigate('/solicitante-plans');
         } else if (userType === 'freelancer') {
           navigate('/freelancer-plans');
+        } else if (userType === 'empresa') {
+          navigate('/empresa-plans');
         } else {
           navigate('/');
         }
