@@ -4,7 +4,7 @@ import { User } from '@supabase/supabase-js';
 import { useUserProfile } from './useUserProfile';
 import { RealUser } from '@/types/user';
 
-export const useUserData = (authUser: User | null, userType: 'solicitante' | 'freelancer' | null) => {
+export const useUserData = (authUser: User | null, userType: 'solicitante' | 'freelancer' | 'empresa' | null) => {
   const profile = useUserProfile(authUser);
 
   const currentUser = useMemo(() => {
