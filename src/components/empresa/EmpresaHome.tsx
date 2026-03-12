@@ -11,31 +11,31 @@ const EmpresaHome: React.FC = () => {
   const quickActions = [
     {
       icon: Briefcase,
-      title: 'Publicar Vaga',
-      description: 'Divulgue vagas de emprego para encontrar talentos',
-      action: () => navigate('/jobs'),
-      color: 'text-blue-500'
+      title: 'Gerenciar Vagas',
+      description: 'Crie, edite e monitore suas vagas de emprego e candidatos',
+      action: () => navigate('/empresa/jobs'),
+      color: 'text-primary'
     },
     {
       icon: Megaphone,
       title: 'Divulgação',
       description: 'Promova sua empresa no aplicativo',
       action: () => navigate('/offers'),
-      color: 'text-green-500'
+      color: 'text-primary'
     },
     {
       icon: Users,
       title: 'Buscar Freelancers',
       description: 'Encontre profissionais qualificados',
       action: () => navigate('/'),
-      color: 'text-purple-500'
+      color: 'text-primary'
     },
     {
       icon: Settings,
       title: 'Planos',
       description: 'Gerencie sua assinatura',
       action: () => navigate('/empresa-plans'),
-      color: 'text-orange-500'
+      color: 'text-primary'
     }
   ];
 

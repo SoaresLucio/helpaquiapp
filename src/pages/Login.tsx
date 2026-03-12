@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BriefcaseBusiness, UserRound, Shield, Zap } from 'lucide-react';
+import { BriefcaseBusiness, UserRound, Building2, Shield, Zap } from 'lucide-react';
 import LoginHeader from '@/components/auth/LoginHeader';
 import SolicitanteLoginForm from '@/components/auth/SolicitanteLoginForm';
 import FreelancerLoginForm from '@/components/auth/FreelancerLoginForm';
+import EmpresaLoginForm from '@/components/auth/EmpresaLoginForm';
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -15,14 +16,18 @@ const Login = () => {
       <LoginHeader />
 
       <Tabs defaultValue="solicitante" className="w-full max-w-md">
-        <TabsList className="grid grid-cols-2 mb-6 h-12">
-          <TabsTrigger value="solicitante" className="flex items-center gap-2 text-sm font-medium">
+        <TabsList className="grid grid-cols-3 mb-6 h-12">
+          <TabsTrigger value="solicitante" className="flex items-center gap-1 text-sm font-medium">
             <UserRound className="h-4 w-4" />
-            Solicitante
+            <span className="hidden sm:inline">Solicitante</span>
           </TabsTrigger>
-          <TabsTrigger value="freelancer" className="flex items-center gap-2 text-sm font-medium">
+          <TabsTrigger value="freelancer" className="flex items-center gap-1 text-sm font-medium">
             <BriefcaseBusiness className="h-4 w-4" />
-            Freelancer
+            <span className="hidden sm:inline">Freelancer</span>
+          </TabsTrigger>
+          <TabsTrigger value="empresa" className="flex items-center gap-1 text-sm font-medium">
+            <Building2 className="h-4 w-4" />
+            <span className="hidden sm:inline">Empresa</span>
           </TabsTrigger>
         </TabsList>
 
@@ -37,6 +42,15 @@ const Login = () => {
 
         <TabsContent value="freelancer">
           <FreelancerLoginForm
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+            googleLoading={googleLoading}
+            setGoogleLoading={setGoogleLoading}
+          />
+        </TabsContent>
+
+        <TabsContent value="empresa">
+          <EmpresaLoginForm
             isLoading={isLoading}
             setIsLoading={setIsLoading}
             googleLoading={googleLoading}
