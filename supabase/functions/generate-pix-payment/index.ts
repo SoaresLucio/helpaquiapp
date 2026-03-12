@@ -8,6 +8,14 @@ const corsHeaders = {
 
 const ASAAS_BASE_URL = 'https://www.asaas.com/api/v3';
 
+// User-facing validation errors safe to expose
+class ValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
 function isValidCpf(cpf: string): boolean {
   const cleaned = cpf.replace(/\D/g, '');
   if (cleaned.length !== 11) return false;
@@ -39,15 +47,15 @@ serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) throw new Error('Authorization header is required');
+    if (!authHeader) throw new ValidationError('Authorization header is required');
 
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) throw new Error('Invalid authentication');
+    if (authError || !user) throw new ValidationError('Invalid authentication');
 
     const { planId, amount, cpf: providedCpf } = await req.json();
-    if (!planId || typeof planId !== 'string') throw new Error('Valid plan ID is required');
-    if (!amount || typeof amount !== 'number' || amount <= 0) throw new Error('Valid amount is required');
+    if (!planId || typeof planId !== 'string') throw new ValidationError('Valid plan ID is required');
+    if (!amount || typeof amount !== 'number' || amount <= 0) throw new ValidationError('Valid amount is required');
 
     const { data: plan, error: planError } = await supabase
       .from('subscription_plans')
@@ -55,8 +63,8 @@ serve(async (req) => {
       .eq('id', planId)
       .single();
 
-    if (planError || !plan) throw new Error('Plan not found');
-    if (Math.abs(plan.price_monthly - amount) > 0.01) throw new Error('Amount does not match plan price');
+    if (planError || !plan) throw new ValidationError('Plan not found');
+    if (Math.abs(plan.price_monthly - amount) > 0.01) throw new ValidationError('Amount does not match plan price');
 
     const { data: profile } = await supabase
       .from('profiles')
@@ -69,10 +77,8 @@ serve(async (req) => {
       : 'Usuário HelpAqui';
     const userEmail = profile?.email || user.email || '';
 
-    // Try to get CPF from: 1) request body, 2) profile_verifications
     let validCpf: string | null = null;
     
-    // First check if CPF was provided in the request
     if (providedCpf) {
       const cleanedProvidedCpf = providedCpf.replace(/\D/g, '');
       if (isValidCpf(cleanedProvidedCpf)) {
@@ -80,7 +86,6 @@ serve(async (req) => {
       }
     }
     
-    // If not provided or invalid, try profile_verifications
     if (!validCpf) {
       const { data: verification } = await supabase
         .from('profile_verifications')
@@ -100,9 +105,8 @@ serve(async (req) => {
     }
 
     const asaasApiKey = Deno.env.get('ASAAS_API_KEY');
-    if (!asaasApiKey) throw new Error('ASAAS_API_KEY not configured');
+    if (!asaasApiKey) throw new Error('Payment gateway not configured');
 
-    // Step 1: Find or create ASAAS customer
     let asaasCustomerId: string;
 
     const searchResponse = await fetch(
@@ -115,9 +119,8 @@ serve(async (req) => {
       if (searchData.data?.length > 0) {
         asaasCustomerId = searchData.data[0].id;
       } else {
-        // Create customer - cpfCnpj is required by ASAAS
         if (!validCpf) {
-          throw new Error('CPF não encontrado ou inválido. Por favor, verifique seu perfil e adicione um CPF válido na seção de verificação de documentos.');
+          throw new ValidationError('CPF não encontrado ou inválido. Por favor, verifique seu perfil e adicione um CPF válido na seção de verificação de documentos.');
         }
 
         const customerBody: Record<string, unknown> = {
@@ -137,7 +140,7 @@ serve(async (req) => {
         if (!customerResponse.ok) {
           const errText = await customerResponse.text();
           console.error('ASAAS customer creation failed:', errText);
-          throw new Error('Falha ao criar cliente no gateway de pagamento. Verifique seus dados cadastrais e CPF.');
+          throw new ValidationError('Falha ao criar cliente no gateway de pagamento. Verifique seus dados cadastrais e CPF.');
         }
 
         const customerData = await customerResponse.json();
@@ -147,7 +150,6 @@ serve(async (req) => {
       throw new Error('Failed to search payment customers');
     }
 
-    // Step 2: Create PIX payment in ASAAS
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 1);
 
@@ -167,12 +169,11 @@ serve(async (req) => {
     if (!paymentResponse.ok) {
       const errText = await paymentResponse.text();
       console.error('ASAAS payment creation failed:', errText);
-      throw new Error('Falha ao criar cobrança PIX');
+      throw new Error('Failed to create PIX payment');
     }
 
     const asaasPayment = await paymentResponse.json();
 
-    // Step 3: Get PIX QR Code
     let pixCode = '';
     let qrCodeUrl = '';
 
@@ -190,7 +191,6 @@ serve(async (req) => {
       pixCode = asaasPayment.invoiceUrl || '';
     }
 
-    // Step 4: Store in pix_payments table
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 1);
 
@@ -208,7 +208,10 @@ serve(async (req) => {
       .select()
       .single();
 
-    if (pixError) throw new Error(`Failed to create PIX payment record: ${pixError.message}`);
+    if (pixError) {
+      console.error('PIX payment record insert error:', pixError);
+      throw new Error('Failed to save payment record');
+    }
 
     await supabase.from('notifications').insert({
       user_id: user.id,
@@ -232,8 +235,10 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Generate PIX payment error:', error);
+    
+    const isValidationError = error instanceof ValidationError;
     return new Response(
-      JSON.stringify({ error: error.message || 'PIX payment generation failed' }),
+      JSON.stringify({ error: isValidationError ? error.message : 'PIX payment generation failed. Please try again.' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

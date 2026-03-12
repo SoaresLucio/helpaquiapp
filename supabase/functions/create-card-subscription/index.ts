@@ -8,6 +8,14 @@ const corsHeaders = {
 
 const ASAAS_BASE_URL = 'https://www.asaas.com/api/v3';
 
+// User-facing validation errors safe to expose
+class ValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
 function isValidCpf(cpf: string): boolean {
   const cleaned = cpf.replace(/\D/g, '');
   if (cleaned.length !== 11) return false;
@@ -37,31 +45,29 @@ serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) throw new Error('Authorization required');
+    if (!authHeader) throw new ValidationError('Authorization required');
 
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) throw new Error('Invalid authentication');
+    if (authError || !user) throw new ValidationError('Invalid authentication');
 
     const { planId, cardData } = await req.json();
-    if (!planId) throw new Error('Plan ID is required');
+    if (!planId) throw new ValidationError('Plan ID is required');
     if (!cardData?.holderName || !cardData?.number || !cardData?.expiryMonth || !cardData?.expiryYear || !cardData?.ccv) {
-      throw new Error('Card data is incomplete');
+      throw new ValidationError('Card data is incomplete');
     }
 
     const asaasApiKey = Deno.env.get('ASAAS_API_KEY');
-    if (!asaasApiKey) throw new Error('ASAAS_API_KEY not configured');
+    if (!asaasApiKey) throw new Error('Payment gateway not configured');
 
-    // Get plan
     const { data: plan, error: planError } = await supabase
       .from('subscription_plans')
       .select('*')
       .eq('id', planId)
       .single();
-    if (planError || !plan) throw new Error('Plan not found');
-    if (plan.price_monthly <= 0) throw new Error('Free plans do not require payment');
+    if (planError || !plan) throw new ValidationError('Plan not found');
+    if (plan.price_monthly <= 0) throw new ValidationError('Free plans do not require payment');
 
-    // Get profile
     const { data: profile } = await supabase
       .from('profiles')
       .select('first_name, last_name, email, phone, address')
@@ -71,7 +77,6 @@ serve(async (req) => {
     const userName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Usuário HelpAqui' : 'Usuário HelpAqui';
     const userEmail = profile?.email || user.email || '';
 
-    // Get CPF
     const { data: verification } = await supabase
       .from('profile_verifications')
       .select('additional_data')
@@ -85,10 +90,9 @@ serve(async (req) => {
     const rawCpf = (additionalData?.cpf as string) || (additionalData?.document_number as string) || (cardData.cpf || '');
     const cleanCpf = rawCpf.replace(/\D/g, '');
     if (!isValidCpf(cleanCpf)) {
-      throw new Error('CPF inválido. Verifique seu perfil ou informe um CPF válido.');
+      throw new ValidationError('CPF inválido. Verifique seu perfil ou informe um CPF válido.');
     }
 
-    // Find or create ASAAS customer
     let asaasCustomerId: string;
     const searchResp = await fetch(
       `${ASAAS_BASE_URL}/customers?email=${encodeURIComponent(userEmail)}&limit=1`,
@@ -118,12 +122,11 @@ serve(async (req) => {
       if (!custResp.ok) {
         const err = await custResp.text();
         console.error('ASAAS customer creation failed:', err);
-        throw new Error('Falha ao criar cliente. Verifique seus dados cadastrais.');
+        throw new ValidationError('Falha ao criar cliente. Verifique seus dados cadastrais.');
       }
       asaasCustomerId = (await custResp.json()).id;
     }
 
-    // Create ASAAS subscription with CREDIT_CARD
     const nextDueDate = new Date();
     nextDueDate.setDate(nextDueDate.getDate() + 1);
 
@@ -161,21 +164,11 @@ serve(async (req) => {
     if (!subResp.ok) {
       const errText = await subResp.text();
       console.error('ASAAS subscription creation failed:', errText);
-      
-      // Parse specific error
-      try {
-        const errData = JSON.parse(errText);
-        const desc = errData.errors?.[0]?.description || 'Falha ao processar cartão';
-        throw new Error(desc);
-      } catch (e) {
-        if (e instanceof Error && !e.message.includes('JSON')) throw e;
-        throw new Error('Falha ao criar assinatura com cartão. Verifique os dados do cartão.');
-      }
+      throw new ValidationError('Falha ao criar assinatura com cartão. Verifique os dados do cartão.');
     }
 
     const asaasSubscription = await subResp.json();
 
-    // Activate subscription in our DB
     const now = new Date();
     const periodEnd = new Date();
     periodEnd.setDate(periodEnd.getDate() + 30);
@@ -194,7 +187,7 @@ serve(async (req) => {
         current_period_end: periodEnd.toISOString(),
         requests_used_this_month: 0,
         messages_used_this_month: 0,
-        stripe_subscription_id: asaasSubscription.id, // reusing field for asaas ref
+        stripe_subscription_id: asaasSubscription.id,
         updated_at: now.toISOString(),
       }).eq('id', existingSub.id);
     } else {
@@ -210,7 +203,6 @@ serve(async (req) => {
       });
     }
 
-    // History record
     await supabase.from('user_subscriptions_flow').insert({
       user_id: user.id,
       plan_name: plan.name,
@@ -222,7 +214,6 @@ serve(async (req) => {
       status: 'active',
     });
 
-    // Save card last 4 digits
     const cardLast4 = cardData.number.replace(/\s/g, '').slice(-4);
     await supabase.from('payment_methods').insert({
       user_id: user.id,
@@ -233,7 +224,6 @@ serve(async (req) => {
       is_active: true,
     });
 
-    // Notification
     await supabase.from('notifications').insert({
       user_id: user.id,
       title: 'Assinatura ativada!',
@@ -252,8 +242,10 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Create card subscription error:', error);
+    
+    const isValidationError = error instanceof ValidationError;
     return new Response(
-      JSON.stringify({ error: error.message || 'Card subscription creation failed' }),
+      JSON.stringify({ error: isValidationError ? error.message : 'Card subscription creation failed. Please try again.' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

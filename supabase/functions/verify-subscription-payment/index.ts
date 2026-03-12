@@ -20,7 +20,6 @@ serve(async (req) => {
   );
 
   try {
-    // Authenticate user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) throw new Error('Authorization required');
 
@@ -31,7 +30,6 @@ serve(async (req) => {
     const { pixPaymentId, planId } = await req.json();
     if (!pixPaymentId || !planId) throw new Error('pixPaymentId and planId are required');
 
-    // Get pix_payment record (verify ownership)
     const { data: pixPayment, error: pixError } = await supabase
       .from('pix_payments')
       .select('*')
@@ -41,7 +39,6 @@ serve(async (req) => {
 
     if (pixError || !pixPayment) throw new Error('PIX payment not found or access denied');
 
-    // Already paid? Return success immediately
     if (pixPayment.status === 'paid') {
       return new Response(
         JSON.stringify({ isPaid: true, alreadyActivated: true }),
@@ -49,7 +46,6 @@ serve(async (req) => {
       );
     }
 
-    // Check if expired
     if (new Date(pixPayment.expires_at) < new Date()) {
       await supabase
         .from('pix_payments')
@@ -63,15 +59,13 @@ serve(async (req) => {
     }
 
     const asaasApiKey = Deno.env.get('ASAAS_API_KEY');
-    if (!asaasApiKey) throw new Error('ASAAS_API_KEY not configured');
+    if (!asaasApiKey) throw new Error('Payment gateway not configured');
 
-    // Get ASAAS payment ID from record
     const asaasPaymentId = (pixPayment as any).asaas_payment_id;
     if (!asaasPaymentId) {
-      throw new Error('ASAAS payment reference not found. Please generate a new PIX code.');
+      throw new Error('Payment reference not found. Please generate a new PIX code.');
     }
 
-    // Check payment status in ASAAS
     const asaasResponse = await fetch(
       `${ASAAS_BASE_URL}/payments/${asaasPaymentId}`,
       { headers: { 'access_token': asaasApiKey } }
@@ -80,20 +74,18 @@ serve(async (req) => {
     if (!asaasResponse.ok) {
       const errText = await asaasResponse.text();
       console.error('ASAAS status check failed:', errText);
-      throw new Error('Failed to verify payment status with gateway');
+      throw new Error('Failed to verify payment status');
     }
 
     const asaasPaymentData = await asaasResponse.json();
     const isPaid = ['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH'].includes(asaasPaymentData.status);
 
     if (isPaid) {
-      // Update pix_payment status to paid
       await supabase
         .from('pix_payments')
         .update({ status: 'paid' })
         .eq('id', pixPaymentId);
 
-      // Get plan details to validate
       const { data: plan } = await supabase
         .from('subscription_plans')
         .select('*')
@@ -102,7 +94,6 @@ serve(async (req) => {
 
       if (!plan) throw new Error('Plan not found');
 
-      // Activate subscription - check for existing active subscription
       const { data: existingSub } = await supabase
         .from('user_subscriptions')
         .select('id')
@@ -115,7 +106,6 @@ serve(async (req) => {
       periodEnd.setDate(periodEnd.getDate() + 30);
 
       if (existingSub) {
-        // Update existing subscription to new plan
         await supabase
           .from('user_subscriptions')
           .update({
@@ -128,7 +118,6 @@ serve(async (req) => {
           })
           .eq('id', existingSub.id);
       } else {
-        // Create new subscription
         await supabase
           .from('user_subscriptions')
           .insert({
@@ -142,7 +131,6 @@ serve(async (req) => {
           });
       }
 
-      // Also create a record in user_subscriptions_flow for history
       await supabase
         .from('user_subscriptions_flow')
         .insert({
@@ -156,7 +144,6 @@ serve(async (req) => {
           status: 'active',
         });
 
-      // Create success notification
       await supabase
         .from('notifications')
         .insert({
@@ -173,7 +160,6 @@ serve(async (req) => {
       );
     }
 
-    // Not paid yet
     const statusMessages: Record<string, string> = {
       PENDING: 'Pagamento ainda não identificado. Aguarde alguns minutos após o pagamento.',
       OVERDUE: 'Pagamento vencido. Gere um novo código PIX.',
@@ -192,7 +178,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Verify subscription payment error:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Payment verification failed' }),
+      JSON.stringify({ error: 'Payment verification failed. Please try again.' }),
       {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
