@@ -25,6 +25,14 @@ const LINK_PATTERNS = [
   /www\.[^\s]+/gi,
 ];
 
+// User-facing validation errors that are safe to expose
+class ValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
 const containsBlockedContent = (text: string): string | null => {
   for (const p of BLOCKED_KEYWORDS) {
     p.lastIndex = 0;
@@ -43,7 +51,6 @@ const containsBlockedContent = (text: string): string | null => {
       }
     }
   }
-  // Check overall digit count in sequences
   const seqs = text.match(/[\d\s\-._]{8,}/g);
   if (seqs) {
     for (const s of seqs) {
@@ -54,19 +61,18 @@ const containsBlockedContent = (text: string): string | null => {
 };
 
 const validateAndSanitizeInput = (input: any) => {
-  if (!input) throw new Error('Input is required');
+  if (!input) throw new ValidationError('Input is required');
   
   const { conversationId, content, messageType = 'text', metadata = {} } = input;
   
   if (!conversationId || typeof conversationId !== 'string') {
-    throw new Error('Valid conversation ID is required');
+    throw new ValidationError('Valid conversation ID is required');
   }
   
   if (!content || typeof content !== 'string' || content.trim().length === 0) {
-    throw new Error('Message content is required');
+    throw new ValidationError('Message content is required');
   }
   
-  // Sanitize content
   const sanitizedContent = content
     .trim()
     .replace(/<[^>]*>/g, '')
@@ -74,15 +80,14 @@ const validateAndSanitizeInput = (input: any) => {
     .replace(/on\w+\s*=/gi, '')
     .slice(0, 2000);
   
-  // Check for blocked content (phone numbers, WhatsApp, etc.)
   const blockReason = containsBlockedContent(sanitizedContent);
   if (blockReason) {
-    throw new Error(blockReason);
+    throw new ValidationError(blockReason);
   }
   
   const allowedMessageTypes = ['text', 'image', 'file', 'schedule_suggestion'];
   if (!allowedMessageTypes.includes(messageType)) {
-    throw new Error('Invalid message type');
+    throw new ValidationError('Invalid message type');
   }
   
   return {
@@ -105,23 +110,21 @@ serve(async (req) => {
   );
 
   try {
-    // Get user from auth header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('Authorization header is required');
+      throw new ValidationError('Authorization header is required');
     }
 
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
     if (authError || !user) {
-      throw new Error('Invalid authentication');
+      throw new ValidationError('Invalid authentication');
     }
 
     const requestData = await req.json();
     const { conversationId, content, messageType, metadata } = validateAndSanitizeInput(requestData);
 
-    // Verify user is part of this conversation
     const { data: conversation, error: convError } = await supabase
       .from('conversations')
       .select('*')
@@ -130,10 +133,9 @@ serve(async (req) => {
       .single();
 
     if (convError || !conversation) {
-      throw new Error('Conversation not found or access denied');
+      throw new ValidationError('Conversation not found or access denied');
     }
 
-    // Insert message
     const { data: message, error: messageError } = await supabase
       .from('chat_messages')
       .insert({
@@ -147,10 +149,10 @@ serve(async (req) => {
       .single();
 
     if (messageError) {
-      throw new Error(`Failed to send message: ${messageError.message}`);
+      console.error('Message insert error:', messageError);
+      throw new Error('Internal error');
     }
 
-    // Create notification for the other user
     const recipientId = conversation.client_id === user.id 
       ? conversation.freelancer_id 
       : conversation.client_id;
@@ -172,8 +174,11 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Send message error:', error);
+    
+    // Only expose validation errors to client
+    const isValidationError = error instanceof ValidationError;
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: isValidationError ? error.message : 'Failed to send message. Please try again.' }),
       { 
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

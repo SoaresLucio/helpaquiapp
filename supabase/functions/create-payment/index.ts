@@ -8,20 +8,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const PLATFORM_FEE_PCT = 0.10;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Initialize Supabase client with service role for secure operations
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
 
-    // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       throw new Error("Authorization required");
@@ -34,10 +34,18 @@ serve(async (req) => {
       throw new Error("User not authenticated");
     }
 
-    // Get request data
-    const { amount, serviceId, freelancerId, description, platformFee, freelancerAmount } = await req.json();
+    // Only accept amount, serviceId, freelancerId, description from client
+    const { amount, serviceId, freelancerId, description } = await req.json();
 
-    // Validate Stripe key exists
+    // Validate amount
+    if (!amount || typeof amount !== 'number' || amount <= 0) {
+      throw new Error("Invalid amount");
+    }
+
+    // Calculate split server-side — never trust client values
+    const platformFee = Math.round(amount * PLATFORM_FEE_PCT);
+    const freelancerAmount = amount - platformFee;
+
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
       throw new Error("Stripe configuration missing");
@@ -47,7 +55,6 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    // Check if customer exists
     const customers = await stripe.customers.list({ 
       email: userData.user.email,
       limit: 1 
@@ -57,7 +64,6 @@ serve(async (req) => {
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
     } else {
-      // Create new customer
       const customer = await stripe.customers.create({
         email: userData.user.email,
         metadata: {
@@ -67,7 +73,6 @@ serve(async (req) => {
       customerId = customer.id;
     }
 
-    // Create checkout session for escrow payment
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ["card"],
@@ -79,7 +84,7 @@ serve(async (req) => {
               name: "Serviço HelpAqui",
               description: description,
             },
-            unit_amount: amount, // Total amount in cents
+            unit_amount: amount,
           },
           quantity: 1,
         },
@@ -96,7 +101,6 @@ serve(async (req) => {
       },
     });
 
-    // Store payment record in escrow status
     const { error: insertError } = await supabaseClient.from("payments").insert({
       stripe_session_id: session.id,
       service_id: serviceId,
@@ -105,7 +109,7 @@ serve(async (req) => {
       amount: amount,
       platform_fee: platformFee,
       freelancer_amount: freelancerAmount,
-      status: "pending", // Escrow status
+      status: "pending",
       created_at: new Date().toISOString(),
     });
 
@@ -130,7 +134,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message || "Payment processing failed"
+        error: "Payment processing failed. Please try again."
       }),
       { 
         headers: { ...corsHeaders, "Content-Type": "application/json" },
