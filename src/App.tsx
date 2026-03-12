@@ -83,6 +83,11 @@ function App() {
           <HelpRequests />
         </ProtectedRoute>
       } />
+      <Route path="/empresa/jobs" element={
+        <ProtectedRoute requiredUserType="empresa">
+          <EmpresaJobManagement />
+        </ProtectedRoute>
+      } />
       <Route path="/chat" element={
         <ProtectedRoute>
           <Chat />
