@@ -30,6 +30,7 @@ import OffersPage from "./pages/OffersPage";
 import PaymentConfirmationPage from "./pages/PaymentConfirmationPage";
 import AdminPlanManagement from "./pages/AdminPlanManagement";
 import HelpRequests from "./pages/HelpRequests";
+import EmpresaJobManagement from "./pages/EmpresaJobManagement";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
