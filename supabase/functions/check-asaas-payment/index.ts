@@ -106,9 +106,7 @@ serve(async (req) => {
 
     const asaasPayment = await asaasResponse.json()
 
-    // Update payment status in database
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    // Update payment status in database (reuse supabase client from above)
 
     let newStatus = 'pending'
     if (asaasPayment.status === 'RECEIVED') {
