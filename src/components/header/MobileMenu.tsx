@@ -12,12 +12,25 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { useAdminAccess } from '@/hooks/useAdminAccess';
 
 interface MobileMenuProps {
   currentPath: string;
 }
 
 const MobileMenu: React.FC<MobileMenuProps> = ({ currentPath }) => {
+  const { isAdmin } = useAdminAccess();
+
+  const navLink = (to: string, label: string) => (
+    <SheetClose asChild key={to}>
+      <Link to={to}>
+        <Button variant="ghost" className={`w-full justify-start ${currentPath === to ? 'bg-secondary' : ''}`}>
+          {label}
+        </Button>
+      </Link>
+    </SheetClose>
+  );
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -39,60 +52,17 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ currentPath }) => {
         </SheetHeader>
         <div className="py-4">
           <nav className="flex flex-col gap-2">
-            <SheetClose asChild>
-              <Link to="/">
-                <Button
-                  variant="ghost"
-                  className={`w-full justify-start ${currentPath === "/" ? "bg-secondary" : ""}`}
-                >
-                  Início
-                </Button>
-              </Link>
-            </SheetClose>
-            
-            <SheetClose asChild>
-              <Link to="/jobs">
-                <Button
-                  variant="ghost"
-                  className={`w-full justify-start ${currentPath === "/jobs" ? "bg-secondary" : ""}`}
-                >
-                  Serviços
-                </Button>
-              </Link>
-            </SheetClose>
-            
-            <SheetClose asChild>
-              <Link to="/chat">
-                <Button
-                  variant="ghost"
-                  className={`w-full justify-start ${currentPath === "/chat" ? "bg-secondary" : ""}`}
-                >
-                  Bate Papo
-                </Button>
-              </Link>
-            </SheetClose>
-            
-            <SheetClose asChild>
-              <Link to="/ai-chat">
-                <Button
-                  variant="ghost"
-                  className={`w-full justify-start ${currentPath === "/ai-chat" ? "bg-secondary" : ""}`}
-                >
-                  AI Chat
-                </Button>
-              </Link>
-            </SheetClose>
-            
-            <SheetClose asChild>
-              <Link to="/notes">
-                <Button
-                  variant="ghost"
-                  className={`w-full justify-start ${currentPath === "/notes" ? "bg-secondary" : ""}`}
-                >
-                  Notas
-                </Button>
-              </Link>
-            </SheetClose>
+            {navLink('/', 'Início')}
+            {navLink('/jobs', 'Serviços')}
+            {navLink('/chat', 'Bate Papo')}
+            {navLink('/ai-chat', 'AI Chat')}
+            {navLink('/notes', 'Notas')}
+            {isAdmin && (
+              <>
+                <Separator className="my-2" />
+                {navLink('/admin', '⚙️ Painel Admin')}
+              </>
+            )}
           </nav>
           <Separator className="my-4" />
         </div>
