@@ -2,6 +2,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdminAccess } from '@/hooks/useAdminAccess';
 import { SecurityBadge } from '@/components/security/SecurityBadge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
@@ -18,9 +19,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectTo = "/login" 
 }) => {
   const { isAuthenticated, loading, userType, securityScore, isSecure } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdminAccess();
   const location = useLocation();
 
-  if (loading) {
+  if (loading || adminLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -35,7 +37,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to={redirectTo} state={{ from: location.pathname }} replace />;
   }
 
-  if (requiredUserType && userType !== requiredUserType) {
+  // Admin users can access ALL pages regardless of requiredUserType
+  if (requiredUserType && !isAdmin && userType !== requiredUserType) {
     if (userType === 'solicitante') {
       return <Navigate to="/solicitante-plans" replace />;
     } else if (userType === 'freelancer') {

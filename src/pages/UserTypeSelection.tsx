@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,32 @@ const UserTypeSelection = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [selectedType, setSelectedType] = useState<UserType | null>(null);
+  const [checking, setChecking] = useState(true);
+
+  // If user already has a user_type (returning Google user), skip selection
+  useEffect(() => {
+    const checkExistingType = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const existingType = user.user_metadata?.user_type;
+        if (existingType && ['solicitante', 'freelancer', 'empresa'].includes(existingType)) {
+          localStorage.setItem('userType', existingType);
+          navigate('/', { replace: true });
+          return;
+        }
+      }
+      setChecking(false);
+    };
+    checkExistingType();
+  }, [navigate]);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   const handleTypeSelection = async (userType: UserType) => {
     setLoading(true);
