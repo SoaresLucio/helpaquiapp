@@ -49,12 +49,33 @@ serve(async (req) => {
       )
     }
 
+    // Verify ownership: ensure this payment belongs to the requesting user
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    const { data: payment, error: ownershipError } = await supabase
+      .from('payments')
+      .select('id, client_id')
+      .eq('stripe_session_id', paymentId)
+      .eq('client_id', user.id)
+      .maybeSingle()
+
+    if (ownershipError || !payment) {
+      return new Response(
+        JSON.stringify({ error: 'Payment not found or access denied' }),
+        { 
+          status: 403, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
     // Get ASAAS API key from environment
     const asaasApiKey = Deno.env.get('ASAAS_API_KEY')
     
     if (!asaasApiKey) {
       return new Response(
-        JSON.stringify({ error: 'ASAAS API key not configured' }),
+        JSON.stringify({ error: 'Payment gateway not configured' }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
