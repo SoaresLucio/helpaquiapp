@@ -78,7 +78,7 @@ const NavigationLinks: React.FC<NavigationLinksProps> = ({
       </Link>
 
       {isAdmin && (
-        <Link to="/admin/plans" className={linkClass("/admin/plans")}>
+        <Link to="/admin" className={linkClass("/admin")}>
           Admin
         </Link>
       )}
