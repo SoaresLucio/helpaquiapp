@@ -28,7 +28,7 @@ import MyOffers from "./pages/MyOffers";
 import MyRequests from "./pages/MyRequests";
 import OffersPage from "./pages/OffersPage";
 import PaymentConfirmationPage from "./pages/PaymentConfirmationPage";
-import AdminPlanManagement from "./pages/AdminPlanManagement";
+import AdminDashboard from "./pages/AdminDashboard";
 import HelpRequests from "./pages/HelpRequests";
 import EmpresaJobManagement from "./pages/EmpresaJobManagement";
 import About from "./pages/About";
@@ -164,9 +164,9 @@ function App() {
       } />
       
       {/* Admin routes */}
-      <Route path="/admin/plans" element={
+      <Route path="/admin/*" element={
         <ProtectedRoute>
-          <AdminPlanManagement />
+          <AdminDashboard />
         </ProtectedRoute>
       } />
       
