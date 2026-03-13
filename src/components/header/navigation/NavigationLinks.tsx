@@ -3,48 +3,87 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { cn } from '@/lib/utils';
+import { useAdminAccess } from '@/hooks/useAdminAccess';
+
 interface NavigationLinksProps {
   currentPath: string;
   userType: 'solicitante' | 'freelancer' | 'empresa' | null;
 }
+
 const NavigationLinks: React.FC<NavigationLinksProps> = ({
   currentPath,
   userType
 }) => {
-  return <nav className="hidden md:flex gap-6">
-      <Link to="/" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-gray-100 transition-colors", currentPath === "/" && "text-helpaqui-blue font-medium bg-blue-50")}>
+  const { isAdmin } = useAdminAccess();
+
+  const linkClass = (path: string) =>
+    cn(
+      navigationMenuTriggerStyle(),
+      "bg-transparent hover:bg-muted transition-colors",
+      currentPath === path && "text-primary font-medium bg-primary/10"
+    );
+
+  const showSolicitante = userType === 'solicitante' || isAdmin;
+  const showFreelancer = userType === 'freelancer' || isAdmin;
+  const showEmpresa = userType === 'empresa' || isAdmin;
+
+  return (
+    <nav className="hidden md:flex gap-4 flex-wrap">
+      <Link to="/" className={linkClass("/")}>
         Início
       </Link>
-      
-      {userType === 'solicitante' && <Link to="/offers" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-gray-100 transition-colors", currentPath === "/offers" && "text-helpaqui-blue font-medium bg-blue-50")}>Ofertas de Help</Link>}
-      
-      {userType === 'solicitante' && <Link to="/solicitante-plans" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-gray-100 transition-colors", currentPath === "/solicitante-plans" && "text-helpaqui-blue font-medium bg-blue-50")}>
-          Planos
-        </Link>}
-      
-      {userType === 'freelancer' && <Link to="/freelancer-plans" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-gray-100 transition-colors", currentPath === "/freelancer-plans" && "text-helpaqui-blue font-medium bg-blue-50")}>
-          Planos
-        </Link>}
-      
-      {userType === 'empresa' && <Link to="/empresa-plans" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-muted transition-colors", currentPath === "/empresa-plans" && "text-helpaqui-blue font-medium bg-primary/10")}>
-          Planos
-        </Link>}
 
-      {userType === 'empresa' && <Link to="/jobs" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-muted transition-colors", currentPath === "/jobs" && "text-helpaqui-blue font-medium bg-primary/10")}>
+      {showSolicitante && (
+        <Link to="/offers" className={linkClass("/offers")}>
+          Ofertas
+        </Link>
+      )}
+
+      {showSolicitante && (
+        <Link to="/solicitante-plans" className={linkClass("/solicitante-plans")}>
+          Planos Sol.
+        </Link>
+      )}
+
+      {showFreelancer && (
+        <Link to="/freelancer-plans" className={linkClass("/freelancer-plans")}>
+          Planos Free.
+        </Link>
+      )}
+
+      {showEmpresa && (
+        <Link to="/empresa-plans" className={linkClass("/empresa-plans")}>
+          Planos Emp.
+        </Link>
+      )}
+
+      {showEmpresa && (
+        <Link to="/jobs" className={linkClass("/jobs")}>
           Vagas
-        </Link>}
+        </Link>
+      )}
 
-      {userType === 'freelancer' && <Link to="/payment-freelancer-settings" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-muted transition-colors", currentPath === "/payment-freelancer-settings" && "text-helpaqui-blue font-medium bg-primary/10")}>
+      {showFreelancer && (
+        <Link to="/payment-freelancer-settings" className={linkClass("/payment-freelancer-settings")}>
           Pagamentos
-        </Link>}
-      
-      <Link to="/chat" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-gray-100 transition-colors", currentPath === "/chat" && "text-helpaqui-blue font-medium bg-blue-50")}>
+        </Link>
+      )}
+
+      <Link to="/chat" className={linkClass("/chat")}>
         Bate Papo
       </Link>
-      
-      <Link to="/ai-chat" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-gray-100 transition-colors", currentPath === "/ai-chat" && "text-helpaqui-blue font-medium bg-blue-50")}>
+
+      <Link to="/ai-chat" className={linkClass("/ai-chat")}>
         AI Chat
       </Link>
-    </nav>;
+
+      {isAdmin && (
+        <Link to="/admin/plans" className={linkClass("/admin/plans")}>
+          Admin
+        </Link>
+      )}
+    </nav>
+  );
 };
+
 export default NavigationLinks;
