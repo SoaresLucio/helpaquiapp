@@ -44,8 +44,8 @@ export const useRateLimit = () => {
 
       return !allowed;
     } catch (error) {
-      console.error('Rate limit error:', error);
-      return true; // Be conservative
+      console.warn('Rate limit error, allowing action:', error);
+      return false; // Allow action on failure
     }
   }, [user?.id, toast]);
 

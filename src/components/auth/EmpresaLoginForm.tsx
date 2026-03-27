@@ -53,6 +53,7 @@ const EmpresaLoginForm: React.FC<EmpresaLoginFormProps> = ({
     setIsLoading(true);
     try {
       await signIn(email, password);
+      localStorage.setItem('userType', 'empresa');
       toast({ title: "Login bem-sucedido", description: "Bem-vindo de volta ao HelpAqui!" });
       navigate('/');
     } catch (error) {

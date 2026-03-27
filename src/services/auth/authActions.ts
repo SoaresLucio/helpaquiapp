@@ -108,17 +108,6 @@ export const signUp = async (
       }
     }
     
-    // Log successful signup
-    if (data.user) {
-      await supabase.rpc('log_security_event', {
-        p_user_id: data.user.id,
-        p_action: 'signup_success',
-        p_resource_type: 'auth',
-        p_success: true,
-        p_metadata: { user_type: userType }
-      });
-    }
-    
     console.log("Registration successful:", data.user?.email);
     return data;
     

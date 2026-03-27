@@ -66,6 +66,7 @@ const SolicitanteLoginForm: React.FC<SolicitanteLoginFormProps> = ({
 
     try {
       await signIn(email, password);
+      localStorage.setItem('userType', 'solicitante');
       
       toast({
         title: "Login bem-sucedido",
