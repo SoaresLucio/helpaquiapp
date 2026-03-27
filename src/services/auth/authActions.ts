@@ -30,16 +30,6 @@ export const signIn = async (email: string, password: string) => {
     if (error) {
       console.error("Authentication error:", error);
       
-      // Log failed login attempt
-      await supabase.rpc('log_security_event', {
-        p_user_id: null,
-        p_action: 'login_failed',
-        p_resource_type: 'auth',
-        p_success: false,
-        p_error_message: error.message,
-        p_metadata: { email: cleanEmail }
-      });
-      
       // More specific error handling
       switch (error.message) {
         case 'Invalid login credentials':
