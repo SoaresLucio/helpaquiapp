@@ -43,16 +43,6 @@ export const signIn = async (email: string, password: string) => {
       }
     }
     
-    // Log successful login
-    if (data.user) {
-      await supabase.rpc('log_security_event', {
-        p_user_id: data.user.id,
-        p_action: 'login_success',
-        p_resource_type: 'auth',
-        p_success: true
-      });
-    }
-    
     console.log("Login successful:", data.user?.email, "ID:", data.user?.id);
     return data;
     
