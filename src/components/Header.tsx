@@ -1,79 +1,54 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { useAuth } from '@/hooks/useAuth';
-import { useTheme } from '@/hooks/useTheme';
 import MobileMenu from './header/MobileMenu';
 import NavLinks from './header/NavLinks';
 import UserSection from './header/UserSection';
 import NotificationBadge from './header/NotificationBadge';
 
 const Header = () => {
-  const location = useLocation();
-  const [currentPath, setCurrentPath] = useState(location.pathname);
+  const { pathname } = useLocation();
   const [scrolling, setScrolling] = useState(false);
-  const [searchFocus, setSearchFocus] = useState(false);
-  const { theme } = useTheme();
-  const { user, isAuthenticated } = useAuth();
-  
-  // Simulating notification count
-  const notificationCount = 3;
-  
-  useEffect(() => {
-    setCurrentPath(location.pathname);
-  }, [location]);
+  const { isAuthenticated } = useAuth();
 
-  // Handle scrolling effect
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setScrolling(true);
-      } else {
-        setScrolling(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    const handleScroll = () => setScrolling(window.scrollY > 10);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
-    <header 
+    <header
       className={`sticky top-0 z-40 w-full transition-all duration-200 ${
-        scrolling 
+        scrolling
           ? 'bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm'
           : 'bg-background'
       }`}
     >
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-4">
-          <MobileMenu currentPath={currentPath} />
-          
+          <MobileMenu currentPath={pathname} />
           <Link to="/" className="flex items-center gap-2">
-            <span className="font-bold text-xl text-helpaqui-blue">
-              HelpAqui
-            </span>
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm">H</span>
+            </div>
+            <span className="font-bold text-xl text-primary">HelpAqui</span>
           </Link>
-
-          <NavLinks currentPath={currentPath} />
+          <NavLinks currentPath={pathname} />
         </div>
-        
-        <div className="flex items-center gap-4">
-          <div className={`relative rounded-md ${searchFocus ? 'ring-2 ring-ring' : ''}`}>
+
+        <div className="flex items-center gap-3">
+          <div className="relative hidden sm:block">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Buscar..."
-              className="w-full md:w-[200px] lg:w-[300px] pl-8"
-              onFocus={() => setSearchFocus(true)}
-              onBlur={() => setSearchFocus(false)}
+              className="w-[200px] lg:w-[280px] pl-8"
             />
           </div>
-
           <NotificationBadge />
           <UserSection isAuthenticated={isAuthenticated} />
         </div>

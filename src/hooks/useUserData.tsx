@@ -7,5 +7,10 @@ export const useUserData = (authUser: User | null, userType: 'solicitante' | 'fr
   const profile = useUserProfile(authUser);
   const currentUser = useRealUser(authUser, userType, profile);
 
-  return currentUser;
+  return {
+    currentUser,
+    profile,
+    loading: !profile && !!authUser,
+    isValid: !!(currentUser?.id && currentUser?.email)
+  };
 };
