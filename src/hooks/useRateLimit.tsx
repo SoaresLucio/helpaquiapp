@@ -24,8 +24,8 @@ export const useRateLimit = () => {
       });
 
       if (error) {
-        console.error('Rate limit check error:', error);
-        return true; // Be conservative - assume rate limited on error
+        console.warn('Rate limit check unavailable, allowing action:', error.message);
+        return false; // Allow action if rate limit check fails
       }
 
       const allowed = data as boolean;
