@@ -66,6 +66,7 @@ const FreelancerLoginForm: React.FC<FreelancerLoginFormProps> = ({
 
     try {
       await signIn(email, password);
+      localStorage.setItem('userType', 'freelancer');
       
       toast({
         title: "Login bem-sucedido",
