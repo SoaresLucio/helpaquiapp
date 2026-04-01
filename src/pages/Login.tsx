@@ -6,10 +6,14 @@ import LoginHeader from '@/components/auth/LoginHeader';
 import SolicitanteLoginForm from '@/components/auth/SolicitanteLoginForm';
 import FreelancerLoginForm from '@/components/auth/FreelancerLoginForm';
 import EmpresaLoginForm from '@/components/auth/EmpresaLoginForm';
+import PrivacyPolicyDialog from '@/components/PrivacyPolicyDialog';
+import TermsOfUseDialog from '@/components/TermsOfUseDialog';
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex flex-col items-center justify-center p-4">
@@ -73,10 +77,13 @@ const Login = () => {
 
       {/* Footer links */}
       <div className="mt-4 flex items-center gap-3 text-xs text-muted-foreground">
-        <button type="button" className="hover:underline" onClick={() => {}}>Política de Privacidade</button>
+        <button type="button" className="hover:underline" onClick={() => setPrivacyOpen(true)}>Política de Privacidade</button>
         <span>•</span>
-        <button type="button" className="hover:underline" onClick={() => {}}>Termos de Uso</button>
+        <button type="button" className="hover:underline" onClick={() => setTermsOpen(true)}>Termos de Uso</button>
       </div>
+
+      <PrivacyPolicyDialog open={privacyOpen} onOpenChange={setPrivacyOpen} onAccept={() => setPrivacyOpen(false)} />
+      <TermsOfUseDialog open={termsOpen} onOpenChange={setTermsOpen} onAccept={() => setTermsOpen(false)} />
     </div>
   );
 };
