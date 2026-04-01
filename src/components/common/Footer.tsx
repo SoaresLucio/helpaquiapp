@@ -77,8 +77,10 @@ const Footer: React.FC = () => {
 
         {/* Bottom */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
             <span>© {currentYear} HelpAqui. Todos os direitos reservados.</span>
+            <button type="button" className="hover:underline hover:text-foreground transition-colors" onClick={() => setPrivacyOpen(true)}>Política de Privacidade</button>
+            <button type="button" className="hover:underline hover:text-foreground transition-colors" onClick={() => setTermsOpen(true)}>Termos de Uso</button>
           </div>
           
           <div className="flex items-center gap-4 text-sm">
