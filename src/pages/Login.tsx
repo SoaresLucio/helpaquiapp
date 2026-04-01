@@ -77,10 +77,13 @@ const Login = () => {
 
       {/* Footer links */}
       <div className="mt-4 flex items-center gap-3 text-xs text-muted-foreground">
-        <button type="button" className="hover:underline" onClick={() => {}}>Política de Privacidade</button>
+        <button type="button" className="hover:underline" onClick={() => setPrivacyOpen(true)}>Política de Privacidade</button>
         <span>•</span>
-        <button type="button" className="hover:underline" onClick={() => {}}>Termos de Uso</button>
+        <button type="button" className="hover:underline" onClick={() => setTermsOpen(true)}>Termos de Uso</button>
       </div>
+
+      <PrivacyPolicyDialog open={privacyOpen} onOpenChange={setPrivacyOpen} onAccept={() => setPrivacyOpen(false)} />
+      <TermsOfUseDialog open={termsOpen} onOpenChange={setTermsOpen} onAccept={() => setTermsOpen(false)} />
     </div>
   );
 };

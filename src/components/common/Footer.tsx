@@ -93,6 +93,8 @@ const Footer: React.FC = () => {
           </div>
         </div>
       </div>
+      <PrivacyPolicyDialog open={privacyOpen} onOpenChange={setPrivacyOpen} onAccept={() => setPrivacyOpen(false)} />
+      <TermsOfUseDialog open={termsOpen} onOpenChange={setTermsOpen} onAccept={() => setTermsOpen(false)} />
     </footer>
   );
 };
