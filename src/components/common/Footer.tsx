@@ -6,6 +6,8 @@ import TermsOfUseDialog from '@/components/TermsOfUseDialog';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
 
   return (
     <footer className="mt-12 bg-background/50 border-t">
