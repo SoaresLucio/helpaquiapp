@@ -6,6 +6,8 @@ import LoginHeader from '@/components/auth/LoginHeader';
 import SolicitanteLoginForm from '@/components/auth/SolicitanteLoginForm';
 import FreelancerLoginForm from '@/components/auth/FreelancerLoginForm';
 import EmpresaLoginForm from '@/components/auth/EmpresaLoginForm';
+import PrivacyPolicyDialog from '@/components/PrivacyPolicyDialog';
+import TermsOfUseDialog from '@/components/TermsOfUseDialog';
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
