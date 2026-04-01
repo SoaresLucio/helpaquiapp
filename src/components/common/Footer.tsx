@@ -1,7 +1,8 @@
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { Heart, Shield, Users, Zap } from 'lucide-react';
+import PrivacyPolicyDialog from '@/components/PrivacyPolicyDialog';
+import TermsOfUseDialog from '@/components/TermsOfUseDialog';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
