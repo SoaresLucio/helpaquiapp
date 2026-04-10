@@ -1906,7 +1906,6 @@ export type Database = {
             }
             Returns: boolean
           }
-        | { Args: { role_name: string; user_id: number }; Returns: boolean }
       insert_bank_details: {
         Args: {
           p_account_number: string
@@ -1958,6 +1957,17 @@ export type Database = {
           p_user_id: string
         }
         Returns: undefined
+      }
+      update_user_subscription: {
+        Args: {
+          p_current_period_end: string
+          p_current_period_start: string
+          p_plan_id: string
+          p_status: string
+          p_stripe_subscription_id?: string
+          p_user_id: string
+        }
+        Returns: boolean
       }
       user_owns_job_listing: { Args: { listing_id: string }; Returns: boolean }
     }
