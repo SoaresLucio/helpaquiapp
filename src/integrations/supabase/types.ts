@@ -1882,6 +1882,26 @@ export type Database = {
       }
       encrypt_sensitive_data: { Args: { data: string }; Returns: string }
       generate_pix_code: { Args: never; Returns: string }
+      get_all_users_admin: {
+        Args: never
+        Returns: {
+          address: string
+          avatar_url: string
+          email: string
+          first_name: string
+          ip_address: unknown
+          last_name: string
+          last_sign_in_at: string
+          latitude: number
+          location_updated_at: string
+          longitude: number
+          phone: string
+          user_created_at: string
+          user_id: string
+          user_type: string
+          verified: boolean
+        }[]
+      }
       get_bank_details_decrypted: {
         Args: { p_user_id: string }
         Returns: {
