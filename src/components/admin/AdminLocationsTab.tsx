@@ -49,7 +49,7 @@ const AdminLocationsTab: React.FC = () => {
 
   const filtered = locations.filter(l =>
     (l.email || '').toLowerCase().includes(search.toLowerCase()) ||
-    (l.ip_address || '').includes(search)
+    (String(l.ip_address || '')).includes(search)
   );
 
   const hasValidCoords = (lat: number, lng: number) => lat !== 0 || lng !== 0;
@@ -122,7 +122,7 @@ const AdminLocationsTab: React.FC = () => {
                         <div className="flex items-center gap-1">
                           <Globe className="h-3 w-3 text-muted-foreground" />
                           <span className="font-mono text-sm">
-                            {loc.ip_address || 'Não capturado'}
+                            {String(loc.ip_address || '') || 'Não capturado'}
                           </span>
                         </div>
                       </TableCell>
