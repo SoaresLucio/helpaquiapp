@@ -9,10 +9,8 @@ import IndexNotifications from '@/components/index/IndexNotifications';
 import { useJobNotifications } from '@/hooks/useJobNotifications';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserData } from '@/hooks/useUserData';
-import { useUserLocation } from '@/hooks/useUserLocation';
 
 const Index = () => {
-  useUserLocation();
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('actions');

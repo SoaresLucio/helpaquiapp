@@ -1,40 +1,38 @@
 
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, MapPin, RefreshCw, Globe, Monitor } from 'lucide-react';
+import { Search, MapPin, RefreshCw, Globe } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface UserLocation {
-  id: string;
+interface UserLocationData {
   user_id: string;
   email: string | null;
-  latitude: number;
-  longitude: number;
-  ip_address: unknown;
-  updated_at: string;
-  created_at: string;
+  first_name: string | null;
+  last_name: string | null;
+  user_type: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  ip_address: string | null;
+  user_created_at: string | null;
+  location_updated_at: string | null;
 }
 
 const AdminLocationsTab: React.FC = () => {
-  const [locations, setLocations] = useState<UserLocation[]>([]);
+  const [locations, setLocations] = useState<UserLocationData[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
   const fetchLocations = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('user_locations')
-        .select('*')
-        .order('updated_at', { ascending: false });
-
+      const { data, error } = await supabase.rpc('get_all_users_admin');
       if (error) throw error;
-      setLocations(data || []);
+      setLocations((data as UserLocationData[]) || []);
     } catch (error) {
       console.error('Error fetching locations:', error);
       toast.error('Erro ao carregar localizações');
@@ -49,10 +47,12 @@ const AdminLocationsTab: React.FC = () => {
 
   const filtered = locations.filter(l =>
     (l.email || '').toLowerCase().includes(search.toLowerCase()) ||
-    (String(l.ip_address || '')).includes(search)
+    (l.ip_address || '').includes(search) ||
+    (`${l.first_name || ''} ${l.last_name || ''}`).toLowerCase().includes(search.toLowerCase())
   );
 
-  const hasValidCoords = (lat: number, lng: number) => lat !== 0 || lng !== 0;
+  const hasValidCoords = (lat: number | null, lng: number | null) =>
+    lat != null && lng != null && (lat !== 0 || lng !== 0);
 
   return (
     <div>
@@ -72,7 +72,7 @@ const AdminLocationsTab: React.FC = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por email ou IP..."
+                placeholder="Buscar por email, nome ou IP..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -84,7 +84,7 @@ const AdminLocationsTab: React.FC = () => {
             </Button>
           </div>
           <div className="text-sm text-muted-foreground mt-2">
-            Total de usuários rastreados: <strong>{locations.length}</strong>
+            Total de usuários: <strong>{locations.length}</strong> | Com localização: <strong>{locations.filter(l => hasValidCoords(l.latitude, l.longitude)).length}</strong>
           </div>
         </CardHeader>
         <CardContent>
@@ -99,55 +99,51 @@ const AdminLocationsTab: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Usuário (Email)</TableHead>
+                    <TableHead>Usuário</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Tipo</TableHead>
                     <TableHead>Endereço IP</TableHead>
                     <TableHead>Latitude</TableHead>
                     <TableHead>Longitude</TableHead>
-                    <TableHead>Coordenada Exata</TableHead>
-                    <TableHead>Primeira Conexão</TableHead>
-                    <TableHead>Última Atualização</TableHead>
+                    <TableHead>Cadastro</TableHead>
+                    <TableHead>Última Localização</TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.map((loc) => (
-                    <TableRow key={loc.id}>
+                    <TableRow key={loc.user_id}>
                       <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-destructive" />
-                          <span className="max-w-[200px] truncate">{loc.email || 'N/A'}</span>
-                        </div>
+                        {loc.first_name || ''} {loc.last_name || ''}
+                        {!loc.first_name && !loc.last_name && <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell>
+                        <span className="max-w-[200px] truncate block text-sm">{loc.email || '—'}</span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs capitalize">
+                          {loc.user_type || '—'}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Globe className="h-3 w-3 text-muted-foreground" />
                           <span className="font-mono text-sm">
-                            {String(loc.ip_address || '') || 'Não capturado'}
+                            {loc.ip_address ? String(loc.ip_address) : 'Não capturado'}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell className="font-mono text-sm">
-                        {hasValidCoords(loc.latitude, loc.longitude) ? loc.latitude.toFixed(6) : '—'}
+                        {hasValidCoords(loc.latitude, loc.longitude) ? loc.latitude!.toFixed(6) : '—'}
                       </TableCell>
                       <TableCell className="font-mono text-sm">
-                        {hasValidCoords(loc.latitude, loc.longitude) ? loc.longitude.toFixed(6) : '—'}
-                      </TableCell>
-                      <TableCell>
-                        {hasValidCoords(loc.latitude, loc.longitude) ? (
-                          <Badge variant="outline" className="font-mono text-xs">
-                            {loc.latitude.toFixed(4)}, {loc.longitude.toFixed(4)}
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="text-xs">
-                            Geolocalização negada
-                          </Badge>
-                        )}
+                        {hasValidCoords(loc.latitude, loc.longitude) ? loc.longitude!.toFixed(6) : '—'}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
-                        {new Date(loc.created_at).toLocaleString('pt-BR')}
+                        {loc.user_created_at ? new Date(loc.user_created_at).toLocaleString('pt-BR') : '—'}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
-                        {new Date(loc.updated_at).toLocaleString('pt-BR')}
+                        {loc.location_updated_at ? new Date(loc.location_updated_at).toLocaleString('pt-BR') : 'Sem dados'}
                       </TableCell>
                       <TableCell>
                         {hasValidCoords(loc.latitude, loc.longitude) ? (
@@ -157,7 +153,7 @@ const AdminLocationsTab: React.FC = () => {
                             onClick={() => window.open(`https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`, '_blank')}
                           >
                             <MapPin className="h-3 w-3 mr-1" />
-                            Ver no Mapa
+                            Mapa
                           </Button>
                         ) : (
                           <span className="text-xs text-muted-foreground">Sem coordenadas</span>
@@ -169,7 +165,7 @@ const AdminLocationsTab: React.FC = () => {
               </Table>
               {filtered.length === 0 && (
                 <p className="text-center text-muted-foreground py-8">
-                  Nenhuma localização encontrada. Os dados serão exibidos quando os usuários acessarem o app.
+                  Nenhum usuário encontrado.
                 </p>
               )}
             </div>
