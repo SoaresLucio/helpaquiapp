@@ -15,7 +15,7 @@ interface UserLocation {
   email: string | null;
   latitude: number;
   longitude: number;
-  ip_address: string | null;
+  ip_address: unknown;
   updated_at: string;
   created_at: string;
 }
