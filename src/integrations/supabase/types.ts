@@ -1502,6 +1502,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          ip_address: unknown
           latitude: number
           longitude: number
           updated_at: string
@@ -1511,6 +1512,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          ip_address?: unknown
           latitude: number
           longitude: number
           updated_at?: string
@@ -1520,6 +1522,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          ip_address?: unknown
           latitude?: number
           longitude?: number
           updated_at?: string
