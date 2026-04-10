@@ -2,6 +2,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserLocation } from '@/hooks/useUserLocation';
 import { useAdminAccess } from '@/hooks/useAdminAccess';
 import { SecurityBadge } from '@/components/security/SecurityBadge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -21,6 +22,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { isAuthenticated, loading, userType, securityScore, isSecure } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdminAccess();
   const location = useLocation();
+  useUserLocation();
 
   if (loading || adminLoading) {
     return (
