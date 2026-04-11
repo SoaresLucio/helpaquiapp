@@ -26,7 +26,7 @@ const NavigationLinks: React.FC<NavigationLinksProps> = ({ currentPath, userType
 
   return (
     <nav className="hidden md:flex gap-3 flex-wrap items-center">
-      <Link to="/dashboard" className={linkClass("/")}>Início</Link>
+      <Link to="/dashboard" className={linkClass("/dashboard")}>Início</Link>
       <Link to="/jobs" className={linkClass("/jobs")}>Vagas</Link>
 
       {showSolicitante && <Link to="/offers" className={linkClass("/offers")}>Ofertas</Link>}
