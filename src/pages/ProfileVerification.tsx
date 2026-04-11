@@ -99,7 +99,7 @@ const ProfileVerification = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BadgeCheck className="h-5 w-5 text-helpaqui-blue" />
+                <BadgeCheck className="h-5 w-5 text-helpaqui-purple" />
                 Perfil Verificado
               </CardTitle>
               <CardDescription>

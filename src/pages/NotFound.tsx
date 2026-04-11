@@ -80,7 +80,7 @@ const NotFound = () => {
           <div className="text-center pt-4">
             <p className="text-sm text-gray-500">
               Precisa de ajuda?{" "}
-              <Link to="/chat" className="text-helpaqui-blue hover:underline">
+              <Link to="/chat" className="text-helpaqui-purple hover:underline">
                 Entre em contato
               </Link>
             </p>

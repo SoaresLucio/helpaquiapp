@@ -69,16 +69,16 @@ const UserTypeSelection = () => {
   };
 
   const ringColor = selectedType === 'freelancer' 
-    ? 'ring-helpaqui-green' 
+    ? 'ring-secondary' 
     : selectedType === 'empresa' 
     ? 'ring-orange-500' 
-    : 'ring-helpaqui-blue';
+    : 'ring-helpaqui-purple';
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-helpaqui-blue">
-          Help<span className="text-helpaqui-green">Aqui</span>
+        <h1 className="text-3xl font-bold text-helpaqui-purple">
+          Help<span className="text-secondary">Aqui</span>
         </h1>
         <p className="text-muted-foreground mt-2">Como você quer usar o HelpAqui?</p>
       </div>
@@ -86,15 +86,15 @@ const UserTypeSelection = () => {
       <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card 
           className={`cursor-pointer transition-all hover:shadow-lg ${
-            selectedType === 'solicitante' ? 'ring-2 ring-helpaqui-blue' : ''
+            selectedType === 'solicitante' ? 'ring-2 ring-helpaqui-purple' : ''
           }`}
           onClick={() => setSelectedType('solicitante')}
         >
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 p-3 bg-helpaqui-light-blue rounded-full w-fit">
-              <UserRound className="h-8 w-8 text-helpaqui-blue" />
+            <div className="mx-auto mb-4 p-3 bg-helpaqui-light-purple rounded-full w-fit">
+              <UserRound className="h-8 w-8 text-helpaqui-purple" />
             </div>
-            <CardTitle className="text-helpaqui-blue">Sou Solicitante</CardTitle>
+            <CardTitle className="text-helpaqui-purple">Sou Solicitante</CardTitle>
             <CardDescription>
               Preciso encontrar profissionais para meus projetos
             </CardDescription>
@@ -111,15 +111,15 @@ const UserTypeSelection = () => {
 
         <Card 
           className={`cursor-pointer transition-all hover:shadow-lg ${
-            selectedType === 'freelancer' ? 'ring-2 ring-helpaqui-green' : ''
+            selectedType === 'freelancer' ? 'ring-2 ring-secondary' : ''
           }`}
           onClick={() => setSelectedType('freelancer')}
         >
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 p-3 bg-helpaqui-light-green rounded-full w-fit">
-              <BriefcaseBusiness className="h-8 w-8 text-helpaqui-green" />
+            <div className="mx-auto mb-4 p-3 bg-helpaqui-light-blue rounded-full w-fit">
+              <BriefcaseBusiness className="h-8 w-8 text-secondary" />
             </div>
-            <CardTitle className="text-helpaqui-green">Sou Freelancer</CardTitle>
+            <CardTitle className="text-secondary">Sou Freelancer</CardTitle>
             <CardDescription>
               Quero oferecer meus serviços e encontrar oportunidades
             </CardDescription>
@@ -166,9 +166,9 @@ const UserTypeSelection = () => {
           disabled={!selectedType || loading}
           onClick={() => selectedType && handleTypeSelection(selectedType)}
           className={
-            selectedType === 'freelancer' ? 'bg-helpaqui-green' 
+            selectedType === 'freelancer' ? 'bg-secondary' 
             : selectedType === 'empresa' ? 'bg-orange-500 hover:bg-orange-600' 
-            : 'bg-helpaqui-blue'
+            : 'bg-helpaqui-purple'
           }
         >
           {loading ? "Configurando..." : "Continuar"}

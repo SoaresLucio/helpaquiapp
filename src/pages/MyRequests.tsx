@@ -62,7 +62,7 @@ const MyRequests: React.FC = () => {
           
           <Button 
             onClick={() => navigate('/dashboard')}
-            className="bg-helpaqui-blue hover:bg-helpaqui-blue/90"
+            className="bg-helpaqui-purple hover:bg-helpaqui-purple/90"
           >
             Novo Pedido
           </Button>
@@ -80,7 +80,7 @@ const MyRequests: React.FC = () => {
               </p>
               <Button 
                 onClick={() => navigate('/dashboard')}
-                className="bg-helpaqui-blue hover:bg-helpaqui-blue/90"
+                className="bg-helpaqui-purple hover:bg-helpaqui-purple/90"
               >
                 Criar Primeiro Pedido
               </Button>
@@ -221,8 +221,8 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onDelete }) => {
       
       <CardContent>
         <div className="flex items-center space-x-2 mb-4">
-          <Users className="h-4 w-4 text-helpaqui-blue" />
-          <span className="text-sm font-medium text-helpaqui-blue">
+          <Users className="h-4 w-4 text-helpaqui-purple" />
+          <span className="text-sm font-medium text-helpaqui-purple">
             {loading ? 'Carregando...' : `${applications.length} candidatura(s)`}
           </span>
         </div>
@@ -267,7 +267,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onDelete }) => {
                   
                   {application.status === 'pending' && (
                     <div className="flex space-x-2 mt-2">
-                      <Button size="sm" className="bg-helpaqui-green hover:bg-helpaqui-green/90">
+                      <Button size="sm" className="bg-secondary hover:bg-secondary/90">
                         Aceitar
                       </Button>
                       <Button size="sm" variant="outline">

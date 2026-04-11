@@ -146,7 +146,7 @@ const FreelancerLoginForm: React.FC<FreelancerLoginFormProps> = ({
           </div>
         </CardContent>
         <CardFooter className="flex-col space-y-4">
-          <Button type="submit" className="w-full bg-helpaqui-green" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-secondary" disabled={isLoading}>
             {isLoading ? "Entrando..." : "Entrar como Freelancer"}
           </Button>
           

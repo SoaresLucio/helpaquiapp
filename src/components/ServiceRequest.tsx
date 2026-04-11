@@ -200,7 +200,7 @@ const ServiceRequest: React.FC = () => {
   if (showPayment) {
     return (
       <div className="helpaqui-card p-5">
-        <h2 className="text-xl font-semibold mb-4 text-helpaqui-blue">Finalizar Publicação</h2>
+        <h2 className="text-xl font-semibold mb-4 text-helpaqui-purple">Finalizar Publicação</h2>
         
         <div className="mb-4 p-4 bg-gray-50 rounded-lg">
           <h3 className="font-medium mb-2">{formData.title}</h3>
@@ -240,7 +240,7 @@ const ServiceRequest: React.FC = () => {
 
   return (
     <div className="helpaqui-card p-5">
-      <h2 className="text-xl font-semibold mb-4 text-helpaqui-blue">Pedir um HELP</h2>
+      <h2 className="text-xl font-semibold mb-4 text-helpaqui-purple">Pedir um HELP</h2>
       
       {(!isVerified || !hasPaymentMethod) && (
         <Alert variant="destructive" className="mb-4">

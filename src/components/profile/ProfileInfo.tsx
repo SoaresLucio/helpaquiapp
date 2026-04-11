@@ -29,17 +29,17 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({
       
       <div className="space-y-3">
         <div className="flex items-center">
-          <UserIcon className="h-4 w-4 mr-2 text-helpaqui-blue" />
+          <UserIcon className="h-4 w-4 mr-2 text-helpaqui-purple" />
           <span className="font-medium">{displayName}</span>
         </div>
         
         <div className="flex items-center text-gray-600 dark:text-gray-300">
-          <Mail className="h-4 w-4 mr-2 text-helpaqui-blue" />
+          <Mail className="h-4 w-4 mr-2 text-helpaqui-purple" />
           <span>{email}</span>
         </div>
         
         <div className="flex items-center text-gray-600 dark:text-gray-300">
-          <Phone className="h-4 w-4 mr-2 text-helpaqui-blue" />
+          <Phone className="h-4 w-4 mr-2 text-helpaqui-purple" />
           <span>{displayPhone || 'Não informado'}</span>
         </div>
 

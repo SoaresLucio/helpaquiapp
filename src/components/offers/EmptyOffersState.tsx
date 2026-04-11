@@ -20,7 +20,7 @@ const EmptyOffersState: React.FC = () => {
         </p>
         <Button 
           onClick={() => navigate('/dashboard')}
-          className="bg-helpaqui-green hover:bg-helpaqui-green/90"
+          className="bg-secondary hover:bg-secondary/90"
         >
           Criar Primeira Oferta
         </Button>

@@ -170,7 +170,7 @@ const AdminPlanManagement: React.FC = () => {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      <div className="text-2xl font-bold text-helpaqui-blue">
+                      <div className="text-2xl font-bold text-helpaqui-purple">
                         {plan.price_monthly === 0 ? 'Grátis' : formatPrice(plan.price_monthly)}
                         {plan.price_monthly > 0 && (
                           <span className="text-sm font-normal text-gray-500">/mês</span>

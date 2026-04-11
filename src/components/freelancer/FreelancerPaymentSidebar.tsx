@@ -28,14 +28,14 @@ const FreelancerPaymentSidebar: React.FC<FreelancerPaymentSidebarProps> = ({
             <TabsList className="flex flex-col h-auto w-full bg-transparent justify-start items-start p-0">
               <TabsTrigger
                 value="bank-account"
-                className="w-full justify-start px-4 py-3 border-l-2 border-transparent data-[state=active]:border-helpaqui-blue rounded-none"
+                className="w-full justify-start px-4 py-3 border-l-2 border-transparent data-[state=active]:border-helpaqui-purple rounded-none"
               >
                 <Building className="h-4 w-4 mr-2" />
                 Dados Bancários
               </TabsTrigger>
               <TabsTrigger
                 value="transaction-history"
-                className="w-full justify-start px-4 py-3 border-l-2 border-transparent data-[state=active]:border-helpaqui-blue rounded-none"
+                className="w-full justify-start px-4 py-3 border-l-2 border-transparent data-[state=active]:border-helpaqui-purple rounded-none"
               >
                 <Wallet className="h-4 w-4 mr-2" />
                 Histórico de Recebimentos
@@ -51,7 +51,7 @@ const FreelancerPaymentSidebar: React.FC<FreelancerPaymentSidebarProps> = ({
         </CardHeader>
         <CardContent className="pb-3">
           <div className="flex items-start gap-2">
-            <ShieldCheck className="h-5 w-5 text-helpaqui-green mt-0.5" />
+            <ShieldCheck className="h-5 w-5 text-secondary mt-0.5" />
             <p className="text-sm text-gray-600">
               Todos os recebimentos são processados de forma segura e seguem os padrões bancários brasileiros.
             </p>
@@ -63,7 +63,7 @@ const FreelancerPaymentSidebar: React.FC<FreelancerPaymentSidebarProps> = ({
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-helpaqui-green" />
+              <CheckCircle className="h-5 w-5 text-secondary" />
               Dados Confirmados
             </CardTitle>
           </CardHeader>

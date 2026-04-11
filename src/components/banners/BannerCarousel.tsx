@@ -80,7 +80,7 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners, className = ''
             <button
               key={index}
               className={`w-2 h-2 rounded-full transition-colors ${
-                index === currentIndex ? 'bg-helpaqui-blue' : 'bg-gray-300'
+                index === currentIndex ? 'bg-helpaqui-purple' : 'bg-gray-300'
               }`}
               onClick={() => setCurrentIndex(index)}
             />

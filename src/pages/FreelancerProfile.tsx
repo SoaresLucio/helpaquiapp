@@ -120,7 +120,7 @@ const FreelancerProfile: React.FC = () => {
                             {offer.categories?.map((cat: string) => <Badge key={cat} variant="secondary">{cat}</Badge>)}
                             {offer.custom_categories?.map((cat: string) => <Badge key={cat} variant="outline">{cat}</Badge>)}
                         </div>
-                        <p className="font-bold text-lg text-helpaqui-blue mt-3">{offer.rate}</p>
+                        <p className="font-bold text-lg text-helpaqui-purple mt-3">{offer.rate}</p>
                       </CardContent>
                     </Card>
                   ))}

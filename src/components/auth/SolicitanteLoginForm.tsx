@@ -148,7 +148,7 @@ const SolicitanteLoginForm: React.FC<SolicitanteLoginFormProps> = ({
           </div>
         </CardContent>
         <CardFooter className="flex-col space-y-4">
-          <Button type="submit" className="w-full bg-helpaqui-blue" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-helpaqui-purple" disabled={isLoading}>
             {isLoading ? "Entrando..." : "Entrar como Solicitante"}
           </Button>
           

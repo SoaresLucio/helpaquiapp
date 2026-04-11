@@ -37,7 +37,7 @@ const NotificationBadge: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={markAllAsRead}
-              className="text-xs text-helpaqui-blue hover:text-helpaqui-blue/80"
+              className="text-xs text-helpaqui-purple hover:text-helpaqui-purple/80"
             >
               Marcar todas como lidas
             </Button>
@@ -51,7 +51,7 @@ const NotificationBadge: React.FC = () => {
                 <div
                   key={notification.id}
                   className={`p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
-                    !notification.is_read ? 'bg-blue-50 border-l-4 border-l-helpaqui-blue' : ''
+                    !notification.is_read ? 'bg-blue-50 border-l-4 border-l-helpaqui-purple' : ''
                   }`}
                   onClick={() => markAsRead(notification.id)}
                 >
@@ -89,7 +89,7 @@ const NotificationBadge: React.FC = () => {
         {notifications.length > 5 && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-center text-helpaqui-blue cursor-pointer">
+            <DropdownMenuItem className="text-center text-helpaqui-purple cursor-pointer">
               Ver todas ({notifications.length})
             </DropdownMenuItem>
           </>

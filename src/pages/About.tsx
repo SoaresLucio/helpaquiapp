@@ -105,7 +105,7 @@ const About = () => {
         {/* Header Section */}
         <Card className="mb-8">
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold text-helpaqui-blue mb-4">
+            <CardTitle className="text-3xl font-bold text-helpaqui-purple mb-4">
               {appInfo.company_name || 'HelpAqui'}
             </CardTitle>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -176,7 +176,7 @@ const About = () => {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-helpaqui-blue" />
+              <Building2 className="h-5 w-5 text-helpaqui-purple" />
               Informações da Empresa
             </CardTitle>
           </CardHeader>
@@ -206,7 +206,7 @@ const About = () => {
                 <Mail className="h-5 w-5 text-gray-500" />
                 <div>
                   <p className="font-medium">E-mail</p>
-                  <a href={`mailto:${appInfo.email}`} className="text-helpaqui-blue hover:underline">
+                  <a href={`mailto:${appInfo.email}`} className="text-helpaqui-purple hover:underline">
                     {appInfo.email}
                   </a>
                 </div>
@@ -218,7 +218,7 @@ const About = () => {
                 <Phone className="h-5 w-5 text-gray-500" />
                 <div>
                   <p className="font-medium">Telefone</p>
-                  <a href={`tel:${appInfo.phone}`} className="text-helpaqui-blue hover:underline">
+                  <a href={`tel:${appInfo.phone}`} className="text-helpaqui-purple hover:underline">
                     {appInfo.phone}
                   </a>
                 </div>
@@ -276,7 +276,7 @@ const About = () => {
                     href={appInfo.terms_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-helpaqui-blue hover:underline flex items-center gap-2"
+                    className="text-helpaqui-purple hover:underline flex items-center gap-2"
                   >
                     <FileText className="h-4 w-4" />
                     Termos de Uso
@@ -288,7 +288,7 @@ const About = () => {
                     href={appInfo.privacy_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-helpaqui-blue hover:underline flex items-center gap-2"
+                    className="text-helpaqui-purple hover:underline flex items-center gap-2"
                   >
                     <Shield className="h-4 w-4" />
                     Política de Privacidade

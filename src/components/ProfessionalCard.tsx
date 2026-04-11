@@ -104,10 +104,10 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional }) => 
             </div>
           </div>
           
-          <p className="text-sm text-helpaqui-blue font-medium mb-2">{categoryNames}</p>
+          <p className="text-sm text-helpaqui-purple font-medium mb-2">{categoryNames}</p>
           
           <div className="flex items-center text-sm text-gray-500 mb-3">
-            <MapPin className="h-4 w-4 mr-1 text-helpaqui-blue" />
+            <MapPin className="h-4 w-4 mr-1 text-helpaqui-purple" />
             <span>{professional.distance}</span>
             
             <span className="mx-2">•</span>
@@ -156,7 +156,7 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional }) => 
       
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <span className="font-bold text-lg text-helpaqui-green">{professional.price}</span>
+          <span className="font-bold text-lg text-secondary">{professional.price}</span>
           {professional.available && (
             <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
               Disponível

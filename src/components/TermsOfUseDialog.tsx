@@ -134,7 +134,7 @@ const TermsOfUseDialog: React.FC<TermsOfUseDialogProps> = ({
             </Button>
             <Button 
               onClick={onAccept}
-              className="flex-1 bg-helpaqui-blue hover:bg-helpaqui-blue/90"
+              className="flex-1 bg-helpaqui-purple hover:bg-helpaqui-purple/90"
             >
               Aceitar Termos
             </Button>
