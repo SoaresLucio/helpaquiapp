@@ -102,7 +102,7 @@ const Jobs = () => {
       
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <BackButton to="/" label="Voltar ao Início" />
+          <BackButton to="/dashboard" label="Voltar ao Início" />
         </div>
 
         <JobsHeader userType={userType} />

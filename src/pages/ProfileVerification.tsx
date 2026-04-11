@@ -90,7 +90,7 @@ const ProfileVerification = () => {
       
       <div className="container mx-auto py-6 max-w-4xl">
         <div className="mb-6">
-          <BackButton to="/" label="Voltar ao Início" />
+          <BackButton to="/dashboard" label="Voltar ao Início" />
         </div>
 
         <h1 className="text-2xl font-bold mb-6">Verificação de Perfil</h1>

@@ -99,14 +99,14 @@ const AdminPlanManagement: React.FC = () => {
   }
 
   if (!isAdmin) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <BackButton to="/" label="Voltar ao Início" />
+          <BackButton to="/dashboard" label="Voltar ao Início" />
         </div>
 
         <div className="mb-8">

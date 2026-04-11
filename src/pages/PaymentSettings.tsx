@@ -38,7 +38,7 @@ const PaymentSettings = () => {
       
       <main className="flex-1 helpaqui-container py-4">
         <div className="mb-4">
-          <BackButton to="/" label="Voltar ao Início" />
+          <BackButton to="/dashboard" label="Voltar ao Início" />
         </div>
         
         <PaymentSettingsHeader />

@@ -48,7 +48,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     } else if (userType === 'empresa') {
       return <Navigate to="/empresa-plans" replace />;
     }
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   // Show security warning for low security score
