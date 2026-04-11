@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -33,50 +34,23 @@ const Jobs = () => {
   const { toast } = useToast();
   const { isAuthenticated, userType } = useAuth();
 
-  useEffect(() => {
-    fetchJobs();
-  }, []);
+  useEffect(() => { fetchJobs(); }, []);
 
   const fetchJobs = async () => {
     try {
-      const { data, error } = await supabase
-        .from('job_listings')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
+      const { data, error } = await supabase.from('job_listings').select('*').eq('is_active', true).order('created_at', { ascending: false });
       if (error) throw error;
       setJobs((data || []) as JobListing[]);
     } catch (error: any) {
-      toast({
-        title: "Erro ao carregar vagas",
-        description: error.message,
-        variant: "destructive"
-      });
+      toast({ title: "Erro ao carregar vagas", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
   const handleApplyClick = (job: JobListing) => {
-    if (!isAuthenticated) {
-      toast({
-        title: "Login necessário",
-        description: "Você precisa estar logado para se candidatar a vagas.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (userType !== 'freelancer') {
-      toast({
-        title: "Acesso restrito",
-        description: "Apenas freelancers podem se candidatar a vagas.",
-        variant: "destructive"
-      });
-      return;
-    }
-
+    if (!isAuthenticated) { toast({ title: "Login necessário", description: "Faça login para se candidatar.", variant: "destructive" }); return; }
+    if (userType !== 'freelancer') { toast({ title: "Acesso restrito", description: "Apenas freelancers podem se candidatar.", variant: "destructive" }); return; }
     setSelectedJob(job);
     setIsApplicationDialogOpen(true);
   };
@@ -84,51 +58,34 @@ const Jobs = () => {
   const handleApplicationSuccess = () => {
     setIsApplicationDialogOpen(false);
     setSelectedJob(null);
-    toast({
-      title: "Candidatura enviada!",
-      description: "Sua candidatura foi enviada com sucesso. A empresa entrará em contato em breve.",
-    });
+    toast({ title: "Candidatura enviada!", description: "A empresa entrará em contato em breve." });
   };
 
-  const canApply = isAuthenticated && userType === 'freelancer';
-
-  if (loading) {
-    return <JobsLoading />;
-  }
+  if (loading) return <JobsLoading />;
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
-      <div className="container mx-auto px-4 py-8">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <BackButton to="/dashboard" label="Voltar ao Início" />
         </div>
-
-        <JobsHeader userType={userType} />
-
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+          <JobsHeader userType={userType} />
+        </motion.div>
         {jobs.length === 0 ? (
-          <JobsEmpty />
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}>
+            <JobsEmpty />
+          </motion.div>
         ) : (
-          <JobsList 
-            jobs={jobs}
-            onApplyClick={handleApplyClick}
-            canApply={canApply}
-          />
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+            <JobsList jobs={jobs} onApplyClick={handleApplyClick} canApply={isAuthenticated && userType === 'freelancer'} />
+          </motion.div>
         )}
-
         {selectedJob && (
-          <JobApplicationDialog
-            job={selectedJob}
-            isOpen={isApplicationDialogOpen}
-            onClose={() => {
-              setIsApplicationDialogOpen(false);
-              setSelectedJob(null);
-            }}
-            onSuccess={handleApplicationSuccess}
-          />
+          <JobApplicationDialog job={selectedJob} isOpen={isApplicationDialogOpen} onClose={() => { setIsApplicationDialogOpen(false); setSelectedJob(null); }} onSuccess={handleApplicationSuccess} />
         )}
-      </div>
+      </motion.div>
     </div>
   );
 };

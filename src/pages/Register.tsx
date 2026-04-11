@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +14,14 @@ import { signUp } from '@/services/authService';
 import { supabase } from "@/integrations/supabase/client";
 import EmpresaRegisterForm from '@/components/empresa/EmpresaRegisterForm';
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number = 0) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }
+  })
+};
+
 const Register = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -24,12 +33,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(searchParams.get('type') || 'solicitante');
-  const [validations, setValidations] = useState({
-    length: false,
-    hasNumber: false,
-    hasUppercase: false,
-    hasLowercase: false
-  });
+  const [validations, setValidations] = useState({ length: false, hasNumber: false, hasUppercase: false, hasLowercase: false });
   const [emailError, setEmailError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -60,140 +64,78 @@ const Register = () => {
 
   const handleSignUp = async (e: React.FormEvent, userType: 'solicitante' | 'freelancer') => {
     e.preventDefault();
-
     if (!validateEmailField(email)) return;
-
-    if (!firstName.trim() || !lastName.trim()) {
-      setError("Nome e sobrenome são obrigatórios");
-      return;
-    }
-
-    if (!isPasswordValid) {
-      setError("A senha não atende aos requisitos mínimos");
-      return;
-    }
-
+    if (!firstName.trim() || !lastName.trim()) { setError("Nome e sobrenome são obrigatórios"); return; }
+    if (!isPasswordValid) { setError("A senha não atende aos requisitos mínimos"); return; }
     setLoading(true);
     setError(null);
-
     try {
       const result = await signUp(email, password, firstName, lastName, userType);
-      const session = result?.session;
-
-      toast({
-        title: "Cadastro realizado",
-        description: session
-          ? "Conta criada com sucesso!"
-          : "Verifique seu e-mail para confirmar seu cadastro."
-      });
-
-      if (session) {
-        navigate('/dashboard');
-      } else {
-        navigate('/login');
-      }
+      toast({ title: "Cadastro realizado", description: result?.session ? "Conta criada com sucesso!" : "Verifique seu e-mail." });
+      if (result?.session) navigate('/dashboard'); else navigate('/login');
     } catch (err: any) {
-      console.error("Erro de cadastro:", err);
-      setError(err.message || "Erro ao criar conta. Verifique os dados e tente novamente.");
+      setError(err.message || "Erro ao criar conta.");
     } finally {
       setLoading(false);
     }
   };
 
   const PasswordChecklist = () => (
-    <div className="mt-2 space-y-1">
+    <div className="mt-2 space-y-1.5">
       {[
         { ok: validations.length, label: "Pelo menos 8 caracteres" },
-        { ok: validations.hasUppercase, label: "Pelo menos uma letra maiúscula" },
-        { ok: validations.hasLowercase, label: "Pelo menos uma letra minúscula" },
+        { ok: validations.hasUppercase, label: "Pelo menos uma maiúscula" },
+        { ok: validations.hasLowercase, label: "Pelo menos uma minúscula" },
         { ok: validations.hasNumber, label: "Pelo menos um número" }
       ].map(({ ok, label }) => (
         <div key={label} className="flex items-center">
-          <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${ok ? 'bg-green-500' : 'bg-muted'}`}>
-            {ok && <Check className="h-3 w-3 text-white" />}
+          <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center transition-colors ${ok ? 'bg-primary' : 'bg-muted'}`}>
+            {ok && <Check className="h-3 w-3 text-primary-foreground" />}
           </div>
-          <span className={`text-xs ${ok ? 'text-green-600' : 'text-muted-foreground'}`}>{label}</span>
+          <span className={`text-xs ${ok ? 'text-primary' : 'text-muted-foreground'}`}>{label}</span>
         </div>
       ))}
     </div>
   );
 
-  const RegisterForm = ({ userType, color }: { userType: 'solicitante' | 'freelancer'; color: string }) => (
-    <Card>
+  const RegisterForm = ({ userType }: { userType: 'solicitante' | 'freelancer' }) => (
+    <Card className="border-border/50 shadow-xl shadow-primary/5 rounded-2xl">
       <CardHeader>
-        <CardTitle>Cadastro de {userType === 'solicitante' ? 'Solicitante' : 'Freelancer'}</CardTitle>
+        <CardTitle className="text-xl">Cadastro de {userType === 'solicitante' ? 'Solicitante' : 'Freelancer'}</CardTitle>
         <CardDescription>
-          {userType === 'solicitante'
-            ? 'Precisa encontrar freelancers qualificados para seus projetos'
-            : 'Quero oferecer meus serviços e encontrar novas oportunidades'}
+          {userType === 'solicitante' ? 'Encontre freelancers qualificados' : 'Ofereça seus serviços profissionais'}
         </CardDescription>
       </CardHeader>
       <form onSubmit={(e) => handleSignUp(e, userType)}>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor={`${userType}-first-name`}>Nome</Label>
-              <Input
-                id={`${userType}-first-name`}
-                type="text"
-                placeholder="Seu nome"
-                value={firstName}
-                onChange={e => setFirstName(e.target.value)}
-                required
-              />
+              <Label>Nome</Label>
+              <Input placeholder="Seu nome" value={firstName} onChange={e => setFirstName(e.target.value)} className="rounded-xl h-11" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`${userType}-last-name`}>Sobrenome</Label>
-              <Input
-                id={`${userType}-last-name`}
-                type="text"
-                placeholder="Seu sobrenome"
-                value={lastName}
-                onChange={e => setLastName(e.target.value)}
-                required
-              />
+              <Label>Sobrenome</Label>
+              <Input placeholder="Sobrenome" value={lastName} onChange={e => setLastName(e.target.value)} className="rounded-xl h-11" required />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor={`${userType}-email`}>Email</Label>
-            <Input
-              id={`${userType}-email`}
-              type="email"
-              placeholder="seu@email.com"
-              value={email}
-              onChange={e => { setEmail(e.target.value); if (e.target.value) validateEmailField(e.target.value); }}
-              className={emailError ? "border-destructive" : ""}
-              required
-            />
+            <Label>Email</Label>
+            <Input type="email" placeholder="seu@email.com" value={email} onChange={e => { setEmail(e.target.value); if (e.target.value) validateEmailField(e.target.value); }} className={`rounded-xl h-11 ${emailError ? "border-destructive" : ""}`} required />
             {emailError && <p className="text-xs text-destructive">{emailError}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor={`${userType}-password`}>Senha</Label>
-            <Input
-              id={`${userType}-password`}
-              type="password"
-              placeholder="Crie uma senha segura"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              className={password && !isPasswordValid ? "border-destructive" : ""}
-            />
+            <Label>Senha</Label>
+            <Input type="password" placeholder="Crie uma senha segura" value={password} onChange={e => setPassword(e.target.value)} className={`rounded-xl h-11 ${password && !isPasswordValid ? "border-destructive/50" : ""}`} required />
             <PasswordChecklist />
           </div>
         </CardContent>
         <div className="px-6 pb-6">
-          <Button
-            type="submit"
-            className={`w-full ${color}`}
-            disabled={loading || !isPasswordValid || !firstName.trim() || !lastName.trim() || !email || !!emailError}
-          >
+          <Button type="submit" className="w-full h-11 rounded-xl gradient-primary text-white border-0 shadow-lg shadow-primary/25" disabled={loading || !isPasswordValid || !firstName.trim() || !lastName.trim() || !email || !!emailError}>
             {loading ? "Cadastrando..." : `Cadastrar como ${userType === 'solicitante' ? 'Solicitante' : 'Freelancer'}`}
           </Button>
           <div className="text-sm text-center mt-4">
             <span className="text-muted-foreground">Já tem uma conta? </span>
-            <Button variant="link" className="p-0" onClick={() => navigate('/login')}>
-              Fazer login
-            </Button>
+            <Button variant="link" className="p-0 text-primary" onClick={() => navigate('/login')}>Fazer login</Button>
           </div>
         </div>
       </form>
@@ -201,49 +143,61 @@ const Register = () => {
   );
 
   return (
-    <div className="min-h-screen bg-muted flex flex-col items-center justify-center p-4">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-helpaqui-purple">
-          Help<span className="text-secondary">Aqui</span>
-        </h1>
-        <p className="text-muted-foreground mt-2">Crie sua conta no HelpAqui</p>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-[400px] h-[400px] rounded-full bg-secondary/5 blur-3xl" />
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md">
-        <TabsList className="grid grid-cols-3 mb-8">
-          <TabsTrigger value="solicitante" className="flex items-center gap-1">
-            <UserRound className="h-4 w-4" />
-            <span className="hidden sm:inline">Solicitante</span>
-          </TabsTrigger>
-          <TabsTrigger value="freelancer" className="flex items-center gap-1">
-            <BriefcaseBusiness className="h-4 w-4" />
-            <span className="hidden sm:inline">Freelancer</span>
-          </TabsTrigger>
-          <TabsTrigger value="empresa" className="flex items-center gap-1">
-            <Building2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Empresa</span>
-          </TabsTrigger>
-        </TabsList>
+      <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0} className="mb-8 text-center">
+        <div className="flex items-center justify-center gap-2.5 mb-3">
+          <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/25">
+            <span className="text-white font-bold text-lg">H</span>
+          </div>
+          <span className="font-extrabold text-2xl text-gradient-primary">HelpAqui</span>
+        </div>
+        <p className="text-muted-foreground">Crie sua conta no HelpAqui</p>
+      </motion.div>
 
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+      <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1} className="w-full max-w-md">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-3 mb-6 h-12 bg-muted/80 rounded-xl">
+            <TabsTrigger value="solicitante" className="flex items-center gap-1 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
+              <UserRound className="h-4 w-4" /><span className="hidden sm:inline">Solicitante</span>
+            </TabsTrigger>
+            <TabsTrigger value="freelancer" className="flex items-center gap-1 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
+              <BriefcaseBusiness className="h-4 w-4" /><span className="hidden sm:inline">Freelancer</span>
+            </TabsTrigger>
+            <TabsTrigger value="empresa" className="flex items-center gap-1 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
+              <Building2 className="h-4 w-4" /><span className="hidden sm:inline">Empresa</span>
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="solicitante">
-          <RegisterForm userType="solicitante" color="bg-helpaqui-purple" />
-        </TabsContent>
+          {error && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+              <Alert variant="destructive" className="mb-4 rounded-xl">
+                <AlertCircle className="h-4 w-4" /><AlertDescription>{error}</AlertDescription>
+              </Alert>
+            </motion.div>
+          )}
 
-        <TabsContent value="freelancer">
-          <RegisterForm userType="freelancer" color="bg-secondary" />
-        </TabsContent>
-
-        <TabsContent value="empresa">
-          <EmpresaRegisterForm />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="solicitante">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+              <RegisterForm userType="solicitante" />
+            </motion.div>
+          </TabsContent>
+          <TabsContent value="freelancer">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+              <RegisterForm userType="freelancer" />
+            </motion.div>
+          </TabsContent>
+          <TabsContent value="empresa">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+              <EmpresaRegisterForm />
+            </motion.div>
+          </TabsContent>
+        </Tabs>
+      </motion.div>
     </div>
   );
 };
