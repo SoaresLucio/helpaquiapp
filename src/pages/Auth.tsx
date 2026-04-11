@@ -47,7 +47,7 @@ const Auth = () => {
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) navigate('/');
+      if (session) navigate('/dashboard');
     };
     checkUser();
   }, [navigate]);
@@ -104,7 +104,7 @@ const Auth = () => {
         });
         
         if (session) {
-          navigate('/');
+          navigate('/dashboard');
         } else {
           setActiveTab('login');
           toast({
@@ -120,7 +120,7 @@ const Auth = () => {
           description: "Bem-vindo de volta!"
         });
         
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (error: any) {
       console.error(`Erro de ${isSignUp ? 'cadastro' : 'login'}:`, error);

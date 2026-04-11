@@ -55,7 +55,7 @@ const EmpresaLoginForm: React.FC<EmpresaLoginFormProps> = ({
       await signIn(email, password);
       localStorage.setItem('userType', 'empresa');
       toast({ title: "Login bem-sucedido", description: "Bem-vindo de volta ao HelpAqui!" });
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       setLoginAttempts(prev => prev + 1);
       toast({

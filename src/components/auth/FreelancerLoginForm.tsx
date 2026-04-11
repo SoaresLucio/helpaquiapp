@@ -73,7 +73,7 @@ const FreelancerLoginForm: React.FC<FreelancerLoginFormProps> = ({
         description: "Bem-vindo de volta ao HelpAqui!"
       });
       
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       setLoginAttempts(prev => prev + 1);
       

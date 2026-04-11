@@ -18,7 +18,7 @@ const MyOffers: React.FC = () => {
   // Redirect if not freelancer
   React.useEffect(() => {
     if (userType && userType !== 'freelancer') {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [userType, navigate]);
 

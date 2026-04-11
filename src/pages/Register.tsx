@@ -35,7 +35,7 @@ const Register = () => {
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) navigate('/');
+      if (session) navigate('/dashboard');
     };
     checkUser();
   }, [navigate]);
@@ -88,7 +88,7 @@ const Register = () => {
       });
 
       if (session) {
-        navigate('/');
+        navigate('/dashboard');
       } else {
         navigate('/login');
       }

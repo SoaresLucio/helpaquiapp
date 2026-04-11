@@ -14,7 +14,7 @@ const MyOffersHeader: React.FC = () => {
       </div>
       
       <Button 
-        onClick={() => navigate('/')}
+        onClick={() => navigate('/dashboard')}
         className="bg-helpaqui-green hover:bg-helpaqui-green/90"
       >
         Nova Oferta

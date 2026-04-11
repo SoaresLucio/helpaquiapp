@@ -73,7 +73,7 @@ const SolicitanteLoginForm: React.FC<SolicitanteLoginFormProps> = ({
         description: "Bem-vindo de volta ao HelpAqui!"
       });
       
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       setLoginAttempts(prev => prev + 1);
       

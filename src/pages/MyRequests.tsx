@@ -19,7 +19,7 @@ const MyRequests: React.FC = () => {
   // Redirect if not solicitante
   React.useEffect(() => {
     if (userType && userType !== 'solicitante') {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [userType, navigate]);
 
@@ -61,7 +61,7 @@ const MyRequests: React.FC = () => {
           </div>
           
           <Button 
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             className="bg-helpaqui-blue hover:bg-helpaqui-blue/90"
           >
             Novo Pedido
@@ -79,7 +79,7 @@ const MyRequests: React.FC = () => {
                 Você ainda não criou nenhum pedido de ajuda.
               </p>
               <Button 
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/dashboard')}
                 className="bg-helpaqui-blue hover:bg-helpaqui-blue/90"
               >
                 Criar Primeiro Pedido
