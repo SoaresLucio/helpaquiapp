@@ -23,7 +23,7 @@ const QuickActions: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button 
             onClick={() => navigate('/chat')}
-            className="bg-helpaqui-blue hover:bg-helpaqui-blue/90 h-16 flex flex-col gap-1"
+            className="bg-helpaqui-purple hover:bg-helpaqui-purple/90 h-16 flex flex-col gap-1"
           >
             <MessageCircle className="h-5 w-5" />
             Chat & Mensagens

@@ -128,7 +128,7 @@ const AIChatbot: React.FC = () => {
     <Card className="w-full max-w-md mx-auto h-[600px] flex flex-col">
       <CardHeader className="border-b bg-muted/50">
         <CardTitle className="text-lg flex items-center gap-2">
-          <Bot className="h-5 w-5 text-helpaqui-blue" />
+          <Bot className="h-5 w-5 text-helpaqui-purple" />
           Assistente HelpAqui
         </CardTitle>
       </CardHeader>
@@ -143,14 +143,14 @@ const AIChatbot: React.FC = () => {
               <div 
                 className={`flex max-w-[80%] rounded-lg p-3 gap-2 
                   ${msg.sender === 'user' 
-                    ? 'bg-helpaqui-blue text-white' 
+                    ? 'bg-helpaqui-purple text-white' 
                     : 'bg-muted text-foreground border'}`}
               >
                 <div className="mt-0.5">
                   {msg.sender === 'user' ? (
                     <User className="h-5 w-5 text-white/80" />
                   ) : (
-                    <Bot className="h-5 w-5 text-helpaqui-blue" />
+                    <Bot className="h-5 w-5 text-helpaqui-purple" />
                   )}
                 </div>
                 <div className="space-y-1">

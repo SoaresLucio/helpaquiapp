@@ -128,7 +128,7 @@ const EmpresaRegisterForm: React.FC = () => {
       });
 
       if (data.session) {
-        navigate('/');
+        navigate('/dashboard');
       } else {
         navigate('/login');
       }

@@ -14,7 +14,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({ userType, onNavigat
         className="flex flex-col items-center p-2"
         onClick={() => onNavigate('actions')}
       >
-        <MapPin className="h-6 w-6 text-helpaqui-blue" />
+        <MapPin className="h-6 w-6 text-helpaqui-purple" />
         <span className="text-xs mt-1">
           {userType === "freelancer" ? "Oferecer" : "Solicitar"}
         </span>
@@ -24,12 +24,12 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({ userType, onNavigat
         className="flex flex-col items-center p-2"
         onClick={() => onNavigate('chat')}
       >
-        <MessageCircle className="h-6 w-6 text-helpaqui-blue" />
+        <MessageCircle className="h-6 w-6 text-helpaqui-purple" />
         <span className="text-xs mt-1">Bate Papo</span>
       </button>
       
       <button className="flex flex-col items-center p-2">
-        <PhoneCall className="h-6 w-6 text-helpaqui-blue" />
+        <PhoneCall className="h-6 w-6 text-helpaqui-purple" />
         <span className="text-xs mt-1">Contatos</span>
       </button>
     </div>

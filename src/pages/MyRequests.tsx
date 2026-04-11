@@ -19,7 +19,7 @@ const MyRequests: React.FC = () => {
   // Redirect if not solicitante
   React.useEffect(() => {
     if (userType && userType !== 'solicitante') {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [userType, navigate]);
 
@@ -51,7 +51,7 @@ const MyRequests: React.FC = () => {
       
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <BackButton to="/" label="Voltar ao Início" />
+          <BackButton to="/dashboard" label="Voltar ao Início" />
         </div>
 
         <div className="flex items-center justify-between mb-6">
@@ -61,8 +61,8 @@ const MyRequests: React.FC = () => {
           </div>
           
           <Button 
-            onClick={() => navigate('/')}
-            className="bg-helpaqui-blue hover:bg-helpaqui-blue/90"
+            onClick={() => navigate('/dashboard')}
+            className="bg-helpaqui-purple hover:bg-helpaqui-purple/90"
           >
             Novo Pedido
           </Button>
@@ -79,8 +79,8 @@ const MyRequests: React.FC = () => {
                 Você ainda não criou nenhum pedido de ajuda.
               </p>
               <Button 
-                onClick={() => navigate('/')}
-                className="bg-helpaqui-blue hover:bg-helpaqui-blue/90"
+                onClick={() => navigate('/dashboard')}
+                className="bg-helpaqui-purple hover:bg-helpaqui-purple/90"
               >
                 Criar Primeiro Pedido
               </Button>
@@ -221,8 +221,8 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onDelete }) => {
       
       <CardContent>
         <div className="flex items-center space-x-2 mb-4">
-          <Users className="h-4 w-4 text-helpaqui-blue" />
-          <span className="text-sm font-medium text-helpaqui-blue">
+          <Users className="h-4 w-4 text-helpaqui-purple" />
+          <span className="text-sm font-medium text-helpaqui-purple">
             {loading ? 'Carregando...' : `${applications.length} candidatura(s)`}
           </span>
         </div>
@@ -267,7 +267,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onDelete }) => {
                   
                   {application.status === 'pending' && (
                     <div className="flex space-x-2 mt-2">
-                      <Button size="sm" className="bg-helpaqui-green hover:bg-helpaqui-green/90">
+                      <Button size="sm" className="bg-secondary hover:bg-secondary/90">
                         Aceitar
                       </Button>
                       <Button size="sm" variant="outline">

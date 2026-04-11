@@ -83,7 +83,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           <div className="relative">
             <Avatar className="h-12 w-12">
               <AvatarImage src={conversation.participantAvatar} />
-              <AvatarFallback className="bg-helpaqui-blue text-white">
+              <AvatarFallback className="bg-helpaqui-purple text-white">
                 {conversation.participantName.charAt(0)}
               </AvatarFallback>
             </Avatar>

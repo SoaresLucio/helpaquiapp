@@ -74,7 +74,7 @@ const ProfessionalInfo: React.FC<ProfessionalInfoProps> = ({
       <p className="text-sm text-gray-600 mb-1">{categoryNames}</p>
       
       <div className="flex items-center text-sm text-gray-500 mb-2">
-        <MapPin className="h-4 w-4 mr-1 text-helpaqui-blue" />
+        <MapPin className="h-4 w-4 mr-1 text-helpaqui-purple" />
         <span>{distance}</span>
         
         <span className="mx-2">•</span>

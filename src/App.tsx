@@ -5,6 +5,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import LoadingScreen from "./components/index/LoadingScreen";
 
 // Lazy-loaded pages
+const LandingPage = lazy(() => import("./pages/LandingPage"));
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Register = lazy(() => import("./pages/Register"));
@@ -40,6 +41,9 @@ function App() {
   return (
     <Suspense fallback={<LoadingScreen />}>
       <Routes>
+        {/* Public landing page */}
+        <Route path="/" element={<LandingPage />} />
+
         {/* Public routes */}
         <Route path="/auth" element={<Auth />} />
         <Route path="/register" element={<Register />} />
@@ -48,8 +52,8 @@ function App() {
         <Route path="/new-password" element={<NewPassword />} />
         <Route path="/user-type" element={<UserTypeSelection />} />
 
-        {/* Home */}
-        <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+        {/* Dashboard (previously /) */}
+        <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
 
         {/* General protected routes */}
         <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />

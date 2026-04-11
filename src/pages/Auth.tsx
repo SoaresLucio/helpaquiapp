@@ -47,7 +47,7 @@ const Auth = () => {
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) navigate('/');
+      if (session) navigate('/dashboard');
     };
     checkUser();
   }, [navigate]);
@@ -104,7 +104,7 @@ const Auth = () => {
         });
         
         if (session) {
-          navigate('/');
+          navigate('/dashboard');
         } else {
           setActiveTab('login');
           toast({
@@ -120,7 +120,7 @@ const Auth = () => {
           description: "Bem-vindo de volta!"
         });
         
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (error: any) {
       console.error(`Erro de ${isSignUp ? 'cadastro' : 'login'}:`, error);
@@ -136,7 +136,7 @@ const Auth = () => {
   };
 
   const ValidationIcon = ({ isValid }: { isValid: boolean }) => (
-    <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${isValid ? 'bg-helpaqui-green' : 'bg-muted'}`}>
+    <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${isValid ? 'bg-secondary' : 'bg-muted'}`}>
       {isValid && <Check className="h-3 w-3 text-primary-foreground" />}
     </div>
   );
@@ -144,8 +144,8 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-helpaqui-blue">
-          Help<span className="text-helpaqui-green">Aqui</span>
+        <h1 className="text-3xl font-bold text-helpaqui-purple">
+          Help<span className="text-secondary">Aqui</span>
         </h1>
         <p className="text-muted-foreground mt-2">Freelancers profissionais perto de você</p>
       </div>

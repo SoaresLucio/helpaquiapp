@@ -84,8 +84,8 @@ const OfferCard: React.FC<OfferCardProps> = ({ offer, onDelete }) => {
           )}
           
           <div className="flex items-center space-x-2">
-            <Users className="h-4 w-4 text-helpaqui-green" />
-            <span className="text-sm font-medium text-helpaqui-green">
+            <Users className="h-4 w-4 text-secondary" />
+            <span className="text-sm font-medium text-secondary">
               {loading ? 'Carregando...' : `${interests.length} interessado(s)`}
             </span>
           </div>

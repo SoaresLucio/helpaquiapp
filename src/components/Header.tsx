@@ -1,5 +1,5 @@
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { Input } from "@/components/ui/input";
@@ -31,11 +31,11 @@ const Header = () => {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-4">
           <MobileMenu currentPath={pathname} />
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">H</span>
+          <Link to="/dashboard" className="flex items-center gap-2.5">
+            <div className="w-9 h-9 gradient-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/25">
+              <span className="text-white font-bold text-sm">H</span>
             </div>
-            <span className="font-bold text-xl text-primary">HelpAqui</span>
+            <span className="font-extrabold text-xl text-gradient-primary">HelpAqui</span>
           </Link>
           <NavLinks currentPath={pathname} />
         </div>

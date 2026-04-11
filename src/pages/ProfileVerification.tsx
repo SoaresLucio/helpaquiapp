@@ -90,7 +90,7 @@ const ProfileVerification = () => {
       
       <div className="container mx-auto py-6 max-w-4xl">
         <div className="mb-6">
-          <BackButton to="/" label="Voltar ao Início" />
+          <BackButton to="/dashboard" label="Voltar ao Início" />
         </div>
 
         <h1 className="text-2xl font-bold mb-6">Verificação de Perfil</h1>
@@ -99,7 +99,7 @@ const ProfileVerification = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BadgeCheck className="h-5 w-5 text-helpaqui-blue" />
+                <BadgeCheck className="h-5 w-5 text-helpaqui-purple" />
                 Perfil Verificado
               </CardTitle>
               <CardDescription>

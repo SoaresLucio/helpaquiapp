@@ -143,7 +143,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
               <Badge 
                 key={index}
                 variant="outline" 
-                className="cursor-pointer hover:bg-helpaqui-blue hover:text-white transition-colors"
+                className="cursor-pointer hover:bg-helpaqui-purple hover:text-white transition-colors"
                 onClick={() => handleQuickMessage(quickMsg)}
               >
                 {quickMsg}
@@ -157,7 +157,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       {showSchedulePicker && (
         <div className="mb-3 p-3 bg-blue-50 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
-            <Calendar className="h-4 w-4 text-helpaqui-blue" />
+            <Calendar className="h-4 w-4 text-helpaqui-purple" />
             <span className="text-sm font-medium text-gray-700">Sugerir Horário:</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -168,7 +168,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             <Button 
               size="sm" 
               onClick={() => handleScheduleSuggestion('2024-06-15', '14:00')}
-              className="bg-helpaqui-blue hover:bg-helpaqui-blue/90"
+              className="bg-helpaqui-purple hover:bg-helpaqui-purple/90"
             >
               Enviar Sugestão
             </Button>
@@ -256,7 +256,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           <Button 
             type="submit" 
             disabled={!message.trim()}
-            className="bg-helpaqui-blue hover:bg-helpaqui-blue/90"
+            className="bg-helpaqui-purple hover:bg-helpaqui-purple/90"
           >
             <Send className="h-4 w-4" />
           </Button>

@@ -47,7 +47,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, onTabChange }) =
       </nav>
 
       <div className="p-4 border-t border-border">
-        <Link to="/">
+        <Link to="/dashboard">
           <Button variant="ghost" className="w-full justify-start gap-2 text-muted-foreground">
             <ArrowLeft className="h-4 w-4" />
             Voltar ao App

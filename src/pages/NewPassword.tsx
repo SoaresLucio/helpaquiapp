@@ -143,8 +143,8 @@ const NewPassword = () => {
   return (
     <div className="min-h-screen bg-muted flex flex-col items-center justify-center p-4">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-helpaqui-blue">
-          Help<span className="text-helpaqui-green">Aqui</span>
+        <h1 className="text-3xl font-bold text-helpaqui-purple">
+          Help<span className="text-secondary">Aqui</span>
         </h1>
         <p className="text-muted-foreground mt-2">Definir nova senha</p>
       </div>
