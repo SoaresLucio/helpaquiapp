@@ -1,6 +1,7 @@
 
 import { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import LoadingScreen from "./components/index/LoadingScreen";
 
@@ -37,60 +38,76 @@ const EmpresaJobManagement = lazy(() => import("./pages/EmpresaJobManagement"));
 const About = lazy(() => import("./pages/About"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
+const pageTransition = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } },
+  exit: { opacity: 0, y: -8, transition: { duration: 0.2 } }
+};
+
+const PageWrapper = ({ children }: { children: React.ReactNode }) => (
+  <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" style={{ width: '100%' }}>
+    {children}
+  </motion.div>
+);
+
 function App() {
+  const location = useLocation();
+
   return (
     <Suspense fallback={<LoadingScreen />}>
-      <Routes>
-        {/* Public landing page */}
-        <Route path="/" element={<LandingPage />} />
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          {/* Public landing page */}
+          <Route path="/" element={<PageWrapper><LandingPage /></PageWrapper>} />
 
-        {/* Public routes */}
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/new-password" element={<NewPassword />} />
-        <Route path="/user-type" element={<UserTypeSelection />} />
+          {/* Public routes */}
+          <Route path="/auth" element={<PageWrapper><Auth /></PageWrapper>} />
+          <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
+          <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
+          <Route path="/reset-password" element={<PageWrapper><ResetPassword /></PageWrapper>} />
+          <Route path="/new-password" element={<PageWrapper><NewPassword /></PageWrapper>} />
+          <Route path="/user-type" element={<PageWrapper><UserTypeSelection /></PageWrapper>} />
 
-        {/* Dashboard (previously /) */}
-        <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+          {/* Dashboard */}
+          <Route path="/dashboard" element={<PageWrapper><ProtectedRoute><Index /></ProtectedRoute></PageWrapper>} />
 
-        {/* General protected routes */}
-        <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
-        <Route path="/freelancer-profile" element={<ProtectedRoute><FreelancerProfile /></ProtectedRoute>} />
-        <Route path="/freelancer/:id" element={<ProtectedRoute><FreelancerProfile /></ProtectedRoute>} />
-        <Route path="/jobs" element={<ProtectedRoute><Jobs /></ProtectedRoute>} />
-        <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-        <Route path="/notes" element={<ProtectedRoute><Notes /></ProtectedRoute>} />
-        <Route path="/payment-settings" element={<ProtectedRoute><PaymentSettings /></ProtectedRoute>} />
-        <Route path="/profile-verification" element={<ProtectedRoute><ProfileVerification /></ProtectedRoute>} />
-        <Route path="/category-management" element={<ProtectedRoute><CategoryManagement /></ProtectedRoute>} />
-        <Route path="/ai-chat" element={<ProtectedRoute><AIChat /></ProtectedRoute>} />
-        <Route path="/offers" element={<ProtectedRoute><OffersPage /></ProtectedRoute>} />
-        <Route path="/payment-confirmation/:planId" element={<ProtectedRoute><PaymentConfirmationPage /></ProtectedRoute>} />
-        <Route path="/about" element={<ProtectedRoute><About /></ProtectedRoute>} />
+          {/* General protected routes */}
+          <Route path="/subscription" element={<PageWrapper><ProtectedRoute><Subscription /></ProtectedRoute></PageWrapper>} />
+          <Route path="/profile" element={<PageWrapper><ProtectedRoute><UserProfilePage /></ProtectedRoute></PageWrapper>} />
+          <Route path="/freelancer-profile" element={<PageWrapper><ProtectedRoute><FreelancerProfile /></ProtectedRoute></PageWrapper>} />
+          <Route path="/freelancer/:id" element={<PageWrapper><ProtectedRoute><FreelancerProfile /></ProtectedRoute></PageWrapper>} />
+          <Route path="/jobs" element={<PageWrapper><ProtectedRoute><Jobs /></ProtectedRoute></PageWrapper>} />
+          <Route path="/chat" element={<PageWrapper><ProtectedRoute><Chat /></ProtectedRoute></PageWrapper>} />
+          <Route path="/notes" element={<PageWrapper><ProtectedRoute><Notes /></ProtectedRoute></PageWrapper>} />
+          <Route path="/payment-settings" element={<PageWrapper><ProtectedRoute><PaymentSettings /></ProtectedRoute></PageWrapper>} />
+          <Route path="/profile-verification" element={<PageWrapper><ProtectedRoute><ProfileVerification /></ProtectedRoute></PageWrapper>} />
+          <Route path="/category-management" element={<PageWrapper><ProtectedRoute><CategoryManagement /></ProtectedRoute></PageWrapper>} />
+          <Route path="/ai-chat" element={<PageWrapper><ProtectedRoute><AIChat /></ProtectedRoute></PageWrapper>} />
+          <Route path="/offers" element={<PageWrapper><ProtectedRoute><OffersPage /></ProtectedRoute></PageWrapper>} />
+          <Route path="/payment-confirmation/:planId" element={<PageWrapper><ProtectedRoute><PaymentConfirmationPage /></ProtectedRoute></PageWrapper>} />
+          <Route path="/about" element={<PageWrapper><ProtectedRoute><About /></ProtectedRoute></PageWrapper>} />
 
-        {/* Solicitante routes */}
-        <Route path="/solicitante-plans" element={<ProtectedRoute requiredUserType="solicitante"><SolicitantePlans /></ProtectedRoute>} />
-        <Route path="/my-requests" element={<ProtectedRoute requiredUserType="solicitante"><MyRequests /></ProtectedRoute>} />
+          {/* Solicitante routes */}
+          <Route path="/solicitante-plans" element={<PageWrapper><ProtectedRoute requiredUserType="solicitante"><SolicitantePlans /></ProtectedRoute></PageWrapper>} />
+          <Route path="/my-requests" element={<PageWrapper><ProtectedRoute requiredUserType="solicitante"><MyRequests /></ProtectedRoute></PageWrapper>} />
 
-        {/* Freelancer routes */}
-        <Route path="/freelancer-plans" element={<ProtectedRoute requiredUserType="freelancer"><FreelancerPlans /></ProtectedRoute>} />
-        <Route path="/payment-freelancer-settings" element={<ProtectedRoute requiredUserType="freelancer"><PaymentFreelancerSettings /></ProtectedRoute>} />
-        <Route path="/help-requests" element={<ProtectedRoute requiredUserType="freelancer"><HelpRequests /></ProtectedRoute>} />
-        <Route path="/my-offers" element={<ProtectedRoute requiredUserType="freelancer"><MyOffers /></ProtectedRoute>} />
+          {/* Freelancer routes */}
+          <Route path="/freelancer-plans" element={<PageWrapper><ProtectedRoute requiredUserType="freelancer"><FreelancerPlans /></ProtectedRoute></PageWrapper>} />
+          <Route path="/payment-freelancer-settings" element={<PageWrapper><ProtectedRoute requiredUserType="freelancer"><PaymentFreelancerSettings /></ProtectedRoute></PageWrapper>} />
+          <Route path="/help-requests" element={<PageWrapper><ProtectedRoute requiredUserType="freelancer"><HelpRequests /></ProtectedRoute></PageWrapper>} />
+          <Route path="/my-offers" element={<PageWrapper><ProtectedRoute requiredUserType="freelancer"><MyOffers /></ProtectedRoute></PageWrapper>} />
 
-        {/* Empresa routes */}
-        <Route path="/empresa/jobs" element={<ProtectedRoute requiredUserType="empresa"><EmpresaJobManagement /></ProtectedRoute>} />
-        <Route path="/empresa-plans" element={<ProtectedRoute requiredUserType="empresa"><EmpresaPlans /></ProtectedRoute>} />
+          {/* Empresa routes */}
+          <Route path="/empresa/jobs" element={<PageWrapper><ProtectedRoute requiredUserType="empresa"><EmpresaJobManagement /></ProtectedRoute></PageWrapper>} />
+          <Route path="/empresa-plans" element={<PageWrapper><ProtectedRoute requiredUserType="empresa"><EmpresaPlans /></ProtectedRoute></PageWrapper>} />
 
-        {/* Admin */}
-        <Route path="/admin/*" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+          {/* Admin */}
+          <Route path="/admin/*" element={<PageWrapper><ProtectedRoute><AdminDashboard /></ProtectedRoute></PageWrapper>} />
 
-        {/* 404 */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          {/* 404 */}
+          <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
+        </Routes>
+      </AnimatePresence>
     </Suspense>
   );
 }

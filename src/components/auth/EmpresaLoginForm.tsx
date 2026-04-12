@@ -21,10 +21,7 @@ interface EmpresaLoginFormProps {
 }
 
 const EmpresaLoginForm: React.FC<EmpresaLoginFormProps> = ({
-  isLoading,
-  setIsLoading,
-  googleLoading,
-  setGoogleLoading
+  isLoading, setIsLoading, googleLoading, setGoogleLoading
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -56,7 +53,7 @@ const EmpresaLoginForm: React.FC<EmpresaLoginFormProps> = ({
       localStorage.setItem('userType', 'empresa');
       toast({ title: "Login bem-sucedido", description: "Bem-vindo de volta ao HelpAqui!" });
       navigate('/dashboard');
-    } catch (error) {
+    } catch {
       setLoginAttempts(prev => prev + 1);
       toast({
         title: "Erro no login",
@@ -86,74 +83,50 @@ const EmpresaLoginForm: React.FC<EmpresaLoginFormProps> = ({
   };
 
   return (
-    <Card>
+    <Card className="border-border/50 shadow-xl shadow-primary/5 rounded-2xl">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Building2 className="h-5 w-5 text-primary" />
-          <CardTitle>Entrar como Empresa</CardTitle>
+          <CardTitle className="text-xl">Entrar como Empresa</CardTitle>
         </div>
-        <CardDescription>
-          Gerencie vagas, divulgue sua empresa e encontre talentos
-        </CardDescription>
+        <CardDescription>Gerencie vagas e encontre talentos</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="empresa-email">Email Corporativo</Label>
-            <SecureInput 
-              type="email" 
-              placeholder="contato@empresa.com" 
-              value={email} 
-              onChange={setEmail}
-              showSecurityIndicator
-            />
+            <Label>Email Corporativo</Label>
+            <SecureInput type="email" placeholder="contato@empresa.com" value={email} onChange={setEmail} showSecurityIndicator />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="empresa-password">Senha</Label>
-            <SecureInput 
-              type="password" 
-              placeholder="Digite sua senha"
-              value={password} 
-              onChange={setPassword}
-              autoSanitize={false}
-            />
+            <Label>Senha</Label>
+            <SecureInput type="password" placeholder="Digite sua senha" value={password} onChange={setPassword} autoSanitize={false} />
             <div className="flex justify-end">
-              <Button variant="link" size="sm" className="text-xs p-0" onClick={() => navigate('/reset-password')}>
+              <Button variant="link" size="sm" className="text-xs p-0 text-primary" onClick={() => navigate('/reset-password')}>
                 Esqueci minha senha
               </Button>
             </div>
           </div>
         </CardContent>
         <CardFooter className="flex-col space-y-4">
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full h-11 rounded-xl gradient-primary text-white border-0 shadow-lg shadow-primary/25" disabled={isLoading}>
             {isLoading ? "Entrando..." : "Entrar como Empresa"}
           </Button>
           
           <div className="relative w-full">
-            <div className="absolute inset-0 flex items-center">
-              <Separator />
-            </div>
+            <div className="absolute inset-0 flex items-center"><Separator /></div>
             <div className="relative flex justify-center">
               <span className="bg-card px-2 text-xs text-muted-foreground">ou continue com</span>
             </div>
           </div>
           
-          <Button 
-            type="button"
-            variant="outline" 
-            className="w-full flex items-center gap-2"
-            onClick={handleGoogleLogin}
-            disabled={googleLoading}
-          >
+          <Button type="button" variant="outline" className="w-full flex items-center gap-2 rounded-xl h-11" onClick={handleGoogleLogin} disabled={googleLoading}>
             <GoogleIcon />
             {googleLoading ? "Entrando..." : "Entrar com Google"}
           </Button>
           
           <div className="text-sm text-center">
             <span className="text-muted-foreground">Ainda não tem conta? </span>
-            <Button variant="link" className="p-0" onClick={() => navigate('/register?type=empresa')}>
-              Cadastre sua empresa
-            </Button>
+            <Button variant="link" className="p-0 text-primary" onClick={() => navigate('/register?type=empresa')}>Cadastre sua empresa</Button>
           </div>
         </CardFooter>
       </form>
