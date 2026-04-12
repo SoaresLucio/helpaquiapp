@@ -20,10 +20,7 @@ interface SolicitanteLoginFormProps {
 }
 
 const SolicitanteLoginForm: React.FC<SolicitanteLoginFormProps> = ({
-  isLoading,
-  setIsLoading,
-  googleLoading,
-  setGoogleLoading
+  isLoading, setIsLoading, googleLoading, setGoogleLoading
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -35,59 +32,33 @@ const SolicitanteLoginForm: React.FC<SolicitanteLoginFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate email format before proceeding
     const emailValidation = validateEmail(email);
     if (!emailValidation.isValid) {
-      toast({
-        title: "Erro de validação",
-        description: emailValidation.errors[0],
-        variant: "destructive"
-      });
+      toast({ title: "Erro de validação", description: emailValidation.errors[0], variant: "destructive" });
       return;
     }
 
-    // Password length check
     if (!password || password.length < 6) {
-      toast({
-        title: "Erro de validação",
-        description: "A senha deve ter pelo menos 6 caracteres",
-        variant: "destructive"
-      });
+      toast({ title: "Erro de validação", description: "A senha deve ter pelo menos 6 caracteres", variant: "destructive" });
       return;
     }
 
-    // Check rate limit (max 5 attempts per hour)
     const isLimited = await checkRateLimit('login', 5, 60);
-    if (isLimited) {
-      return; // Toast is shown by useRateLimit hook
-    }
+    if (isLimited) return;
 
     setIsLoading(true);
-
     try {
       await signIn(email, password);
       localStorage.setItem('userType', 'solicitante');
-      
-      toast({
-        title: "Login bem-sucedido",
-        description: "Bem-vindo de volta ao HelpAqui!"
-      });
-      
+      toast({ title: "Login bem-sucedido", description: "Bem-vindo de volta ao HelpAqui!" });
       navigate('/dashboard');
-    } catch (error) {
+    } catch {
       setLoginAttempts(prev => prev + 1);
-      
-      // Generic error message for security - don't reveal if email exists
-      let errorMessage = "Credenciais inválidas. Verifique seu email e senha.";
-      
-      // Show specific lockout warning after multiple attempts
-      if (loginAttempts >= 3) {
-        errorMessage = "Múltiplas tentativas de login falhadas. Sua conta pode ser temporariamente bloqueada por segurança.";
-      }
-      
       toast({
         title: "Erro no login",
-        description: errorMessage,
+        description: loginAttempts >= 3
+          ? "Múltiplas tentativas falhadas. Sua conta pode ser temporariamente bloqueada."
+          : "Credenciais inválidas. Verifique seu email e senha.",
         variant: "destructive"
       });
     } finally {
@@ -100,7 +71,6 @@ const SolicitanteLoginForm: React.FC<SolicitanteLoginFormProps> = ({
     try {
       await signInWithGoogle();
     } catch (error) {
-      console.error("Google login error:", error);
       toast({
         title: "Erro no login",
         description: error instanceof Error ? error.message : "Falha ao entrar com Google",
@@ -112,71 +82,47 @@ const SolicitanteLoginForm: React.FC<SolicitanteLoginFormProps> = ({
   };
 
   return (
-    <Card>
+    <Card className="border-border/50 shadow-xl shadow-primary/5 rounded-2xl">
       <CardHeader>
-        <CardTitle>Entrar como Solicitante</CardTitle>
-        <CardDescription>
-          Precisa encontrar freelancers qualificados para seus projetos
-        </CardDescription>
+        <CardTitle className="text-xl">Entrar como Solicitante</CardTitle>
+        <CardDescription>Encontre freelancers qualificados para seus projetos</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="solicitante-email">Email</Label>
-            <SecureInput 
-              type="email" 
-              placeholder="seu@email.com" 
-              value={email} 
-              onChange={setEmail}
-              showSecurityIndicator
-            />
+            <Label>Email</Label>
+            <SecureInput type="email" placeholder="seu@email.com" value={email} onChange={setEmail} showSecurityIndicator />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="solicitante-password">Senha</Label>
-            <SecureInput 
-              type="password" 
-              placeholder="Digite sua senha"
-              value={password} 
-              onChange={setPassword}
-              autoSanitize={false}
-            />
+            <Label>Senha</Label>
+            <SecureInput type="password" placeholder="Digite sua senha" value={password} onChange={setPassword} autoSanitize={false} />
             <div className="flex justify-end">
-              <Button variant="link" size="sm" className="text-xs p-0" onClick={() => navigate('/reset-password')}>
+              <Button variant="link" size="sm" className="text-xs p-0 text-primary" onClick={() => navigate('/reset-password')}>
                 Esqueci minha senha
               </Button>
             </div>
           </div>
         </CardContent>
         <CardFooter className="flex-col space-y-4">
-          <Button type="submit" className="w-full bg-helpaqui-purple" disabled={isLoading}>
+          <Button type="submit" className="w-full h-11 rounded-xl gradient-primary text-white border-0 shadow-lg shadow-primary/25" disabled={isLoading}>
             {isLoading ? "Entrando..." : "Entrar como Solicitante"}
           </Button>
           
           <div className="relative w-full">
-            <div className="absolute inset-0 flex items-center">
-              <Separator />
-            </div>
+            <div className="absolute inset-0 flex items-center"><Separator /></div>
             <div className="relative flex justify-center">
               <span className="bg-card px-2 text-xs text-muted-foreground">ou continue com</span>
             </div>
           </div>
           
-          <Button 
-            type="button"
-            variant="outline" 
-            className="w-full flex items-center gap-2"
-            onClick={handleGoogleLogin}
-            disabled={googleLoading}
-          >
+          <Button type="button" variant="outline" className="w-full flex items-center gap-2 rounded-xl h-11" onClick={handleGoogleLogin} disabled={googleLoading}>
             <GoogleIcon />
             {googleLoading ? "Entrando..." : "Entrar com Google"}
           </Button>
           
           <div className="text-sm text-center">
             <span className="text-muted-foreground">Novo por aqui? </span>
-            <Button variant="link" className="p-0" onClick={() => navigate('/register?type=solicitante')}>
-              Criar conta de solicitante
-            </Button>
+            <Button variant="link" className="p-0 text-primary" onClick={() => navigate('/register?type=solicitante')}>Criar conta</Button>
           </div>
         </CardFooter>
       </form>
