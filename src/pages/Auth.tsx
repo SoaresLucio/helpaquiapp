@@ -31,7 +31,8 @@ interface FormData {
 interface ValidationState {
   length: boolean;
   hasNumber: boolean;
-  hasLetter: boolean;
+  hasUppercase: boolean;
+  hasLowercase: boolean;
 }
 
 const Auth = () => {
@@ -41,7 +42,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('login');
-  const [validations, setValidations] = useState<ValidationState>({ length: false, hasNumber: false, hasLetter: false });
+  const [validations, setValidations] = useState<ValidationState>({ length: false, hasNumber: false, hasUppercase: false, hasLowercase: false });
   const [emailError, setEmailError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,11 +55,14 @@ const Auth = () => {
 
   useEffect(() => {
     setValidations({
-      length: formData.password.length >= 6,
+      length: formData.password.length >= 8,
       hasNumber: /\d/.test(formData.password),
-      hasLetter: /[a-zA-Z]/.test(formData.password)
+      hasUppercase: /[A-Z]/.test(formData.password),
+      hasLowercase: /[a-z]/.test(formData.password)
     });
   }, [formData.password]);
+
+  const isPasswordValid = validations.length && validations.hasNumber && validations.hasUppercase && validations.hasLowercase;
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -76,8 +80,8 @@ const Auth = () => {
     e.preventDefault();
     if (!validateEmail(formData.email)) return;
     if (isSignUp) {
-      if (!formData.firstName || !formData.lastName) { setError("Nome e sobrenome são obrigatórios"); return; }
-      if (!validations.length || !validations.hasNumber || !validations.hasLetter) { setError("A senha não atende aos requisitos mínimos"); return; }
+      if (!formData.firstName.trim() || !formData.lastName.trim()) { setError("Nome e sobrenome são obrigatórios"); return; }
+      if (!isPasswordValid) { setError("A senha não atende aos requisitos mínimos"); return; }
     }
     setLoading(true);
     setError(null);
@@ -88,6 +92,7 @@ const Auth = () => {
         if (session) { navigate('/dashboard'); } else { setActiveTab('login'); }
       } else {
         await signIn(formData.email, formData.password);
+        localStorage.setItem('userType', 'solicitante');
         toast({ title: "Login bem-sucedido", description: "Bem-vindo de volta!" });
         navigate('/dashboard');
       }
@@ -106,7 +111,6 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background decorations */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 w-[400px] h-[400px] rounded-full bg-secondary/5 blur-3xl" />
@@ -166,10 +170,14 @@ const Auth = () => {
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="flex-col space-y-3">
                     <Button type="submit" className="w-full h-11 rounded-xl gradient-primary text-white border-0 shadow-lg shadow-primary/25" disabled={loading}>
                       {loading ? "Entrando..." : "Entrar"}
                     </Button>
+                    <div className="text-sm text-center">
+                      <span className="text-muted-foreground">Não tem uma conta? </span>
+                      <Button variant="link" className="p-0 text-primary" onClick={() => navigate('/register')}>Cadastre-se</Button>
+                    </div>
                   </CardFooter>
                 </form>
               </Card>
@@ -180,7 +188,7 @@ const Auth = () => {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
               <Card className="border-border/50 shadow-xl shadow-primary/5 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-xl">Cadastro</CardTitle>
+                  <CardTitle className="text-xl">Cadastro Rápido</CardTitle>
                   <CardDescription>Crie sua conta para usar o HelpAqui</CardDescription>
                 </CardHeader>
                 <form onSubmit={(e) => handleSubmit(e, true)}>
@@ -202,25 +210,30 @@ const Auth = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-password">Senha</Label>
-                      <Input id="signup-password" type="password" value={formData.password} onChange={e => updateFormData('password', e.target.value)} className={`rounded-xl h-11 ${!validations.length && formData.password ? "border-destructive/50" : ""}`} required />
+                      <Input id="signup-password" type="password" value={formData.password} onChange={e => updateFormData('password', e.target.value)} className={`rounded-xl h-11 ${formData.password && !isPasswordValid ? "border-destructive/50" : ""}`} required />
                       <div className="mt-2 space-y-1.5">
                         {[
-                          { ok: validations.length, label: "Pelo menos 6 caracteres" },
+                          { ok: validations.length, label: "Pelo menos 8 caracteres" },
+                          { ok: validations.hasUppercase, label: "Pelo menos uma maiúscula" },
+                          { ok: validations.hasLowercase, label: "Pelo menos uma minúscula" },
                           { ok: validations.hasNumber, label: "Pelo menos um número" },
-                          { ok: validations.hasLetter, label: "Pelo menos uma letra" },
                         ].map(({ ok, label }) => (
                           <div key={label} className="flex items-center">
                             <ValidationIcon isValid={ok} />
-                            <span className="text-xs text-muted-foreground">{label}</span>
+                            <span className={`text-xs ${ok ? 'text-primary' : 'text-muted-foreground'}`}>{label}</span>
                           </div>
                         ))}
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter>
-                    <Button type="submit" className="w-full h-11 rounded-xl gradient-primary text-white border-0 shadow-lg shadow-primary/25" disabled={loading || !validations.length || !validations.hasNumber || !validations.hasLetter || !formData.firstName || !formData.lastName || !formData.email || !!emailError}>
+                  <CardFooter className="flex-col space-y-3">
+                    <Button type="submit" className="w-full h-11 rounded-xl gradient-primary text-white border-0 shadow-lg shadow-primary/25" disabled={loading || !isPasswordValid || !formData.firstName.trim() || !formData.lastName.trim() || !formData.email || !!emailError}>
                       {loading ? "Cadastrando..." : "Cadastrar"}
                     </Button>
+                    <p className="text-xs text-muted-foreground text-center">
+                      Para cadastro completo como Freelancer ou Empresa,{' '}
+                      <Button variant="link" className="p-0 text-primary text-xs h-auto" onClick={() => navigate('/register')}>clique aqui</Button>
+                    </p>
                   </CardFooter>
                 </form>
               </Card>

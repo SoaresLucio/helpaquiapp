@@ -24,7 +24,6 @@ const EmpresaRegisterForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Form fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [companyName, setCompanyName] = useState('');
@@ -102,7 +101,6 @@ const EmpresaRegisterForm: React.FC = () => {
 
       if (signUpError) throw signUpError;
 
-      // Create empresa profile if user was created
       if (data.user) {
         const { error: profileError } = await supabase
           .from('empresa_profiles')
@@ -111,7 +109,7 @@ const EmpresaRegisterForm: React.FC = () => {
             cnpj: cnpj.replace(/\D/g, ''),
             company_name: sanitizeInput(companyName),
             responsible_name: sanitizeInput(responsibleName),
-            employee_count: employeeCount,
+            employee_count: employeeCount || null,
             purpose: purposes,
           });
 
@@ -119,6 +117,8 @@ const EmpresaRegisterForm: React.FC = () => {
           console.error('Error creating empresa profile:', profileError);
         }
       }
+
+      localStorage.setItem('userType', 'empresa');
 
       toast({
         title: 'Cadastro realizado!',
@@ -134,18 +134,22 @@ const EmpresaRegisterForm: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Registration error:', err);
-      setError(err.message || 'Erro ao criar conta empresarial');
+      if (err.message?.includes('User already registered')) {
+        setError('Este email já está cadastrado. Faça login ou use outro email.');
+      } else {
+        setError(err.message || 'Erro ao criar conta empresarial');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Card>
+    <Card className="border-border/50 shadow-xl shadow-primary/5 rounded-2xl">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Building2 className="h-6 w-6 text-primary" />
-          <CardTitle>Cadastro Empresarial</CardTitle>
+          <CardTitle className="text-xl">Cadastro Empresarial</CardTitle>
         </div>
         <CardDescription>
           Cadastre sua empresa para divulgar vagas, serviços e mais.
@@ -154,7 +158,7 @@ const EmpresaRegisterForm: React.FC = () => {
       <form onSubmit={handleRegister}>
         <CardContent className="space-y-4">
           {error && (
-            <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-md">
+            <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-xl">
               {error}
             </div>
           )}
@@ -166,6 +170,7 @@ const EmpresaRegisterForm: React.FC = () => {
               placeholder="Razão Social ou Nome Fantasia"
               value={companyName}
               onChange={e => setCompanyName(e.target.value)}
+              className="rounded-xl h-11"
               required
             />
           </div>
@@ -177,6 +182,7 @@ const EmpresaRegisterForm: React.FC = () => {
               placeholder="00.000.000/0000-00"
               value={cnpj}
               onChange={e => setCnpj(formatCnpj(e.target.value))}
+              className="rounded-xl h-11"
               required
             />
           </div>
@@ -188,6 +194,7 @@ const EmpresaRegisterForm: React.FC = () => {
               placeholder="Nome completo do responsável"
               value={responsibleName}
               onChange={e => setResponsibleName(e.target.value)}
+              className="rounded-xl h-11"
               required
             />
           </div>
@@ -195,7 +202,7 @@ const EmpresaRegisterForm: React.FC = () => {
           <div className="space-y-2">
             <Label htmlFor="employee-count">Quantidade de Funcionários</Label>
             <Select value={employeeCount} onValueChange={setEmployeeCount}>
-              <SelectTrigger>
+              <SelectTrigger className="rounded-xl h-11">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -234,6 +241,7 @@ const EmpresaRegisterForm: React.FC = () => {
               placeholder="contato@empresa.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
+              className="rounded-xl h-11"
               required
             />
           </div>
@@ -247,20 +255,20 @@ const EmpresaRegisterForm: React.FC = () => {
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              className={password && !isPasswordValid ? 'border-destructive' : ''}
+              className={`rounded-xl h-11 ${password && !isPasswordValid ? 'border-destructive/50' : ''}`}
             />
-            <div className="mt-2 space-y-1">
+            <div className="mt-2 space-y-1.5">
               {[
                 { ok: validations.length, label: 'Pelo menos 8 caracteres' },
-                { ok: validations.hasUppercase, label: 'Pelo menos uma letra maiúscula' },
-                { ok: validations.hasLowercase, label: 'Pelo menos uma letra minúscula' },
+                { ok: validations.hasUppercase, label: 'Pelo menos uma maiúscula' },
+                { ok: validations.hasLowercase, label: 'Pelo menos uma minúscula' },
                 { ok: validations.hasNumber, label: 'Pelo menos um número' }
               ].map(({ ok, label }) => (
                 <div key={label} className="flex items-center">
-                  <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${ok ? 'bg-green-500' : 'bg-muted'}`}>
-                    {ok && <Check className="h-3 w-3 text-white" />}
+                  <div className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center transition-colors ${ok ? 'bg-primary' : 'bg-muted'}`}>
+                    {ok && <Check className="h-3 w-3 text-primary-foreground" />}
                   </div>
-                  <span className={`text-xs ${ok ? 'text-green-600' : 'text-muted-foreground'}`}>{label}</span>
+                  <span className={`text-xs ${ok ? 'text-primary' : 'text-muted-foreground'}`}>{label}</span>
                 </div>
               ))}
             </div>
@@ -269,14 +277,14 @@ const EmpresaRegisterForm: React.FC = () => {
         <div className="px-6 pb-6">
           <Button
             type="submit"
-            className="w-full"
-            disabled={loading || !isPasswordValid || !companyName.trim() || !responsibleName.trim() || purposes.length === 0}
+            className="w-full h-11 rounded-xl gradient-primary text-white border-0 shadow-lg shadow-primary/25"
+            disabled={loading || !isPasswordValid || !companyName.trim() || !responsibleName.trim() || purposes.length === 0 || !email.trim() || cnpj.replace(/\D/g, '').length !== 14}
           >
             {loading ? 'Cadastrando...' : 'Cadastrar Empresa'}
           </Button>
           <div className="text-sm text-center mt-4">
             <span className="text-muted-foreground">Já tem uma conta? </span>
-            <Button variant="link" className="p-0" onClick={() => navigate('/login')}>
+            <Button variant="link" className="p-0 text-primary" onClick={() => navigate('/login')}>
               Fazer login
             </Button>
           </div>
