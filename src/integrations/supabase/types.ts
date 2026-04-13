@@ -1862,6 +1862,14 @@ export type Database = {
       }
     }
     Functions: {
+      admin_update_payment_status: {
+        Args: { p_new_status: string; p_payment_id: string }
+        Returns: boolean
+      }
+      admin_update_user_type: {
+        Args: { p_new_user_type: string; p_user_id: string }
+        Returns: boolean
+      }
       check_message_limit: {
         Args: { p_other_user_id: string; p_user_id: string }
         Returns: boolean
