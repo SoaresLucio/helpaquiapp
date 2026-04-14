@@ -87,6 +87,7 @@ function App() {
           <Route path="/offers" element={<PageWrapper><ProtectedRoute><OffersPage /></ProtectedRoute></PageWrapper>} />
           <Route path="/payment-confirmation/:planId" element={<PageWrapper><ProtectedRoute><PaymentConfirmationPage /></ProtectedRoute></PageWrapper>} />
           <Route path="/about" element={<PageWrapper><ProtectedRoute><About /></ProtectedRoute></PageWrapper>} />
+          <Route path="/banner/:id" element={<PageWrapper><ProtectedRoute><BannerDetail /></ProtectedRoute></PageWrapper>} />
 
           {/* Solicitante routes */}
           <Route path="/solicitante-plans" element={<PageWrapper><ProtectedRoute requiredUserType="solicitante"><SolicitantePlans /></ProtectedRoute></PageWrapper>} />
