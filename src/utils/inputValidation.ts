@@ -139,9 +139,7 @@ export const sanitizeText = (text: string, maxLength: number = 1000): string => 
   if (typeof text !== 'string') return '';
   
   return text
-    .trim()
     .replace(/[<>]/g, '')
-    .replace(/['"]/g, '')
     .slice(0, maxLength);
 };
 
