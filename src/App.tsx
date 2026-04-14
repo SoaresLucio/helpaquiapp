@@ -36,6 +36,7 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const HelpRequests = lazy(() => import("./pages/HelpRequests"));
 const EmpresaJobManagement = lazy(() => import("./pages/EmpresaJobManagement"));
 const About = lazy(() => import("./pages/About"));
+const BannerDetail = lazy(() => import("./pages/BannerDetail"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const pageTransition = {
