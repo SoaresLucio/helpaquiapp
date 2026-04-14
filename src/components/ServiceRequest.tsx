@@ -1,11 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { 
-  Camera, 
-  MapPin, 
-  Calendar, 
+  Camera,
+  MapPin,
+  Calendar,
   DollarSign,
   Plus,
-  AlertCircle,
   Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,6 @@ import {
 } from '@/components/ui/select';
 import { serviceCategories } from '@/data/mockData';
 import { useToast } from '@/components/ui/use-toast';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import AsaasPaymentButton from './payment/AsaasPaymentButton';
@@ -37,31 +35,13 @@ const ServiceRequest: React.FC = () => {
     date: '',
   });
   const [photos, setPhotos] = useState<string[]>([]);
-  const [isVerified, setIsVerified] = useState(false);
-  const [hasPaymentMethod, setHasPaymentMethod] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  React.useEffect(() => {
-    setTimeout(() => {
-      setIsVerified(Math.random() > 0.5);
-      setHasPaymentMethod(Math.random() > 0.5);
-    }, 1000);
-  }, []);
-  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!isVerified || !hasPaymentMethod) {
-      toast({
-        title: "Verificação necessária",
-        description: "Complete a verificação e adicione um método de pagamento",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+
     if (!formData.title || !formData.description || !formData.category || !formData.location) {
       toast({
         title: "Campos obrigatórios",
@@ -200,7 +180,7 @@ const ServiceRequest: React.FC = () => {
   if (showPayment) {
     return (
       <div className="helpaqui-card p-5">
-        <h2 className="text-xl font-semibold mb-4 text-helpaqui-purple">Finalizar Publicação</h2>
+        <h2 className="text-xl font-semibold mb-4 text-helpaqui-blue">Finalizar Publicação</h2>
         
         <div className="mb-4 p-4 bg-gray-50 rounded-lg">
           <h3 className="font-medium mb-2">{formData.title}</h3>
@@ -240,32 +220,7 @@ const ServiceRequest: React.FC = () => {
 
   return (
     <div className="helpaqui-card p-5">
-      <h2 className="text-xl font-semibold mb-4 text-helpaqui-purple">Pedir um HELP</h2>
-      
-      {(!isVerified || !hasPaymentMethod) && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {!isVerified && !hasPaymentMethod ? (
-              "É necessário verificar seu cadastro e adicionar um método de pagamento."
-            ) : !isVerified ? (
-              "É necessário verificar seu cadastro antes de solicitar serviços."
-            ) : (
-              "É necessário adicionar um método de pagamento antes de solicitar serviços."
-            )}
-            <div className="mt-2 space-x-2">
-              <Button variant="outline" size="sm" onClick={() => navigate("/verification")}>
-                Verificar cadastro
-              </Button>
-              {!hasPaymentMethod && (
-                <Button variant="outline" size="sm" onClick={() => navigate("/payments")}>
-                  Adicionar pagamento
-                </Button>
-              )}
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
+      <h2 className="text-xl font-semibold mb-4 text-helpaqui-blue">Pedir um HELP</h2>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
