@@ -121,7 +121,7 @@ export const checkRequestLimit = async (): Promise<boolean> => {
   }
 };
 
-// Subscribe to a free plan via edge function (server-side only writes to subscriptions)
+// Subscribe to a new plan (creates subscription record - payment integration to be added later)
 export const subscribeToPlan = async (planId: string): Promise<boolean> => {
   try {
     const { data: userData } = await supabase.auth.getUser();
@@ -130,11 +130,35 @@ export const subscribeToPlan = async (planId: string): Promise<boolean> => {
       throw new Error('User not authenticated');
     }
 
-    const { error } = await supabase.functions.invoke('activate-free-plan', {
-      body: { planId }
-    });
+    // Check if user already has an active subscription
+    const currentSub = await getCurrentSubscription();
+    
+    if (currentSub) {
+      // Update existing subscription
+      const { error } = await supabase
+        .from('user_subscriptions')
+        .update({
+          plan_id: planId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', currentSub.id);
 
-    if (error) throw error;
+      if (error) throw error;
+    } else {
+      // Create new subscription
+      const { error } = await supabase
+        .from('user_subscriptions')
+        .insert({
+          user_id: userData.user.id,
+          plan_id: planId,
+          status: 'active',
+          current_period_start: new Date().toISOString(),
+          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+          requests_used_this_month: 0
+        });
+
+      if (error) throw error;
+    }
 
     return true;
   } catch (error) {

@@ -19,7 +19,7 @@ const AIChat = () => {
       
       <div className="max-w-md mx-auto">
         <h1 className="text-2xl font-bold mb-6 text-center">
-          Chat de <span className="text-helpaqui-purple">Assistência</span>
+          Chat de <span className="text-helpaqui-blue">Assistência</span>
         </h1>
         <AIChatbot />
         

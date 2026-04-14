@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Shield, MessageCircle, Calendar, Star, MapPin, Clock, BadgeCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Professional } from '@/data/mockData';
@@ -12,10 +11,9 @@ import { useToast } from '@/components/ui/use-toast';
 
 interface ProfessionalCardProps {
   professional: Professional;
-  index?: number;
 }
 
-const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional, index = 0 }) => {
+const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional }) => {
   const navigate = useNavigate();
   const { createConversation } = useRealTimeChat();
   const { toast } = useToast();
@@ -23,36 +21,61 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional, index
   const isVerified = professional.isVerified || false;
   const responseTime = professional.responseTime || "1h";
   const responseRate = professional.responseRate || 95;
-  const freelancerId = professional.id.split('/')[0];
 
-  const handleViewProfile = () => navigate(`/freelancer/${freelancerId}`);
+  const handleViewProfile = () => {
+    const freelancerId = professional.id.split('/')[0];
+    navigate(`/freelancer/${freelancerId}`);
+  };
 
   const handleContact = async () => {
     try {
+      // Extract freelancer ID from professional ID
+      const freelancerId = professional.id.split('/')[0];
+      
+      // Create conversation with the freelancer
       const conversation = await createConversation(freelancerId);
+      
       if (conversation) {
-        navigate('/chat', { state: { conversationId: conversation.id, freelancerId, freelancerName: professional.name } });
-        toast({ title: "Conversa iniciada", description: `Conversa iniciada com ${professional.name}` });
+        // Navigate to chat with the specific conversation
+        navigate('/chat', { 
+          state: { 
+            conversationId: conversation.id,
+            freelancerId: freelancerId,
+            freelancerName: professional.name 
+          }
+        });
+        
+        toast({
+          title: "Conversa iniciada",
+          description: `Conversa iniciada com ${professional.name}`,
+        });
       }
-    } catch {
-      toast({ title: "Erro", description: "Erro ao iniciar conversa. Tente novamente.", variant: "destructive" });
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error starting conversation:', error);
+      }
+      toast({
+        title: "Erro",
+        description: "Erro ao iniciar conversa. Tente novamente.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleHire = () => {
-    navigate('/chat', { state: { freelancerId, offerType: 'hire', serviceTitle: professional.description } });
+    // Implementar lógica de contratação direta
+    navigate('/chat', { state: { 
+      freelancerId: professional.id.split('/')[0],
+      offerType: 'hire',
+      serviceTitle: professional.description 
+    }});
   };
 
   const categoryNames = professional.categories?.join(', ') || '';
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      className="group bg-card border border-border/50 rounded-2xl p-6 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300"
-    >
-      <div className="flex items-start gap-4">
+    <div className="helpaqui-card p-6 mb-4 hover:shadow-lg transition-shadow">
+      <div className="flex items-start">
         <ProfessionalAvatar
           avatar={professional.avatar}
           name={professional.name}
@@ -60,94 +83,113 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional, index
           isVerified={isVerified}
         />
         
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between mb-1">
+        <div className="flex-1">
+          <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">{professional.name}</h3>
-              {isVerified && <BadgeCheck className="h-5 w-5 text-primary flex-shrink-0" />}
+              <h3 className="font-semibold text-xl">{professional.name}</h3>
+              {isVerified && (
+                <BadgeCheck className="h-5 w-5 text-blue-500" />
+              )}
             </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center">
               {professional.ratingCount > 0 ? (
                 <>
-                  <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                  <span className="text-sm font-bold">{professional.rating.toFixed(1)}</span>
-                  <span className="text-xs text-muted-foreground">({professional.ratingCount})</span>
+                  <Star className="h-4 w-4 text-yellow-500 mr-1 fill-yellow-500" />
+                  <span className="text-sm font-medium">{professional.rating.toFixed(1)}</span>
+                  <span className="text-xs text-gray-500 ml-1">({professional.ratingCount})</span>
                 </>
               ) : (
-                <span className="text-xs text-muted-foreground">Novo</span>
+                <span className="text-xs text-gray-500">Sem avaliações</span>
               )}
             </div>
           </div>
           
-          <p className="text-sm text-primary font-medium mb-2">{categoryNames}</p>
+          <p className="text-sm text-helpaqui-blue font-medium mb-2">{categoryNames}</p>
           
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mb-3">
-            <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{professional.distance}</span>
-            <span className="flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5" />
-              {professional.available ? 'Disponível' : 'Indisponível'}
-            </span>
+          <div className="flex items-center text-sm text-gray-500 mb-3">
+            <MapPin className="h-4 w-4 mr-1 text-helpaqui-blue" />
+            <span>{professional.distance}</span>
+            
+            <span className="mx-2">•</span>
+            
+            <Clock className="h-4 w-4 mr-1 text-gray-400" />
+            <span>{professional.available ? 'Disponível agora' : 'Indisponível'}</span>
+            
+            <span className="mx-2">•</span>
+            
             <span>Responde em {responseTime}</span>
           </div>
           
-          <p className="text-sm text-muted-foreground mb-4 line-clamp-2 leading-relaxed">{professional.description}</p>
+          <p className="text-sm text-gray-700 mb-4 leading-relaxed">{professional.description}</p>
           
-          {/* Response stats */}
-          <div className="bg-muted/50 rounded-xl p-3 mb-4">
-            <div className="grid grid-cols-2 gap-3 text-xs">
+          {/* Informações adicionais sobre o serviço */}
+          <div className="bg-gray-50 rounded-lg p-3 mb-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="text-muted-foreground">Taxa de resposta</span>
-                <span className="ml-2 font-bold text-green-600">{responseRate}%</span>
+                <span className="text-gray-600">Taxa de resposta:</span>
+                <span className="ml-2 font-medium text-green-600">{responseRate}%</span>
               </div>
               <div>
-                <span className="text-muted-foreground">Tempo médio</span>
-                <span className="ml-2 font-bold text-foreground">{responseTime}</span>
+                <span className="text-gray-600">Tempo médio:</span>
+                <span className="ml-2 font-medium">{responseTime}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
       
-      {/* Trust badges */}
-      <div className="flex flex-col sm:flex-row gap-2 mb-4">
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 rounded-lg text-xs text-green-700">
-          <Shield className="h-3.5 w-3.5" />
-          <span>HELPAQUI Garantia: Cobertura em até 7 dias</span>
-        </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg text-xs text-primary">
-          <Shield className="h-3.5 w-3.5" />
-          <span>Contato seguro</span>
-        </div>
+      {/* HELPAQUI Garantia */}
+      <div className="flex items-center mb-3 bg-green-50 rounded-lg px-4 py-2">
+        <Shield className="h-4 w-4 text-green-600 mr-2" />
+        <span className="text-sm text-green-800">
+          HELPAQUI Garantia: Cobertura para reparos em até 7 dias
+        </span>
       </div>
       
-      {/* Price & Actions */}
-      <div className="flex items-center justify-between pt-4 border-t border-border/50">
-        <div className="flex items-center gap-3">
-          <span className="font-bold text-xl text-secondary">{professional.price}</span>
+      {/* Privacy Notice */}
+      <div className="flex items-center mb-4 bg-blue-50 rounded-lg px-4 py-2">
+        <Shield className="h-4 w-4 text-blue-600 mr-2" />
+        <span className="text-sm text-blue-800">
+          Contato seguro: Informações compartilhadas apenas após confirmação
+        </span>
+      </div>
+      
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <span className="font-bold text-lg text-helpaqui-green">{professional.price}</span>
           {professional.available && (
-            <span className="bg-green-500/10 text-green-700 text-xs px-2.5 py-1 rounded-full font-medium">
+            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
               Disponível
             </span>
           )}
         </div>
         
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleViewProfile} className="rounded-xl text-xs h-9 border-border/80 hover:border-primary/50 hover:text-primary">
+        <div className="flex space-x-2">
+          <Button variant="outline" size="sm" onClick={handleViewProfile}>
             Ver perfil
           </Button>
-          <Button variant="outline" size="sm" onClick={handleContact} className="rounded-xl text-xs h-9 border-border/80 hover:border-primary/50 hover:text-primary">
-            <MessageCircle className="h-3.5 w-3.5 mr-1" />
-            Conversar
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleContact}
+            className="flex items-center space-x-1"
+          >
+            <MessageCircle className="h-4 w-4" />
+            <span>Conversar</span>
           </Button>
-          <Button size="sm" onClick={handleHire} className="rounded-xl text-xs h-9 gradient-primary text-white border-0 shadow-md shadow-primary/20 hover:shadow-lg">
-            <Calendar className="h-3.5 w-3.5 mr-1" />
-            Contratar
+          <Button 
+            size="sm" 
+            className="helpaqui-button-primary flex items-center space-x-1" 
+            onClick={handleHire}
+          >
+            <Calendar className="h-4 w-4" />
+            <span>Contratar</span>
           </Button>
         </div>
       </div>
       
       <ProfessionalPortfolio portfolio={professional.portfolio || []} />
-    </motion.div>
+    </div>
   );
 };
 

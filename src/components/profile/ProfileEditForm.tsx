@@ -39,7 +39,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ initialData, onSucces
           <ProfileFormFields form={form} />
 
           <div className="flex justify-end">
-            <Button type="submit" disabled={isLoading} className="bg-helpaqui-purple hover:bg-helpaqui-purple/90">
+            <Button type="submit" disabled={isLoading} className="bg-helpaqui-blue hover:bg-helpaqui-blue/90">
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

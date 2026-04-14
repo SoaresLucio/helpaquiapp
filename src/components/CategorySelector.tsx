@@ -46,11 +46,11 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
               onClick={() => onSelectCategory(category.id)}
               className={`flex flex-col items-center justify-center p-3 rounded-lg transition-all ${
                 isSelected
-                  ? 'bg-helpaqui-purple text-white shadow-md'
-                  : 'bg-white border border-gray-200 hover:border-helpaqui-purple'
+                  ? 'bg-helpaqui-blue text-white shadow-md'
+                  : 'bg-white border border-gray-200 hover:border-helpaqui-blue'
               }`}
             >
-              <div className={`mb-2 ${isSelected ? 'text-white' : 'text-helpaqui-purple'}`}>
+              <div className={`mb-2 ${isSelected ? 'text-white' : 'text-helpaqui-blue'}`}>
                 {getCategoryIcon(category.icon)}
               </div>
               <span className="text-sm text-center">{category.name}</span>

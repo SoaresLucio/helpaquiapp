@@ -202,7 +202,7 @@ const HelpRequestsMap: React.FC<HelpRequestsMapProps> = ({ onRequestSelect }) =>
   };
 
   const render = (status: Status) => {
-    if (status === Status.LOADING) return <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-helpaqui-purple mb-2"></div>;
+    if (status === Status.LOADING) return <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-helpaqui-blue mb-2"></div>;
     if (status === Status.FAILURE) return <div>Erro ao carregar mapa</div>;
     return <GoogleMapComponent userLocation={userLocation} serviceRequests={filteredRequests} onRequestSelect={onRequestSelect} />;
   };
@@ -250,7 +250,7 @@ const HelpRequestsMap: React.FC<HelpRequestsMapProps> = ({ onRequestSelect }) =>
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Solicitações de Help no Mapa</h3>
           <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <MapPin className="h-4 w-4 text-helpaqui-purple" />
+            <MapPin className="h-4 w-4 text-helpaqui-blue" />
             <span>{userLocation.address}</span>
           </div>
         </div>

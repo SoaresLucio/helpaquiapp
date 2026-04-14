@@ -26,7 +26,7 @@ const IncomeTab: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
             <span>Rendimentos</span>
-            <span className="text-secondary text-xl">R$ 530,00</span>
+            <span className="text-helpaqui-green text-xl">R$ 530,00</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -38,7 +38,7 @@ const IncomeTab: React.FC = () => {
                     <p className="font-medium">{income.description}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{income.date}</p>
                   </div>
-                  <p className="font-medium text-secondary">R$ {income.amount.toFixed(2)}</p>
+                  <p className="font-medium text-helpaqui-green">R$ {income.amount.toFixed(2)}</p>
                 </div>
               ))}
             </div>
@@ -50,7 +50,7 @@ const IncomeTab: React.FC = () => {
           
           <div className="flex justify-between items-center mt-2">
             <span className="font-medium">Disponível para saque:</span>
-            <span className="text-secondary font-bold">R$ 530,00</span>
+            <span className="text-helpaqui-green font-bold">R$ 530,00</span>
           </div>
           
           <Button className="w-full mt-4 flex items-center justify-center">

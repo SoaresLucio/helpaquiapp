@@ -196,7 +196,7 @@ const PaymentConfirmationPage: React.FC = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground mb-4">Plano não encontrado</h1>
-          <BackButton to="/dashboard" label="Voltar ao Início" />
+          <BackButton to="/" label="Voltar ao Início" />
         </div>
       </div>
     );
@@ -213,7 +213,7 @@ const PaymentConfirmationPage: React.FC = () => {
     <div className="min-h-screen bg-background py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <BackButton to="/dashboard" label="Voltar ao Início" />
+          <BackButton to="/" label="Voltar ao Início" />
         </div>
 
         <div className="text-center mb-8">

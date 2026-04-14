@@ -181,7 +181,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 <div 
                   className={`max-w-[75%] rounded-lg px-3 py-2 ${
                     msg.sender_id === user?.id 
-                      ? 'bg-helpaqui-purple text-white rounded-tr-none' 
+                      ? 'bg-helpaqui-blue text-white rounded-tr-none' 
                       : 'bg-white border border-gray-200 rounded-tl-none'
                   }`}
                 >

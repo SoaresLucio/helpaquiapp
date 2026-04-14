@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutDashboard, Users, FolderOpen, CreditCard, ArrowLeft, Shield, MapPin } from 'lucide-react';
+import { LayoutDashboard, Users, FolderOpen, CreditCard, ArrowLeft, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -14,7 +14,6 @@ const menuItems = [
   { id: 'users', label: 'Usuários', icon: Users },
   { id: 'categories', label: 'Categorias', icon: FolderOpen },
   { id: 'plans', label: 'Planos', icon: CreditCard },
-  { id: 'locations', label: 'Localizações', icon: MapPin },
 ];
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, onTabChange }) => {
@@ -47,7 +46,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, onTabChange }) =
       </nav>
 
       <div className="p-4 border-t border-border">
-        <Link to="/dashboard">
+        <Link to="/">
           <Button variant="ghost" className="w-full justify-start gap-2 text-muted-foreground">
             <ArrowLeft className="h-4 w-4" />
             Voltar ao App

@@ -37,7 +37,7 @@ const EmpresaPlans = () => {
       const success = await subscribeToPlan(plan.id);
       if (success) {
         toast.success(`Plano ${plan.name} ativado com sucesso!`);
-        navigate('/dashboard');
+        navigate('/');
       } else {
         toast.error('Erro ao ativar plano');
       }

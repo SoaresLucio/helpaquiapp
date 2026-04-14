@@ -33,7 +33,7 @@ const ProfileHeaderImage: React.FC<ProfileHeaderImageProps> = ({
             alt={displayName}
             className="w-full h-full object-cover" 
           />
-          <label htmlFor="profile-upload" className="absolute bottom-0 right-0 bg-helpaqui-purple p-1 rounded-full cursor-pointer">
+          <label htmlFor="profile-upload" className="absolute bottom-0 right-0 bg-helpaqui-blue p-1 rounded-full cursor-pointer">
             <Camera className="h-3 w-3 text-white" />
             <input id="profile-upload" type="file" accept="image/*" className="sr-only" onChange={onProfilePhotoChange} />
           </label>

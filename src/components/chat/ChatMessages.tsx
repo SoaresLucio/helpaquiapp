@@ -79,7 +79,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
           <div
             className={`rounded-lg px-4 py-3 ${
               isOwnMessage
-                ? 'bg-helpaqui-purple text-white rounded-tr-none'
+                ? 'bg-helpaqui-blue text-white rounded-tr-none'
                 : 'bg-white border border-gray-200 rounded-tl-none shadow-sm'
             }`}
           >
@@ -184,9 +184,9 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     <ScrollArea className="flex-1 h-full">
       <div className="p-4 space-y-4">
         {/* Resumo do serviço - sempre visível */}
-        <div className="bg-white rounded-lg p-4 border-l-4 border-helpaqui-purple shadow-sm">
+        <div className="bg-white rounded-lg p-4 border-l-4 border-helpaqui-blue shadow-sm">
           <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="h-4 w-4 text-helpaqui-purple" />
+            <DollarSign className="h-4 w-4 text-helpaqui-blue" />
             <span className="font-medium text-sm">Resumo do Serviço</span>
           </div>
           <div className="space-y-1 text-sm text-gray-600">

@@ -6,7 +6,6 @@ import AdminDashboardTab from '@/components/admin/AdminDashboardTab';
 import AdminUsersTab from '@/components/admin/AdminUsersTab';
 import AdminCategoriesTab from '@/components/admin/AdminCategoriesTab';
 import AdminPlansTab from '@/components/admin/AdminPlansTab';
-import AdminLocationsTab from '@/components/admin/AdminLocationsTab';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useState } from 'react';
 
@@ -26,7 +25,7 @@ const AdminDashboard: React.FC = () => {
   }
 
   if (!isAdmin) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return (
@@ -47,9 +46,6 @@ const AdminDashboard: React.FC = () => {
             </TabsContent>
             <TabsContent value="plans" className="mt-0">
               <AdminPlansTab />
-            </TabsContent>
-            <TabsContent value="locations" className="mt-0">
-              <AdminLocationsTab />
             </TabsContent>
           </Tabs>
         </div>

@@ -45,7 +45,7 @@ export const useAccessControl = (options: UseAccessControlOptions = {}) => {
         } else if (userType === 'empresa') {
           navigate('/empresa-plans');
         } else {
-          navigate('/dashboard');
+          navigate('/');
         }
       }
     }

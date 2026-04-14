@@ -99,14 +99,14 @@ const AdminPlanManagement: React.FC = () => {
   }
 
   if (!isAdmin) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <BackButton to="/dashboard" label="Voltar ao Início" />
+          <BackButton to="/" label="Voltar ao Início" />
         </div>
 
         <div className="mb-8">
@@ -170,7 +170,7 @@ const AdminPlanManagement: React.FC = () => {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      <div className="text-2xl font-bold text-helpaqui-purple">
+                      <div className="text-2xl font-bold text-helpaqui-blue">
                         {plan.price_monthly === 0 ? 'Grátis' : formatPrice(plan.price_monthly)}
                         {plan.price_monthly > 0 && (
                           <span className="text-sm font-normal text-gray-500">/mês</span>

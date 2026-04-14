@@ -1,15 +1,15 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { SecureInput } from '@/components/security/SecureInput';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { signIn, signInWithGoogle } from '@/services/authService';
 import { validateEmail } from '@/utils/inputValidation';
 import { useRateLimit } from '@/hooks/useRateLimit';
+import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import GoogleIcon from './GoogleIcon';
 
 interface FreelancerLoginFormProps {
@@ -20,7 +20,10 @@ interface FreelancerLoginFormProps {
 }
 
 const FreelancerLoginForm: React.FC<FreelancerLoginFormProps> = ({
-  isLoading, setIsLoading, googleLoading, setGoogleLoading
+  isLoading,
+  setIsLoading,
+  googleLoading,
+  setGoogleLoading
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -31,7 +34,7 @@ const FreelancerLoginForm: React.FC<FreelancerLoginFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const emailValidation = validateEmail(email);
     if (!emailValidation.isValid) {
       toast({ title: "Erro de validação", description: emailValidation.errors[0], variant: "destructive" });
@@ -49,15 +52,14 @@ const FreelancerLoginForm: React.FC<FreelancerLoginFormProps> = ({
     setIsLoading(true);
     try {
       await signIn(email, password);
-      localStorage.setItem('userType', 'freelancer');
       toast({ title: "Login bem-sucedido", description: "Bem-vindo de volta ao HelpAqui!" });
-      navigate('/dashboard');
-    } catch {
+      navigate('/');
+    } catch (error) {
       setLoginAttempts(prev => prev + 1);
       toast({
         title: "Erro no login",
         description: loginAttempts >= 3
-          ? "Múltiplas tentativas falhadas. Sua conta pode ser temporariamente bloqueada."
+          ? "Múltiplas tentativas de login falhadas. Sua conta pode ser temporariamente bloqueada por segurança."
           : "Credenciais inválidas. Verifique seu email e senha.",
         variant: "destructive"
       });
@@ -82,51 +84,82 @@ const FreelancerLoginForm: React.FC<FreelancerLoginFormProps> = ({
   };
 
   return (
-    <Card className="border-border/50 shadow-xl shadow-primary/5 rounded-2xl">
-      <CardHeader>
-        <CardTitle className="text-xl">Entrar como Freelancer</CardTitle>
-        <CardDescription>Ofereça seus serviços e encontre oportunidades</CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Email</Label>
-            <SecureInput type="email" placeholder="seu@email.com" value={email} onChange={setEmail} showSecurityIndicator />
-          </div>
-          <div className="space-y-2">
-            <Label>Senha</Label>
-            <SecureInput type="password" placeholder="Digite sua senha" value={password} onChange={setPassword} autoSanitize={false} />
-            <div className="flex justify-end">
-              <Button variant="link" size="sm" className="text-xs p-0 text-primary" onClick={() => navigate('/reset-password')}>
-                Esqueci minha senha
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter className="flex-col space-y-4">
-          <Button type="submit" className="w-full h-11 rounded-xl gradient-primary text-white border-0 shadow-lg shadow-primary/25" disabled={isLoading}>
-            {isLoading ? "Entrando..." : "Entrar como Freelancer"}
-          </Button>
-          
-          <div className="relative w-full">
-            <div className="absolute inset-0 flex items-center"><Separator /></div>
-            <div className="relative flex justify-center">
-              <span className="bg-card px-2 text-xs text-muted-foreground">ou continue com</span>
-            </div>
-          </div>
-          
-          <Button type="button" variant="outline" className="w-full flex items-center gap-2 rounded-xl h-11" onClick={handleGoogleLogin} disabled={googleLoading}>
-            <GoogleIcon />
-            {googleLoading ? "Entrando..." : "Entrar com Google"}
-          </Button>
-          
-          <div className="text-sm text-center">
-            <span className="text-muted-foreground">Quer trabalhar conosco? </span>
-            <Button variant="link" className="p-0 text-primary" onClick={() => navigate('/register?type=freelancer')}>Cadastre-se</Button>
-          </div>
-        </CardFooter>
-      </form>
-    </Card>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-1.5">
+        <Label className="text-slate-700 text-sm font-medium">Email</Label>
+        <SecureInput
+          type="email"
+          placeholder="seu@email.com"
+          value={email}
+          onChange={setEmail}
+          showSecurityIndicator
+          className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-purple-500/30 focus-visible:border-purple-500 rounded-xl h-11 transition-all"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <Label className="text-slate-700 text-sm font-medium">Senha</Label>
+          <button
+            type="button"
+            className="text-xs font-medium hover:opacity-80 transition-opacity"
+            style={{ color: '#6c2ea0' }}
+            onClick={() => navigate('/reset-password')}
+          >
+            Esqueci minha senha
+          </button>
+        </div>
+        <SecureInput
+          type="password"
+          placeholder="Digite sua senha"
+          value={password}
+          onChange={setPassword}
+          autoSanitize={false}
+          className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-purple-500/30 focus-visible:border-purple-500 rounded-xl h-11 transition-all"
+        />
+      </div>
+
+      <motion.button
+        type="submit"
+        disabled={isLoading}
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+        className="w-full h-11 rounded-xl text-white font-bold text-sm shadow-lg transition-all mt-2 disabled:opacity-60"
+        style={{
+          background: 'linear-gradient(135deg, #6c2ea0, #2b439b)',
+          boxShadow: '0 4px 20px rgba(108,46,160,0.35)',
+        }}
+      >
+        {isLoading ? 'Entrando...' : 'Entrar'}
+      </motion.button>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <Separator />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-white px-2 text-xs text-slate-400">ou continue com</span>
+        </div>
+      </div>
+
+      <motion.button
+        type="button"
+        onClick={handleGoogleLogin}
+        disabled={googleLoading}
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+        className="w-full h-11 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium text-sm flex items-center justify-center gap-2 hover:bg-slate-50 transition-all disabled:opacity-60"
+      >
+        <GoogleIcon />
+        {googleLoading ? 'Entrando...' : 'Entrar com Google'}
+      </motion.button>
+
+      <p className="text-center text-slate-500 text-sm mt-2">
+        Quer trabalhar conosco?{' '}
+        <Link to="/register?type=freelancer" style={{ color: '#6c2ea0' }} className="font-semibold hover:opacity-80 transition-opacity">
+          Cadastre-se como freelancer
+        </Link>
+      </p>
+    </form>
   );
 };
 

@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import ServiceMap from '@/components/ServiceMap';
 import BannerCarousel from '@/components/banners/BannerCarousel';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,96 +11,95 @@ import WelcomeSection from './WelcomeSection';
 import QuickActions from './QuickActions';
 import OffersSection from './OffersSection';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number = 0) => ({
-    opacity: 1, y: 0,
-    transition: { duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }
-  })
-};
 
 interface SolicitanteHomeProps {
   selectedCategory: string | null;
   onSelectCategory: (category: string | null) => void;
 }
 
-const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ selectedCategory, onSelectCategory }) => {
+const SolicitanteHome: React.FC<SolicitanteHomeProps> = ({ 
+  selectedCategory, 
+  onSelectCategory 
+}) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('rating');
   const [filterRating, setFilterRating] = useState('all');
-
+  
+  // Hook para buscar banners promocionais
   const { banners, loading: bannersLoading, error: bannersError } = usePromotionalBanners('solicitante');
+
+  // Hook para buscar ofertas de freelancers
   const { offers: allProfessionals, loading: loadingOffers, reloadOffers } = useFreelancerOffers();
+
+  // Hook para filtrar e ordenar profissionais
   const { filteredProfessionals, selectedCategoryName } = useProfessionalFiltering({
-    professionals: allProfessionals, selectedCategory, searchTerm, filterRating, sortBy
+    professionals: allProfessionals,
+    selectedCategory,
+    searchTerm,
+    filterRating,
+    sortBy
   });
 
   const userName = user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'Usuário';
 
   return (
     <div className="space-y-6">
-      {/* Banner */}
-      <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0}>
+      {/* Banner promocional */}
+      <div className="mb-6">
         {bannersLoading && (
-          <div className="bg-muted animate-pulse rounded-2xl h-[300px] md:h-[400px] flex items-center justify-center">
-            <p className="text-muted-foreground">Carregando banners...</p>
+          <div className="bg-gray-200 animate-pulse rounded-xl h-[300px] md:h-[400px] flex items-center justify-center">
+            <p className="text-gray-500">Carregando banners...</p>
           </div>
         )}
+        
         {!bannersLoading && bannersError && (
-          <div className="bg-destructive/10 border border-destructive/30 rounded-2xl p-4">
-            <p className="text-destructive">Erro ao carregar banners: {bannersError}</p>
+          <div className="bg-red-100 border border-red-300 rounded-xl p-4">
+            <p className="text-red-700">Erro ao carregar banners: {bannersError}</p>
           </div>
         )}
+        
         {!bannersLoading && !bannersError && banners.length > 0 && (
-          <BannerCarousel banners={banners} className="rounded-2xl shadow-lg" />
+          <BannerCarousel banners={banners} className="rounded-xl shadow-lg" />
         )}
+        
         {!bannersLoading && !bannersError && banners.length === 0 && (
-          <div className="bg-muted border border-border/50 rounded-2xl p-4 text-center">
-            <p className="text-muted-foreground">Nenhum banner promocional disponível no momento.</p>
+          <div className="bg-gray-100 border border-gray-300 rounded-xl p-4 text-center">
+            <p className="text-gray-600">Nenhum banner promocional disponível no momento.</p>
           </div>
         )}
-      </motion.div>
+      </div>
 
-      <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1}>
-        <WelcomeSection
-          userName={userName}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          filterRating={filterRating}
-          onFilterRatingChange={setFilterRating}
-        />
-      </motion.div>
+      {/* Welcome Section */}
+      <WelcomeSection
+        userName={userName}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        filterRating={filterRating}
+        onFilterRatingChange={setFilterRating}
+      />
 
-      <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2}>
-        <QuickActions />
-      </motion.div>
+      <QuickActions />
 
-      <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}>
-        <ServiceMap selectedCategory={selectedCategory} />
-      </motion.div>
+      <ServiceMap selectedCategory={selectedCategory} />
 
-      <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4}>
-        <OffersSection
-          selectedCategoryName={selectedCategoryName}
-          professionals={filteredProfessionals.slice(0, 5)}
-          loading={loadingOffers}
-          onReload={reloadOffers}
-        />
-      </motion.div>
+      {/* Freelancers List */}
+      <OffersSection
+        selectedCategoryName={selectedCategoryName}
+        professionals={filteredProfessionals.slice(0, 5)}
+        loading={loadingOffers}
+        onReload={reloadOffers}
+      />
 
       {filteredProfessionals.length > 5 && (
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={5} className="text-center">
-          <Button onClick={() => navigate('/offers')} className="gradient-primary text-white border-0 rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl transition-all">
+        <div className="text-center">
+          <Button onClick={() => navigate('/offers')}>
             Ver todas as ofertas
-            <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
-        </motion.div>
+        </div>
       )}
     </div>
   );

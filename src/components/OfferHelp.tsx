@@ -41,7 +41,7 @@ const OfferHelp: React.FC = () => {
 
   return (
     <div className="helpaqui-card p-5">
-      <h2 className="text-xl font-semibold mb-4 text-secondary">Oferecer um Help</h2>
+      <h2 className="text-xl font-semibold mb-4 text-helpaqui-green">Oferecer um Help</h2>
       
       <form onSubmit={handleSubmit}>
         <div className="space-y-4">

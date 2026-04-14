@@ -19,8 +19,8 @@ const EmptyOffersState: React.FC = () => {
           Você ainda não criou nenhuma oferta de ajuda.
         </p>
         <Button 
-          onClick={() => navigate('/dashboard')}
-          className="bg-secondary hover:bg-secondary/90"
+          onClick={() => navigate('/')}
+          className="bg-helpaqui-green hover:bg-helpaqui-green/90"
         >
           Criar Primeira Oferta
         </Button>

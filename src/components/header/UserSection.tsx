@@ -47,7 +47,7 @@ const UserSection: React.FC<UserSectionProps> = ({
           <Button variant="ghost" className="text-gray-700 hover:text-gray-900 hover:bg-gray-100">Login</Button>
         </Link>
         <Link to="/register">
-          <Button className="bg-helpaqui-purple hover:bg-helpaqui-purple/90 text-white">Cadastrar</Button>
+          <Button className="bg-helpaqui-blue hover:bg-helpaqui-blue/90 text-white">Cadastrar</Button>
         </Link>
       </div>
     );
@@ -58,7 +58,7 @@ const UserSection: React.FC<UserSectionProps> = ({
         <Button variant="ghost" className="relative h-8 w-8 rounded-full hover:bg-gray-100">
           <Avatar className="h-8 w-8">
             <AvatarImage src="" alt={getDisplayName()} />
-            <AvatarFallback className="bg-helpaqui-purple text-white">{getUserInitials()}</AvatarFallback>
+            <AvatarFallback className="bg-helpaqui-blue text-white">{getUserInitials()}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

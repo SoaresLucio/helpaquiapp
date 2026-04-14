@@ -152,12 +152,12 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
             key={plan.id} 
             className={`relative transition-all duration-300 ${
               isCurrentPlan(plan.id) 
-                ? 'ring-2 ring-helpaqui-purple border-helpaqui-purple shadow-lg scale-105' 
+                ? 'ring-2 ring-helpaqui-blue border-helpaqui-blue shadow-lg scale-105' 
                 : 'hover:shadow-lg hover:scale-102'
             } ${getPlanGradient(plan.name)}`}
           >
             {isCurrentPlan(plan.id) && (
-              <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-helpaqui-purple">
+              <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-helpaqui-blue">
                 Plano Atual
               </Badge>
             )}
@@ -176,7 +176,7 @@ const SolicitanteSubscriptionPlans: React.FC = () => {
                 </CardTitle>
               </div>
               
-              <div className="text-3xl font-bold text-helpaqui-purple mb-2">
+              <div className="text-3xl font-bold text-helpaqui-blue mb-2">
                 {plan.price_monthly === 0 ? 'Grátis' : formatPrice(plan.price_monthly)}
                 {plan.price_monthly > 0 && (
                   <span className="text-sm font-normal text-gray-500">/mês</span>

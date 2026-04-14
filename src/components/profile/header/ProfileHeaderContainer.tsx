@@ -50,7 +50,7 @@ const ProfileHeaderContainer: React.FC<ProfileHeaderContainerProps> = ({
     } else if (user.coverPhoto) {
       return { backgroundImage: `url(${user.coverPhoto})`, backgroundSize: 'cover', backgroundPosition: 'center' };
     } else {
-      return { background: 'linear-gradient(to right, var(--helpaqui-purple), var(--secondary))' };
+      return { background: 'linear-gradient(to right, var(--helpaqui-blue), var(--helpaqui-green))' };
     }
   };
 
