@@ -45,8 +45,8 @@ export const validateUserType = (userType: string | null): ValidationResult => {
 export const sanitizeInput = (input: string): string => {
   if (typeof input !== 'string') return '';
   
+  // Don't trim during live typing — only strip dangerous characters
   return input
-    .trim()
     .replace(/[<>]/g, '')
     .slice(0, 1000);
 };
