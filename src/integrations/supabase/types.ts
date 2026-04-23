@@ -1497,6 +1497,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_locations: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          ip_address: unknown
+          latitude: number
+          longitude: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          ip_address?: unknown
+          latitude: number
+          longitude: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          ip_address?: unknown
+          latitude?: number
+          longitude?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_message_tracking: {
         Row: {
           created_at: string | null
@@ -1829,6 +1862,14 @@ export type Database = {
       }
     }
     Functions: {
+      admin_update_payment_status: {
+        Args: { p_new_status: string; p_payment_id: string }
+        Returns: boolean
+      }
+      admin_update_user_type: {
+        Args: { p_new_user_type: string; p_user_id: string }
+        Returns: boolean
+      }
       check_message_limit: {
         Args: { p_other_user_id: string; p_user_id: string }
         Returns: boolean
@@ -1849,6 +1890,26 @@ export type Database = {
       }
       encrypt_sensitive_data: { Args: { data: string }; Returns: string }
       generate_pix_code: { Args: never; Returns: string }
+      get_all_users_admin: {
+        Args: never
+        Returns: {
+          address: string
+          avatar_url: string
+          email: string
+          first_name: string
+          ip_address: unknown
+          last_name: string
+          last_sign_in_at: string
+          latitude: number
+          location_updated_at: string
+          longitude: number
+          phone: string
+          user_created_at: string
+          user_id: string
+          user_type: string
+          verified: boolean
+        }[]
+      }
       get_bank_details_decrypted: {
         Args: { p_user_id: string }
         Returns: {
@@ -1873,7 +1934,6 @@ export type Database = {
             }
             Returns: boolean
           }
-        | { Args: { role_name: string; user_id: number }; Returns: boolean }
       insert_bank_details: {
         Args: {
           p_account_number: string
@@ -1925,6 +1985,17 @@ export type Database = {
           p_user_id: string
         }
         Returns: undefined
+      }
+      update_user_subscription: {
+        Args: {
+          p_current_period_end: string
+          p_current_period_start: string
+          p_plan_id: string
+          p_status: string
+          p_stripe_subscription_id?: string
+          p_user_id: string
+        }
+        Returns: boolean
       }
       user_owns_job_listing: { Args: { listing_id: string }; Returns: boolean }
     }
