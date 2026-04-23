@@ -82,8 +82,9 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Activate free plan error:', error);
+    const message = error instanceof Error ? error.message : 'Failed to activate plan';
     return new Response(
-      JSON.stringify({ error: error.message || 'Failed to activate plan' }),
+      JSON.stringify({ error: message }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
