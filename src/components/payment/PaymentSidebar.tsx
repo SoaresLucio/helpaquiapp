@@ -33,21 +33,21 @@ const PaymentSidebar: React.FC<PaymentSidebarProps> = ({ activeTab, onTabChange,
             <TabsList className="flex flex-col h-auto w-full bg-transparent justify-start items-start p-0">
               <TabsTrigger
                 value="payment-methods"
-                className="w-full justify-start px-4 py-3 border-l-2 border-transparent data-[state=active]:border-helpaqui-blue rounded-none"
+                className="w-full justify-start px-4 py-3 border-l-2 border-transparent data-[state=active]:border-helpaqui-purple rounded-none"
               >
                 <CreditCard className="h-4 w-4 mr-2" />
                 Métodos de Pagamento
               </TabsTrigger>
               <TabsTrigger
                 value="bank-account"
-                className="w-full justify-start px-4 py-3 border-l-2 border-transparent data-[state=active]:border-helpaqui-blue rounded-none"
+                className="w-full justify-start px-4 py-3 border-l-2 border-transparent data-[state=active]:border-helpaqui-purple rounded-none"
               >
                 <Building className="h-4 w-4 mr-2" />
                 Dados Bancários
               </TabsTrigger>
               <TabsTrigger
                 value="transaction-history"
-                className="w-full justify-start px-4 py-3 border-l-2 border-transparent data-[state=active]:border-helpaqui-blue rounded-none"
+                className="w-full justify-start px-4 py-3 border-l-2 border-transparent data-[state=active]:border-helpaqui-purple rounded-none"
               >
                 <Wallet className="h-4 w-4 mr-2" />
                 Histórico de Transações
@@ -63,7 +63,7 @@ const PaymentSidebar: React.FC<PaymentSidebarProps> = ({ activeTab, onTabChange,
         </CardHeader>
         <CardContent className="pb-3">
           <div className="flex items-start gap-2">
-            <ShieldCheck className="h-5 w-5 text-helpaqui-green mt-0.5" />
+            <ShieldCheck className="h-5 w-5 text-secondary mt-0.5" />
             <p className="text-sm text-gray-600">
               Todas as transações são protegidas por criptografia e seguem os padrões de segurança PCI.
             </p>
@@ -75,7 +75,7 @@ const PaymentSidebar: React.FC<PaymentSidebarProps> = ({ activeTab, onTabChange,
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-helpaqui-green" />
+              <CheckCircle className="h-5 w-5 text-secondary" />
               Dados Confirmados
             </CardTitle>
           </CardHeader>

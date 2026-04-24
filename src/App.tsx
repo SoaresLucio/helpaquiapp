@@ -1,6 +1,7 @@
-import React, { lazy, Suspense } from "react";
+
+import { lazy, Suspense } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import LoadingScreen from "./components/index/LoadingScreen";
 
@@ -40,7 +41,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 const pageTransition = {
   initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] as const } },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } },
   exit: { opacity: 0, y: -8, transition: { duration: 0.2 } }
 };
 
@@ -52,6 +53,7 @@ const PageWrapper = ({ children }: { children: React.ReactNode }) => (
 
 function App() {
   const location = useLocation();
+
   return (
     <Suspense fallback={<LoadingScreen />}>
       <AnimatePresence mode="wait">

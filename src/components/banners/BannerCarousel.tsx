@@ -109,22 +109,20 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners, className = ''
       </Carousel>
 
       {/* Pagination dots */}
-      {banners.length > 1 && (
-        <div className="flex justify-center mt-4 space-x-2">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                index === currentIndex
-                  ? 'bg-primary scale-125 shadow-md'
-                  : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
-              }`}
-              onClick={() => handleDotClick(index)}
-              aria-label={`Ir para banner ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
+      <div className="flex justify-center mt-4 space-x-2">
+        {banners.map((_, index) => (
+          <button
+            key={index}
+            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+              index === currentIndex
+                ? 'bg-primary scale-125 shadow-md'
+                : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+            }`}
+            onClick={() => handleDotClick(index)}
+            aria-label={`Ir para banner ${index + 1}`}
+          />
+        ))}
+      </div>
     </div>
   );
 };

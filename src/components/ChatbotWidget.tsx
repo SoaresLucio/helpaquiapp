@@ -142,18 +142,18 @@ const ChatbotWidget = () => {
       <Drawer open={isOpen} onOpenChange={setIsOpen}>
         <DrawerTrigger asChild>
           <Button
-            className="fixed bottom-4 right-4 rounded-full w-12 h-12 shadow-lg bg-helpaqui-blue hover:bg-helpaqui-blue/90 z-50"
+            className="fixed bottom-4 right-4 rounded-full w-12 h-12 shadow-lg bg-helpaqui-purple hover:bg-helpaqui-purple/90 z-50"
             size="icon"
           >
             <Bot className="h-6 w-6" />
           </Button>
         </DrawerTrigger>
         <DrawerContent className="max-h-[85vh] h-[85vh] rounded-t-xl flex flex-col">
-          <div className="bg-helpaqui-blue text-white p-4 flex items-center justify-between rounded-t-xl">
+          <div className="bg-helpaqui-purple text-white p-4 flex items-center justify-between rounded-t-xl">
             <div className="flex items-center gap-2">
               <Avatar className="h-8 w-8 bg-white">
                 <AvatarImage src="/placeholder.svg" alt="Chatbot" />
-                <AvatarFallback className="bg-white text-helpaqui-blue">HQ</AvatarFallback>
+                <AvatarFallback className="bg-white text-helpaqui-purple">HQ</AvatarFallback>
               </Avatar>
               <div>
                 <h3 className="font-medium">HelpAqui Assistente</h3>
@@ -163,7 +163,7 @@ const ChatbotWidget = () => {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="text-white hover:bg-helpaqui-blue/90" 
+              className="text-white hover:bg-helpaqui-purple/90" 
               onClick={() => setIsOpen(false)}
             >
               <XCircle className="h-5 w-5" />
@@ -179,7 +179,7 @@ const ChatbotWidget = () => {
                 <div
                   className={`max-w-[80%] p-3 rounded-lg ${
                     message.sender === 'user'
-                      ? 'bg-helpaqui-blue text-white rounded-tr-none'
+                      ? 'bg-helpaqui-purple text-white rounded-tr-none'
                       : 'bg-white text-gray-800 rounded-tl-none shadow-sm'
                   }`}
                 >
@@ -218,7 +218,7 @@ const ChatbotWidget = () => {
               <Button 
                 onClick={handleSendMessage} 
                 disabled={!inputMessage.trim() || isTyping}
-                className="bg-helpaqui-blue hover:bg-helpaqui-blue/90"
+                className="bg-helpaqui-purple hover:bg-helpaqui-purple/90"
               >
                 {isTyping ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -229,7 +229,7 @@ const ChatbotWidget = () => {
             </div>
             <div className="mt-2">
               <p className="text-xs text-gray-500 text-center">
-                Sugestões: <span className="text-helpaqui-blue">Garantia</span> • <span className="text-helpaqui-blue">Pagamento</span> • <span className="text-helpaqui-blue">Perfil Verificado</span>
+                Sugestões: <span className="text-helpaqui-purple">Garantia</span> • <span className="text-helpaqui-purple">Pagamento</span> • <span className="text-helpaqui-purple">Perfil Verificado</span>
               </p>
             </div>
           </div>

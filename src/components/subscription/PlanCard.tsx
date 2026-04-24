@@ -49,12 +49,12 @@ const PlanCard: React.FC<PlanCardProps> = ({
     <Card 
       className={`relative transition-all duration-300 ${
         isCurrentPlan 
-          ? 'ring-2 ring-helpaqui-blue border-helpaqui-blue shadow-lg scale-105' 
+          ? 'ring-2 ring-helpaqui-purple border-helpaqui-purple shadow-lg scale-105' 
           : 'hover:shadow-lg hover:scale-102'
       } ${getPlanGradient(plan.name)}`}
     >
       {isCurrentPlan && (
-        <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-helpaqui-blue">
+        <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-helpaqui-purple">
           Plano Atual
         </Badge>
       )}
@@ -73,7 +73,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
           </CardTitle>
         </div>
         
-        <div className="text-3xl font-bold text-helpaqui-blue mb-2">
+        <div className="text-3xl font-bold text-helpaqui-purple mb-2">
           {plan.price_monthly === 0 ? 'Grátis' : formatPrice(plan.price_monthly)}
           {plan.price_monthly > 0 && (
             <span className="text-sm font-normal text-gray-500">/mês</span>

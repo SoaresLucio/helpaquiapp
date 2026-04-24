@@ -20,7 +20,7 @@ export const useUserLocation = () => {
       }
 
       try {
-        await (supabase as any)
+        await supabase
           .from('user_locations')
           .upsert({
             user_id: user.id,

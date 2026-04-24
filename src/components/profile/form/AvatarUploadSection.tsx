@@ -29,7 +29,7 @@ const AvatarUploadSection: React.FC<AvatarUploadSectionProps> = ({
         </div>
         <label 
           htmlFor="avatar-upload" 
-          className="absolute bottom-0 right-0 bg-helpaqui-blue p-2 rounded-full cursor-pointer hover:bg-helpaqui-blue/90"
+          className="absolute bottom-0 right-0 bg-helpaqui-purple p-2 rounded-full cursor-pointer hover:bg-helpaqui-purple/90"
         >
           <Camera className="h-4 w-4 text-white" />
           <input 

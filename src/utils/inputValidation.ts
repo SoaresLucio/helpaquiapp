@@ -43,7 +43,6 @@ export const validatePhone = (phone: string): ValidationResult => {
     return { isValid: false, errors };
   }
 
-  // Remove todos os caracteres não numéricos
   const cleanPhone = phone.replace(/\D/g, '');
   
   if (cleanPhone.length < 10 || cleanPhone.length > 11) {
@@ -51,7 +50,6 @@ export const validatePhone = (phone: string): ValidationResult => {
     return { isValid: false, errors };
   }
 
-  // Validação básica de telefone brasileiro
   if (cleanPhone.length === 11 && !['8', '9'].includes(cleanPhone[2])) {
     errors.push('Número de celular inválido');
     return { isValid: false, errors };
@@ -75,13 +73,11 @@ export const validateCPF = (cpf: string): ValidationResult => {
     return { isValid: false, errors };
   }
 
-  // Verifica se não são todos os dígitos iguais
   if (/^(\d)\1{10}$/.test(cleanCPF)) {
     errors.push('CPF inválido');
     return { isValid: false, errors };
   }
 
-  // Validação dos dígitos verificadores
   let sum = 0;
   for (let i = 0; i < 9; i++) {
     sum += parseInt(cleanCPF[i]) * (10 - i);
@@ -132,10 +128,6 @@ export const validatePassword = (password: string): ValidationResult => {
     errors.push('Senha deve conter pelo menos um número');
   }
 
-  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-    errors.push('Senha deve conter pelo menos um caractere especial');
-  }
-
   return { 
     isValid: errors.length === 0, 
     errors, 
@@ -147,9 +139,7 @@ export const sanitizeText = (text: string, maxLength: number = 1000): string => 
   if (typeof text !== 'string') return '';
   
   return text
-    .trim()
-    .replace(/[<>]/g, '') // Remove potential XSS characters
-    .replace(/['"]/g, '') // Remove quotes
+    .replace(/[<>]/g, '')
     .slice(0, maxLength);
 };
 

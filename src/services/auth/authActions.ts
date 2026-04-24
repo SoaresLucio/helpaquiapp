@@ -30,16 +30,6 @@ export const signIn = async (email: string, password: string) => {
     if (error) {
       console.error("Authentication error:", error);
       
-      // Log failed login attempt
-      await supabase.rpc('log_security_event', {
-        p_user_id: null,
-        p_action: 'login_failed',
-        p_resource_type: 'auth',
-        p_success: false,
-        p_error_message: error.message,
-        p_metadata: { email: cleanEmail }
-      });
-      
       // More specific error handling
       switch (error.message) {
         case 'Invalid login credentials':
@@ -51,16 +41,6 @@ export const signIn = async (email: string, password: string) => {
         default:
           throw new Error("Erro no login. Tente novamente mais tarde.");
       }
-    }
-    
-    // Log successful login
-    if (data.user) {
-      await supabase.rpc('log_security_event', {
-        p_user_id: data.user.id,
-        p_action: 'login_success',
-        p_resource_type: 'auth',
-        p_success: true
-      });
     }
     
     console.log("Login successful:", data.user?.email, "ID:", data.user?.id);
@@ -116,16 +96,6 @@ export const signUp = async (
     if (error) {
       console.error("Registration error:", error);
       
-      // Log failed signup attempt
-      await supabase.rpc('log_security_event', {
-        p_user_id: null,
-        p_action: 'signup_failed',
-        p_resource_type: 'auth',
-        p_success: false,
-        p_error_message: error.message,
-        p_metadata: { email: cleanEmail, user_type: userType }
-      });
-      
       switch (error.message) {
         case 'User already registered':
           throw new Error("Este email já está cadastrado. Faça login ou use outro email.");
@@ -136,17 +106,6 @@ export const signUp = async (
         default:
           throw new Error("Erro ao criar conta. Tente novamente mais tarde.");
       }
-    }
-    
-    // Log successful signup
-    if (data.user) {
-      await supabase.rpc('log_security_event', {
-        p_user_id: data.user.id,
-        p_action: 'signup_success',
-        p_resource_type: 'auth',
-        p_success: true,
-        p_metadata: { user_type: userType }
-      });
     }
     
     console.log("Registration successful:", data.user?.email);

@@ -2,7 +2,6 @@
 import React from 'react';
 import MainContent from '@/components/index/MainContent';
 import IndexSidebar from '@/components/index/IndexSidebar';
-import HomePageSections from '@/components/home/HomePageSections';
 import { RealUser } from '@/types/user';
 
 interface IndexMainContentProps {
@@ -25,29 +24,23 @@ const IndexMainContent: React.FC<IndexMainContentProps> = ({
   currentUser
 }) => {
   return (
-    <div className="flex-1 flex flex-col">
-      {/* ── Marketing sections (Workana-style) ── */}
-      <HomePageSections />
-
-      {/* ── Authenticated user action area ── */}
-      <main className="helpaqui-container py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          <MainContent
-            userType={userType}
-            selectedCategory={selectedCategory}
-            onSelectCategory={onSelectCategory}
-          />
-
-          <IndexSidebar
-            userType={userType}
-            activeTab={activeTab}
-            onTabChange={onTabChange}
-            onChatRedirect={onChatRedirect}
-            currentUser={currentUser}
-          />
-        </div>
-      </main>
-    </div>
+    <main className="flex-1 helpaqui-container py-4">
+      <div className="flex flex-col lg:flex-row gap-6">
+        <MainContent 
+          userType={userType}
+          selectedCategory={selectedCategory}
+          onSelectCategory={onSelectCategory}
+        />
+        
+        <IndexSidebar 
+          userType={userType}
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+          onChatRedirect={onChatRedirect}
+          currentUser={currentUser}
+        />
+      </div>
+    </main>
   );
 };
 

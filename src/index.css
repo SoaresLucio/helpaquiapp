@@ -1,80 +1,70 @@
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
+  --foreground: 230 15% 10%;
   --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
+  --card-foreground: 230 15% 10%;
   --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
-  --primary: 273 55% 40%;
+  --popover-foreground: 230 15% 10%;
+  --primary: 272 55% 40%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-  --accent: 227 57% 39%;
-  --accent-foreground: 0 0% 100%;
+  --secondary: 225 56% 39%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 230 20% 96%;
+  --muted-foreground: 230 10% 45%;
+  --accent: 272 55% 94%;
+  --accent-foreground: 272 55% 30%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
-  --ring: 273 55% 40%;
-  --chart-1: 12 76% 61%;
-  --chart-2: 173 58% 39%;
+  --border: 230 15% 90%;
+  --input: 230 15% 90%;
+  --ring: 272 55% 40%;
+  --chart-1: 272 55% 50%;
+  --chart-2: 225 56% 49%;
   --chart-3: 197 37% 24%;
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
-  --radius: 0.5rem;
-  
-  /* HelpAqui brand colors in HSL */
-  --helpaqui-blue: 227 57% 39%;
-  --helpaqui-green: 273 55% 40%;
-  --helpaqui-light-blue: 227 52% 65%;
-  --helpaqui-light-green: 273 47% 65%;
-  --helpaqui-gray: 220 13% 96%;
-  --helpaqui-dark-gray: 220 9% 35%;
+  --radius: 0.75rem;
+
+  /* Brand colors */
+  --helpaqui-purple: 272 55% 40%;
+  --helpaqui-blue: 225 56% 39%;
+  --helpaqui-light-purple: 272 55% 94%;
+  --helpaqui-light-blue: 225 56% 94%;
+  --helpaqui-gray: 230 20% 96%;
+  --helpaqui-dark-gray: 230 10% 25%;
 }
 
 .dark {
-  --background: 240 10% 3.9%;
+  --background: 230 15% 6%;
   --foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
+  --card: 230 15% 9%;
   --card-foreground: 0 0% 98%;
-  --popover: 240 10% 3.9%;
+  --popover: 230 15% 9%;
   --popover-foreground: 0 0% 98%;
-  --primary: 273 47% 52%;
+  --primary: 272 55% 55%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --accent: 227 52% 50%;
-  --accent-foreground: 0 0% 100%;
+  --secondary: 225 56% 50%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 230 10% 15%;
+  --muted-foreground: 230 10% 60%;
+  --accent: 272 40% 18%;
+  --accent-foreground: 272 55% 80%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 273 47% 52%;
-  --chart-1: 220 70% 50%;
-  --chart-2: 160 60% 45%;
+  --border: 230 10% 18%;
+  --input: 230 10% 18%;
+  --ring: 272 55% 55%;
+  --chart-1: 272 55% 55%;
+  --chart-2: 225 56% 55%;
   --chart-3: 30 80% 55%;
   --chart-4: 280 65% 60%;
   --chart-5: 340 75% 55%;
-}
-
-* {
-  border-color: hsl(var(--border));
-}
-
-body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: "Inter", sans-serif;
 }
 
 @layer base {
@@ -83,99 +73,37 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    font-family: "Inter", sans-serif;
   }
 }
 
-/* Custom styles for HelpAqui */
-.helpaqui-container {
-  @apply max-w-7xl mx-auto px-4;
+/* Gradient utilities */
+.gradient-primary {
+  background: linear-gradient(135deg, hsl(272 55% 40%), hsl(225 56% 39%));
 }
 
-.border-helpaqui-blue {
-  border-color: #2b439b;
+.gradient-primary-hover {
+  background: linear-gradient(135deg, hsl(272 55% 35%), hsl(225 56% 34%));
 }
 
-.border-helpaqui-green {
-  border-color: #6c2ea0;
-}
-
-.text-helpaqui-blue {
-  color: #2b439b;
-}
-
-.text-helpaqui-green {
-  color: #6c2ea0;
-}
-
-.bg-helpaqui-blue {
-  background-color: #2b439b;
-}
-
-.bg-helpaqui-green {
-  background-color: #6c2ea0;
-}
-
-/* Fixed dialog styling - prevent transparency issues */
-[data-radix-popper-content-wrapper] {
-  z-index: 50 !important;
-}
-
-.fixed {
-  z-index: 50;
-}
-
-/* Dialog overlay */
-[data-state="open"][data-side] {
-  background-color: rgba(0, 0, 0, 0.8) !important;
-  z-index: 50 !important;
-}
-
-/* Dialog content */
-[role="dialog"] {
-  background-color: white !important;
-  opacity: 1 !important;
-  z-index: 100 !important;
-  border: 1px solid #e5e7eb !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+.text-gradient-primary {
+  background: linear-gradient(135deg, hsl(272 55% 40%), hsl(225 56% 39%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* Custom popup styles for map */
 .custom-popup .mapboxgl-popup-content {
-  background: white !important;
-  border-radius: 8px !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+  background: hsl(var(--card)) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important;
   padding: 0 !important;
   max-width: 280px !important;
 }
 
 .custom-popup .mapboxgl-popup-tip {
-  border-top-color: white !important;
-}
-
-/* Loading spinner improvements */
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-/* Ensure good contrast for all text */
-.text-gray-600 {
-  color: #6b7280 !important;
-}
-
-.text-gray-700 {
-  color: #374151 !important;
-}
-
-.text-gray-800 {
-  color: #1f2937 !important;
-}
-
-.text-gray-900 {
-  color: #111827 !important;
+  border-top-color: hsl(var(--card)) !important;
 }
 
 /* Fix for mobile responsiveness */
@@ -188,11 +116,25 @@ body {
   }
 }
 
-/* Help button styles */
-.helpaqui-button-primary {
-  @apply bg-helpaqui-blue hover:brightness-110 text-white;
+/* Smooth page transitions */
+.page-transition {
+  animation: fadeIn 0.2s ease-in-out;
 }
 
-.helpaqui-card {
-  @apply bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Glass morphism */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(20, 20, 30, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }

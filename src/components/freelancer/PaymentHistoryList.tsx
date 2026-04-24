@@ -73,7 +73,7 @@ const PaymentHistoryList: React.FC<PaymentHistoryListProps> = ({
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-lg text-helpaqui-green">
+                  <p className="font-bold text-lg text-secondary">
                     {formatCurrency(payment.amount)}
                   </p>
                 </div>

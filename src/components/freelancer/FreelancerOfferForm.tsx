@@ -236,7 +236,7 @@ const FreelancerOfferForm: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleAddPhoto}
-                  className="w-20 h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-md hover:border-helpaqui-blue"
+                  className="w-20 h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-md hover:border-helpaqui-purple"
                 >
                   <Plus className="h-6 w-6 text-gray-400" />
                 </button>
@@ -247,7 +247,7 @@ const FreelancerOfferForm: React.FC = () => {
             </p>
           </div>
 
-          <Button type="submit" className="w-full bg-helpaqui-green hover:bg-helpaqui-green/90">
+          <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90">
             Publicar Oferta de Serviço
           </Button>
         </form>

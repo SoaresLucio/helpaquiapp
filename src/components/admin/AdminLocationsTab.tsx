@@ -30,9 +30,9 @@ const AdminLocationsTab: React.FC = () => {
   const fetchLocations = async () => {
     setLoading(true);
     try {
-      const { data, error } = await (supabase as any).rpc('get_all_users_admin');
+      const { data, error } = await supabase.rpc('get_all_users_admin');
       if (error) throw error;
-      setLocations((data as unknown as UserLocationData[]) || []);
+      setLocations((data as UserLocationData[]) || []);
     } catch (error) {
       console.error('Error fetching locations:', error);
       toast.error('Erro ao carregar localizações');
