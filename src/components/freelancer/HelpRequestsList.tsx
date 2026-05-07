@@ -362,10 +362,10 @@ const HelpRequestsList: React.FC<HelpRequestsListProps> = ({
 
                     {/* Request Details */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      {request.location_address && (
+                      {request.approx_address && (
                         <div className="flex items-center text-sm text-muted-foreground">
                           <MapPin className="h-4 w-4 mr-2" />
-                          {request.location_address}
+                          {request.approx_address} <span className="text-xs ml-1">(aprox.)</span>
                         </div>
                       )}
                       
