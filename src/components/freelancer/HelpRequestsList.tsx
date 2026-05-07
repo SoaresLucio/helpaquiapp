@@ -16,11 +16,12 @@ interface ServiceRequestWithClient {
   title: string;
   description: string | null;
   category: string;
-  location_address: string | null;
+  approx_address: string | null;
   budget_min: number | null;
   budget_max: number | null;
   urgency: string | null;
   created_at: string;
+  client_id: string;
   client: {
     id: string;
     first_name: string | null;
@@ -85,7 +86,8 @@ const HelpRequestsList: React.FC<HelpRequestsListProps> = ({
         query = query.eq('category', selectedCategory);
       }
 
-      const { data: requestsData, error } = await query;
+      const { data: requestsRawData, error } = await query;
+      const requestsData = (requestsRawData ?? []) as unknown as Array<Omit<ServiceRequestWithClient, 'client'>>;
 
       if (error) {
         console.error('Error fetching service requests:', error);
@@ -98,14 +100,14 @@ const HelpRequestsList: React.FC<HelpRequestsListProps> = ({
       }
 
       // Fetch client profiles separately
-      const clientIds = requestsData?.map(req => req.client_id) || [];
+      const clientIds = requestsData.map(req => req.client_id);
       const { data: profilesData } = await supabase
         .from('public_profiles')
         .select('id, first_name, last_name, avatar_url')
         .in('id', clientIds);
 
       // Transform data to match interface
-      const transformedData: ServiceRequestWithClient[] = (requestsData || []).map(request => {
+      const transformedData: ServiceRequestWithClient[] = requestsData.map(request => {
         const clientProfile = profilesData?.find(profile => profile.id === request.client_id);
         return {
           ...request,
