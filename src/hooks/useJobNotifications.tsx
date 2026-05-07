@@ -31,9 +31,8 @@ export const useJobNotifications = () => {
     // Poll open service_requests from Supabase in real-time
     const fetchOpenRequests = async () => {
       const { data: requests, error } = await supabase
-        .from('service_requests')
-        .select('id, title, description, category, location_address, budget_min, budget_max, urgency, created_at, client_id')
-        .eq('status', 'open')
+        .from('service_requests_public' as any)
+        .select('id, title, description, category, approx_address, budget_min, budget_max, urgency, created_at, client_id')
         .order('created_at', { ascending: false })
         .limit(5);
 
