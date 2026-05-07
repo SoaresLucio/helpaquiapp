@@ -6,7 +6,7 @@ import { MessageCircle, Map } from 'lucide-react';
 import Header from '@/components/Header';
 import BackButton from '@/components/ui/back-button';
 import HelpRequestsList from '@/components/freelancer/HelpRequestsList';
-import HelpRequestsMap from '@/components/freelancer/HelpRequestsMap';
+import HelpsMap from '@/components/maps/HelpsMap';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -40,7 +40,7 @@ const HelpRequests: React.FC = () => {
               <HelpRequestsList onStartConversation={(id) => navigate('/chat')} onViewProfile={(id) => navigate(`/freelancer/${id}`)} onAcceptRequest={() => {}} />
             </TabsContent>
             <TabsContent value="map">
-              <HelpRequestsMap onRequestSelect={setSelectedRequestId} />
+              <HelpsMap onRequestSelect={(id) => { setSelectedRequestId(id); navigate(`/chat`); }} />
             </TabsContent>
           </Tabs>
         </motion.div>
