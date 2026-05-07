@@ -49,7 +49,7 @@ const FreelancerHome: React.FC = () => {
         const completed = (payments || []).filter(p => p.status === 'completed');
         const totalEarnings = completed.reduce((sum, p) => sum + (p.amount || 0), 0);
         const { data: ratings } = await supabase.from('freelancer_ratings').select('avg_rating, rating_count').eq('freelancer_id', user.id).maybeSingle();
-        const { count: pendingCount } = await supabase.from('service_requests').select('id', { count: 'exact', head: true }).eq('status', 'open');
+        const { count: pendingCount } = await supabase.from('service_requests_public' as any).select('id', { count: 'exact', head: true });
         setStats({
           completedJobs: completed.length,
           averageRating: ratings?.avg_rating ? Number(ratings.avg_rating) : 0,

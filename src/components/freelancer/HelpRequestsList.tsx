@@ -16,11 +16,12 @@ interface ServiceRequestWithClient {
   title: string;
   description: string | null;
   category: string;
-  location_address: string | null;
+  approx_address: string | null;
   budget_min: number | null;
   budget_max: number | null;
   urgency: string | null;
   created_at: string;
+  client_id: string;
   client: {
     id: string;
     first_name: string | null;
@@ -77,16 +78,16 @@ const HelpRequestsList: React.FC<HelpRequestsListProps> = ({
       setLoading(true);
       
       let query = supabase
-        .from('service_requests')
-        .select('*')
-        .eq('status', 'open')
+        .from('service_requests_public' as any)
+        .select('id, title, description, category, approx_address, budget_min, budget_max, urgency, created_at, client_id')
         .order('created_at', { ascending: false });
 
       if (selectedCategory && selectedCategory !== 'all') {
         query = query.eq('category', selectedCategory);
       }
 
-      const { data: requestsData, error } = await query;
+      const { data: requestsRawData, error } = await query;
+      const requestsData = (requestsRawData ?? []) as unknown as Array<Omit<ServiceRequestWithClient, 'client'>>;
 
       if (error) {
         console.error('Error fetching service requests:', error);
@@ -99,14 +100,14 @@ const HelpRequestsList: React.FC<HelpRequestsListProps> = ({
       }
 
       // Fetch client profiles separately
-      const clientIds = requestsData?.map(req => req.client_id) || [];
+      const clientIds = requestsData.map(req => req.client_id);
       const { data: profilesData } = await supabase
         .from('public_profiles')
         .select('id, first_name, last_name, avatar_url')
         .in('id', clientIds);
 
       // Transform data to match interface
-      const transformedData: ServiceRequestWithClient[] = (requestsData || []).map(request => {
+      const transformedData: ServiceRequestWithClient[] = requestsData.map(request => {
         const clientProfile = profilesData?.find(profile => profile.id === request.client_id);
         return {
           ...request,
@@ -361,10 +362,10 @@ const HelpRequestsList: React.FC<HelpRequestsListProps> = ({
 
                     {/* Request Details */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      {request.location_address && (
+                      {request.approx_address && (
                         <div className="flex items-center text-sm text-muted-foreground">
                           <MapPin className="h-4 w-4 mr-2" />
-                          {request.location_address}
+                          {request.approx_address} <span className="text-xs ml-1">(aprox.)</span>
                         </div>
                       )}
                       

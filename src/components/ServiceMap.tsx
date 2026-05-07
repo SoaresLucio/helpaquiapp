@@ -76,21 +76,25 @@ const ServiceMap: React.FC<ServiceMapProps> = ({ selectedCategory }) => {
           setMapMarkers(markers);
         } else {
           // Freelancer sees service requests
-          const { data, error } = await supabase
-            .from('service_requests')
-            .select('id, title, description, category, location_lat, location_lng, location_address, budget_min, budget_max, urgency')
-            .eq('status', 'open')
+          const { data: rawData, error } = await supabase
+            .from('service_requests_public' as any)
+            .select('id, title, description, category, approx_lat, approx_lng, approx_address, budget_min, budget_max, urgency')
             .limit(50);
 
           if (error) throw error;
+          const data = (rawData ?? []) as unknown as Array<{
+            id: string; title: string; description: string | null; category: string;
+            approx_lat: number | null; approx_lng: number | null; approx_address: string | null;
+            budget_min: number | null; budget_max: number | null; urgency: string | null;
+          }>;
 
-          const markers: MapMarkerData[] = (data || []).map(req => ({
+          const markers: MapMarkerData[] = data.map(req => ({
             id: req.id,
             title: req.title,
             description: req.description || '',
             category: req.category,
-            lat: req.location_lat ? Number(req.location_lat) : userLocation.lat + (Math.random() - 0.5) * 0.05,
-            lng: req.location_lng ? Number(req.location_lng) : userLocation.lng + (Math.random() - 0.5) * 0.05,
+            lat: req.approx_lat ?? userLocation.lat + (Math.random() - 0.5) * 0.05,
+            lng: req.approx_lng ?? userLocation.lng + (Math.random() - 0.5) * 0.05,
             extra: req.budget_min && req.budget_max
               ? `💰 R$${req.budget_min} - R$${req.budget_max}`
               : req.urgency === 'urgent' ? '🔴 Urgente' : '🟢 Normal'

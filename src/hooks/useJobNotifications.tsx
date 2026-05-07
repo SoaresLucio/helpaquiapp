@@ -30,14 +30,26 @@ export const useJobNotifications = () => {
 
     // Poll open service_requests from Supabase in real-time
     const fetchOpenRequests = async () => {
-      const { data: requests, error } = await supabase
-        .from('service_requests')
-        .select('id, title, description, category, location_address, budget_min, budget_max, urgency, created_at, client_id')
-        .eq('status', 'open')
+      type PublicReq = {
+        id: string;
+        title: string;
+        description: string | null;
+        category: string;
+        approx_address: string | null;
+        budget_min: number | null;
+        budget_max: number | null;
+        urgency: string | null;
+        created_at: string;
+        client_id: string;
+      };
+      const { data: requestsRaw, error } = await supabase
+        .from('service_requests_public' as any)
+        .select('id, title, description, category, approx_address, budget_min, budget_max, urgency, created_at, client_id')
         .order('created_at', { ascending: false })
         .limit(5);
+      const requests = (requestsRaw ?? []) as unknown as PublicReq[];
 
-      if (error || !requests?.length) return;
+      if (error || requests.length === 0) return;
 
       // Fetch client names
       const clientIds = requests.map(r => r.client_id);
@@ -69,7 +81,7 @@ export const useJobNotifications = () => {
           title: r.title,
           description: r.description || '',
           category: r.category,
-          location: r.location_address || 'Não informado',
+          location: r.approx_address || 'Não informado',
           budget,
           date: new Date(r.created_at).toLocaleDateString('pt-BR'),
           clientName,

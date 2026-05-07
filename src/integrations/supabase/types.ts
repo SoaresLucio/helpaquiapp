@@ -327,6 +327,13 @@ export type Database = {
             referencedRelation: "service_requests"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "conversations_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       empresa_profiles: {
@@ -436,6 +443,13 @@ export type Database = {
             columns: ["service_request_id"]
             isOneToOne: false
             referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelancer_offers_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1257,6 +1271,13 @@ export type Database = {
             referencedRelation: "service_requests"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "service_applications_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       service_proposals: {
@@ -1299,6 +1320,13 @@ export type Database = {
             columns: ["service_request_id"]
             isOneToOne: false
             referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_proposals_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1827,6 +1855,57 @@ export type Database = {
         }
         Relationships: []
       }
+      service_requests_public: {
+        Row: {
+          approx_address: string | null
+          approx_lat: number | null
+          approx_lng: number | null
+          budget_max: number | null
+          budget_min: number | null
+          category: string | null
+          client_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+          urgency: string | null
+        }
+        Insert: {
+          approx_address?: never
+          approx_lat?: never
+          approx_lng?: never
+          budget_max?: number | null
+          budget_min?: number | null
+          category?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          urgency?: string | null
+        }
+        Update: {
+          approx_address?: never
+          approx_lat?: never
+          approx_lng?: never
+          budget_max?: number | null
+          budget_min?: number | null
+          category?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          urgency?: string | null
+        }
+        Relationships: []
+      }
       verificacoes: {
         Row: {
           created_at: string | null
@@ -1925,6 +2004,15 @@ export type Database = {
         }[]
       }
       get_current_user_role: { Args: never; Returns: string }
+      get_service_request_precise_location: {
+        Args: { p_request_id: string }
+        Returns: {
+          id: string
+          location_address: string
+          location_lat: number
+          location_lng: number
+        }[]
+      }
       has_role:
         | { Args: { _role: string; _user_id: string }; Returns: boolean }
         | {
