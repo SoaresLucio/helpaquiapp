@@ -77,9 +77,8 @@ const HelpRequestsList: React.FC<HelpRequestsListProps> = ({
       setLoading(true);
       
       let query = supabase
-        .from('service_requests')
-        .select('*')
-        .eq('status', 'open')
+        .from('service_requests_public' as any)
+        .select('id, title, description, category, approx_address, budget_min, budget_max, urgency, created_at, client_id')
         .order('created_at', { ascending: false });
 
       if (selectedCategory && selectedCategory !== 'all') {
