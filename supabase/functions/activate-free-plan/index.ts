@@ -82,8 +82,17 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Activate free plan error:', error);
+    // Only return safe, validation-style messages to client; mask internal errors
+    const safeMessages = new Set([
+      'Authorization required',
+      'Invalid authentication',
+      'planId is required',
+      'Plan not found',
+      'This endpoint is only for free plans. Use payment flow for paid plans.',
+    ]);
+    const msg = error instanceof Error ? error.message : '';
     return new Response(
-      JSON.stringify({ error: error.message || 'Failed to activate plan' }),
+      JSON.stringify({ error: safeMessages.has(msg) ? msg : 'Failed to activate plan' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
