@@ -73,7 +73,6 @@ const UserTypeSelection = () => {
         // No session — return to login
         navigate('/login', { replace: true });
         return;
-        }
       }
       setChecking(false);
     };
