@@ -14,18 +14,18 @@ export const useAuthSession = () => {
     if (initRef.current) return;
     initRef.current = true;
 
+    // SECURITY: userType is derived ONLY from server-side user_metadata.
+    // Never trust localStorage for authorization — it is user-controllable.
     const resolveUserType = (session: Session | null): 'solicitante' | 'freelancer' | 'empresa' | null => {
       if (!session?.user) return null;
       const meta = session.user.user_metadata?.user_type;
       if (meta && ['solicitante', 'freelancer', 'empresa'].includes(meta)) return meta;
-      const stored = localStorage.getItem('userType');
-      if (stored && ['solicitante', 'freelancer', 'empresa'].includes(stored)) return stored as any;
-      return 'solicitante';
+      return null;
     };
 
     const handleSession = (session: Session | null) => {
       const ut = resolveUserType(session);
-      if (ut) localStorage.setItem('userType', ut);
+      if (ut) localStorage.setItem('userType', ut); // UI hint only
       else localStorage.removeItem('userType');
       setSession(session);
       setUser(session?.user ?? null);
