@@ -66,9 +66,13 @@ const UserTypeSelection = () => {
         const existingType = user.user_metadata?.user_type;
         if (existingType && ['solicitante', 'freelancer', 'empresa'].includes(existingType)) {
           localStorage.setItem('userType', existingType);
-          navigate('/', { replace: true });
+          navigate('/dashboard', { replace: true });
           return;
         }
+      } else {
+        // No session — return to login
+        navigate('/login', { replace: true });
+        return;
       }
       setChecking(false);
     };
@@ -94,7 +98,7 @@ const UserTypeSelection = () => {
       localStorage.setItem('userType', userType);
       const labels: Record<UserType, string> = { solicitante: 'Solicitante', freelancer: 'Freelancer', empresa: 'Empresa' };
       toast.success(`Tipo de usuário definido como ${labels[userType]}.`);
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (error: any) {
       toast.error(error.message || "Erro ao definir tipo de usuário");
     } finally {
