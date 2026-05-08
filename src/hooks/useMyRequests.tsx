@@ -15,7 +15,7 @@ export const useMyRequests = () => {
     
     setLoading(true);
     try {
-      console.log('🔄 Carregando pedidos do usuário:', user.id);
+      // console.log('🔄 Carregando pedidos do usuário:', user.id);
       
       const { data, error } = await supabase
         .from('service_requests')
@@ -28,7 +28,7 @@ export const useMyRequests = () => {
         throw error;
       }
 
-      console.log('✅ Pedidos carregados:', data);
+      // console.log('✅ Pedidos carregados:', data);
       setRequests(data || []);
       
     } catch (error) {
@@ -45,7 +45,7 @@ export const useMyRequests = () => {
 
   const deleteRequest = async (requestId: string) => {
     try {
-      console.log('🗑️ Excluindo pedido:', requestId);
+      // console.log('🗑️ Excluindo pedido:', requestId);
       
       const { error } = await supabase
         .from('service_requests')
@@ -83,7 +83,7 @@ export const useMyRequests = () => {
   useEffect(() => {
     if (!user) return;
 
-    console.log('🔴 Configurando listeners de realtime para pedidos...');
+    // console.log('🔴 Configurando listeners de realtime para pedidos...');
     
     const channel = supabase
       .channel('my-requests-realtime')
@@ -96,16 +96,16 @@ export const useMyRequests = () => {
           filter: `client_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('🔄 Mudança em realtime detectada:', payload);
+          // console.log('🔄 Mudança em realtime detectada:', payload);
           loadRequests();
         }
       )
       .subscribe((status) => {
-        console.log('📡 Status da conexão realtime:', status);
+        // console.log('📡 Status da conexão realtime:', status);
       });
 
     return () => {
-      console.log('🔌 Removendo channel realtime...');
+      // console.log('🔌 Removendo channel realtime...');
       supabase.removeChannel(channel);
     };
   }, [user]);

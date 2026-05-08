@@ -11,19 +11,19 @@ const OffersPage = () => {
     const { user } = useAuth();
 
     useEffect(() => {
-        console.log('📄 OffersPage montada');
-        console.log('👤 Usuário atual:', user?.id);
-        console.log('🔢 Total de ofertas:', offers.length);
+        // console.log('📄 OffersPage montada');
+        // console.log('👤 Usuário atual:', user?.id);
+        // console.log('🔢 Total de ofertas:', offers.length);
     }, [user, offers]);
 
     // Debug: Mostra informações no console a cada mudança
     useEffect(() => {
         if (!loading && offers.length === 0) {
-            console.log('⚠️ Nenhuma oferta encontrada. Possíveis causas:');
-            console.log('1. Não há ofertas ativas no banco');
-            console.log('2. Problemas com RLS (Row Level Security)');
-            console.log('3. Erro na query ou conversão de dados');
-            console.log('4. Problema de autenticação do usuário');
+            // console.log('⚠️ Nenhuma oferta encontrada. Possíveis causas:');
+            // console.log('1. Não há ofertas ativas no banco');
+            // console.log('2. Problemas com RLS (Row Level Security)');
+            // console.log('3. Erro na query ou conversão de dados');
+            // console.log('4. Problema de autenticação do usuário');
         }
     }, [loading, offers]);
 

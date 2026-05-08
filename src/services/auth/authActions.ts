@@ -43,7 +43,7 @@ export const signIn = async (email: string, password: string) => {
       }
     }
     
-    console.log("Login successful:", data.user?.email, "ID:", data.user?.id);
+    // console.log("Login successful:", data.user?.email, "ID:", data.user?.id);
     return data;
     
   } catch (error: any) {
@@ -108,7 +108,7 @@ export const signUp = async (
       }
     }
     
-    console.log("Registration successful:", data.user?.email);
+    // console.log("Registration successful:", data.user?.email);
     return data;
     
   } catch (error: any) {
@@ -127,7 +127,7 @@ export const signOut = async () => {
     
     // Clear any local storage
     localStorage.removeItem('userType');
-    console.log("Logout successful");
+    // console.log("Logout successful");
     return true;
   } catch (error: any) {
     console.error("Sign out error:", error);

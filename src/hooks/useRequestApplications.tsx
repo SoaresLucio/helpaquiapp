@@ -11,7 +11,7 @@ export const useRequestApplications = (requestId: string) => {
     
     setLoading(true);
     try {
-      console.log('🔄 Carregando candidaturas para pedido:', requestId);
+      // console.log('🔄 Carregando candidaturas para pedido:', requestId);
       
       const { data, error } = await supabase
         .from('service_applications')
@@ -24,7 +24,7 @@ export const useRequestApplications = (requestId: string) => {
         throw error;
       }
 
-      console.log('✅ Candidaturas carregadas:', data);
+      // console.log('✅ Candidaturas carregadas:', data);
       setApplications(data || []);
       
     } catch (error) {
@@ -43,7 +43,7 @@ export const useRequestApplications = (requestId: string) => {
   useEffect(() => {
     if (!requestId) return;
 
-    console.log('🔴 Configurando listeners de realtime para candidaturas...');
+    // console.log('🔴 Configurando listeners de realtime para candidaturas...');
     
     const channel = supabase
       .channel(`request-applications-${requestId}`)
@@ -56,16 +56,16 @@ export const useRequestApplications = (requestId: string) => {
           filter: `service_request_id=eq.${requestId}`
         },
         (payload) => {
-          console.log('🔄 Mudança em candidatura detectada:', payload);
+          // console.log('🔄 Mudança em candidatura detectada:', payload);
           loadApplications();
         }
       )
       .subscribe((status) => {
-        console.log('📡 Status da conexão realtime:', status);
+        // console.log('📡 Status da conexão realtime:', status);
       });
 
     return () => {
-      console.log('🔌 Removendo channel realtime...');
+      // console.log('🔌 Removendo channel realtime...');
       supabase.removeChannel(channel);
     };
   }, [requestId]);
