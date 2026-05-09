@@ -56,18 +56,11 @@ export const getUserType = async (): Promise<'solicitante' | 'freelancer' | 'emp
     const user = await getCurrentUser();
     if (!user) return null;
     
+    // SECURITY: Only trust server-side user_metadata. Never read localStorage
+    // for authorization — it is user-controllable.
     const userType = user.user_metadata?.user_type;
     if (userType && ['solicitante', 'freelancer', 'empresa'].includes(userType)) {
       return userType as 'solicitante' | 'freelancer' | 'empresa';
-    }
-    
-    const storedType = localStorage.getItem('userType');
-    if (storedType && ['solicitante', 'freelancer', 'empresa'].includes(storedType)) {
-      return storedType as 'solicitante' | 'freelancer' | 'empresa';
-    }
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.warn("No user type found for user:", user.id);
     }
     return null;
   } catch (error) {
