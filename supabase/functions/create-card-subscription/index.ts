@@ -162,8 +162,8 @@ serve(async (req) => {
     });
 
     if (!subResp.ok) {
-      const errText = await subResp.text();
-      console.error('ASAAS subscription creation failed:', errText);
+      // Never log raw response — it may echo card fields submitted to Asaas
+      console.error('ASAAS subscription creation failed', { status: subResp.status });
       throw new ValidationError('Falha ao criar assinatura com cartão. Verifique os dados do cartão.');
     }
 
