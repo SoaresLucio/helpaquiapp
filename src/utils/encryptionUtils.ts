@@ -86,7 +86,7 @@ export class ClientEncryption {
         combined = b64ToBytes(encryptedData);
       }
 
-      const key = await this.deriveKey(userId, 'storage', salt);
+      const key = await this.deriveKey(userId, 'storage', salt as BufferSource);
       const iv = combined.slice(0, 12);
       const encrypted = combined.slice(12);
 
