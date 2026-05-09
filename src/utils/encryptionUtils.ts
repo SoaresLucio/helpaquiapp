@@ -21,7 +21,7 @@ export class ClientEncryption {
   static async deriveKey(
     userId: string,
     purpose: string,
-    salt: Uint8Array
+    salt: BufferSource
   ): Promise<CryptoKey> {
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
