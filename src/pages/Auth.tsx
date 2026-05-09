@@ -92,7 +92,6 @@ const Auth = () => {
         if (session) { navigate('/dashboard'); } else { setActiveTab('login'); }
       } else {
         await signIn(formData.email, formData.password);
-        localStorage.setItem('userType', 'solicitante');
         toast({ title: "Login bem-sucedido", description: "Bem-vindo de volta!" });
         navigate('/dashboard');
       }
