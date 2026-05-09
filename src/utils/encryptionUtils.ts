@@ -82,7 +82,7 @@ export class ClientEncryption {
         combined = b64ToBytes(payloadB64);
       } else {
         // Legacy fallback for already-stored values
-        salt = this.encoder.encode(LEGACY_SALT);
+        salt = this.encoder.encode(LEGACY_SALT).slice();
         combined = b64ToBytes(encryptedData);
       }
 
