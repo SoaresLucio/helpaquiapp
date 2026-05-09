@@ -101,52 +101,6 @@ export const checkAsaasPaymentStatus = async (paymentId: string): Promise<boolea
   }
 };
 
-// Save bank details for freelancer payouts
-export const saveAsaasBankDetails = async (bankDetails: AsaasBankDetails): Promise<boolean> => {
-  try {
-    const response = await fetch('/api/asaas/save-bank-details', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(bankDetails)
-    });
-    
-    return response.ok;
-  } catch (error) {
-    console.error('Asaas bank details save error:', error);
-    return false;
-  }
-};
+// NOTE: Legacy unauthenticated /api/asaas/* helpers removed.
+// Use Supabase Edge Functions (process-asaas-payment, release-funds, etc.) instead.
 
-// Release funds to freelancer after work completion
-export const releaseAsaasFunds = async (paymentId: string): Promise<boolean> => {
-  try {
-    const response = await fetch('/api/asaas/release-funds', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ paymentId })
-    });
-    
-    const data = await response.json();
-    return data.success;
-  } catch (error) {
-    console.error('Asaas fund release error:', error);
-    return false;
-  }
-};
-
-// Get payment history
-export const getAsaasPaymentHistory = async (): Promise<AsaasPaymentFlow[]> => {
-  try {
-    const response = await fetch('/api/asaas/payment-history');
-    const data = await response.json();
-    
-    return data.payments || [];
-  } catch (error) {
-    console.error('Asaas payment history error:', error);
-    return [];
-  }
-};
