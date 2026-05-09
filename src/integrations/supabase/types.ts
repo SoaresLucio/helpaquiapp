@@ -545,7 +545,7 @@ export type Database = {
           candidate_phone: string | null
           created_at: string
           id: string
-          job_listing_id: string | null
+          job_listing_id: string
           message: string | null
           resume_url: string
         }
@@ -555,7 +555,7 @@ export type Database = {
           candidate_phone?: string | null
           created_at?: string
           id?: string
-          job_listing_id?: string | null
+          job_listing_id: string
           message?: string | null
           resume_url: string
         }
@@ -565,7 +565,7 @@ export type Database = {
           candidate_phone?: string | null
           created_at?: string
           id?: string
-          job_listing_id?: string | null
+          job_listing_id?: string
           message?: string | null
           resume_url?: string
         }
