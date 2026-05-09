@@ -45,11 +45,27 @@ const pageTransition = {
   exit: { opacity: 0, y: -8, transition: { duration: 0.2 } }
 };
 
+const wrapperStyle = { width: '100%' } as const;
+
 const PageWrapper = ({ children }: { children: React.ReactNode }) => (
-  <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" style={{ width: '100%' }}>
+  <motion.div variants={pageTransition} initial="initial" animate="animate" exit="exit" style={wrapperStyle}>
     {children}
   </motion.div>
 );
+
+// Prefetch critical routes during browser idle to reduce perceived navigation latency
+if (typeof window !== 'undefined') {
+  const prefetch = () => {
+    import("./pages/Index");
+    import("./pages/Login");
+    import("./pages/Chat");
+  };
+  if ('requestIdleCallback' in window) {
+    (window as any).requestIdleCallback(prefetch, { timeout: 2000 });
+  } else {
+    setTimeout(prefetch, 1500);
+  }
+}
 
 function App() {
   const location = useLocation();

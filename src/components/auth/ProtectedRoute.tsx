@@ -2,7 +2,6 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useUserLocation } from '@/hooks/useUserLocation';
 import { useAdminAccess } from '@/hooks/useAdminAccess';
 import { SecurityBadge } from '@/components/security/SecurityBadge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -14,17 +13,17 @@ interface ProtectedRouteProps {
   redirectTo?: string;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  requiredUserType, 
-  redirectTo = "/login" 
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  requiredUserType,
+  redirectTo = "/login"
 }) => {
-  const { isAuthenticated, loading, userType, securityScore, isSecure } = useAuth();
-  const { isAdmin, loading: adminLoading } = useAdminAccess();
+  const { isAuthenticated, loading, userType, securityScore } = useAuth();
+  // Don't block render on admin check — defaults to false until resolved
+  const { isAdmin } = useAdminAccess();
   const location = useLocation();
-  useUserLocation();
 
-  if (loading || adminLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -40,18 +39,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Admin users can access ALL pages regardless of requiredUserType
-  if (requiredUserType && !isAdmin && userType !== requiredUserType) {
-    if (userType === 'solicitante') {
-      return <Navigate to="/solicitante-plans" replace />;
-    } else if (userType === 'freelancer') {
-      return <Navigate to="/freelancer-plans" replace />;
-    } else if (userType === 'empresa') {
-      return <Navigate to="/empresa-plans" replace />;
-    }
+  if (requiredUserType && !isAdmin && userType && userType !== requiredUserType) {
+    if (userType === 'solicitante') return <Navigate to="/solicitante-plans" replace />;
+    if (userType === 'freelancer') return <Navigate to="/freelancer-plans" replace />;
+    if (userType === 'empresa') return <Navigate to="/empresa-plans" replace />;
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Show security warning for low security score
   const showSecurityWarning = securityScore < 50 && location.pathname !== '/profile-verification';
 
   return (

@@ -19,6 +19,7 @@ const queryClient = new QueryClient({
       gcTime: 10 * 60 * 1000,
       retry: 1,
       refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     },
   },
 });
@@ -27,18 +28,18 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AuthProvider>
-          <SecurityProvider>
-            <TooltipProvider>
-              <Toaster />
-              <BrowserRouter>
+        <BrowserRouter>
+          <AuthProvider>
+            <SecurityProvider>
+              <TooltipProvider>
+                <Toaster />
                 <ErrorBoundary>
                   <App />
                 </ErrorBoundary>
-              </BrowserRouter>
-            </TooltipProvider>
-          </SecurityProvider>
-        </AuthProvider>
+              </TooltipProvider>
+            </SecurityProvider>
+          </AuthProvider>
+        </BrowserRouter>
       </ThemeProvider>
     </QueryClientProvider>
   </React.StrictMode>
