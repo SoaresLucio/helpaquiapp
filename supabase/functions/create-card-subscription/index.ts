@@ -241,8 +241,10 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Create card subscription error:', error);
-    
+    // Log only the message/name — never the request body (contains PAN/CVV)
+    const safeMsg = error instanceof Error ? error.message : 'unknown';
+    console.error('Create card subscription error:', safeMsg);
+
     const isValidationError = error instanceof ValidationError;
     return new Response(
       JSON.stringify({ error: isValidationError ? error.message : 'Card subscription creation failed. Please try again.' }),
