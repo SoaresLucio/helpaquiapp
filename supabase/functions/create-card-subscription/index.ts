@@ -8,7 +8,6 @@ const corsHeaders = {
 
 const ASAAS_BASE_URL = 'https://www.asaas.com/api/v3';
 
-// User-facing validation errors safe to expose
 class ValidationError extends Error {
   constructor(message: string) {
     super(message);
@@ -51,11 +50,9 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) throw new ValidationError('Invalid authentication');
 
-    const { planId, cardData } = await req.json();
+    // SECURITY: We no longer accept card data. The user fills card on Asaas-hosted page.
+    const { planId, cpf: providedCpf, returnUrl } = await req.json();
     if (!planId) throw new ValidationError('Plan ID is required');
-    if (!cardData?.holderName || !cardData?.number || !cardData?.expiryMonth || !cardData?.expiryYear || !cardData?.ccv) {
-      throw new ValidationError('Card data is incomplete');
-    }
 
     const asaasApiKey = Deno.env.get('ASAAS_API_KEY');
     if (!asaasApiKey) throw new Error('Payment gateway not configured');
@@ -70,7 +67,7 @@ serve(async (req) => {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('first_name, last_name, email, phone, address')
+      .select('first_name, last_name, email, phone')
       .eq('id', user.id)
       .single();
 
@@ -87,18 +84,18 @@ serve(async (req) => {
       .maybeSingle();
 
     const additionalData = verification?.additional_data as Record<string, unknown> | null;
-    const rawCpf = (additionalData?.cpf as string) || (additionalData?.document_number as string) || (cardData.cpf || '');
-    const cleanCpf = rawCpf.replace(/\D/g, '');
+    const rawCpf = (additionalData?.cpf as string) || (additionalData?.document_number as string) || (providedCpf || '');
+    const cleanCpf = (rawCpf || '').replace(/\D/g, '');
     if (!isValidCpf(cleanCpf)) {
       throw new ValidationError('CPF inválido. Verifique seu perfil ou informe um CPF válido.');
     }
 
+    // Find or create Asaas customer
     let asaasCustomerId: string;
     const searchResp = await fetch(
       `${ASAAS_BASE_URL}/customers?email=${encodeURIComponent(userEmail)}&limit=1`,
       { headers: { 'access_token': asaasApiKey } }
     );
-
     if (!searchResp.ok) throw new Error('Failed to search customers');
     const searchData = await searchResp.json();
 
@@ -118,10 +115,8 @@ serve(async (req) => {
         headers: { 'access_token': asaasApiKey, 'Content-Type': 'application/json' },
         body: JSON.stringify(custBody),
       });
-
       if (!custResp.ok) {
-        const err = await custResp.text();
-        console.error('ASAAS customer creation failed:', err);
+        console.error('ASAAS customer creation failed', { status: custResp.status });
         throw new ValidationError('Falha ao criar cliente. Verifique seus dados cadastrais.');
       }
       asaasCustomerId = (await custResp.json()).id;
@@ -130,7 +125,8 @@ serve(async (req) => {
     const nextDueDate = new Date();
     nextDueDate.setDate(nextDueDate.getDate() + 1);
 
-    const subscriptionBody: Record<string, unknown> = {
+    // Create subscription WITHOUT credit card data — Asaas will host the card capture page
+    const subscriptionBody = {
       customer: asaasCustomerId,
       billingType: 'CREDIT_CARD',
       value: plan.price_monthly,
@@ -138,21 +134,6 @@ serve(async (req) => {
       cycle: 'MONTHLY',
       description: `Assinatura ${plan.name} - HelpAqui`,
       externalReference: `sub_${planId}_${user.id}`,
-      creditCard: {
-        holderName: cardData.holderName,
-        number: cardData.number.replace(/\s/g, ''),
-        expiryMonth: cardData.expiryMonth,
-        expiryYear: cardData.expiryYear,
-        ccv: cardData.ccv,
-      },
-      creditCardHolderInfo: {
-        name: cardData.holderName,
-        email: userEmail,
-        cpfCnpj: cleanCpf,
-        phone: profile?.phone || '',
-        postalCode: cardData.postalCode || '00000000',
-        addressNumber: cardData.addressNumber || '0',
-      },
     };
 
     const subResp = await fetch(`${ASAAS_BASE_URL}/subscriptions`, {
@@ -160,33 +141,47 @@ serve(async (req) => {
       headers: { 'access_token': asaasApiKey, 'Content-Type': 'application/json' },
       body: JSON.stringify(subscriptionBody),
     });
-
     if (!subResp.ok) {
-      // Never log raw response — it may echo card fields submitted to Asaas
       console.error('ASAAS subscription creation failed', { status: subResp.status });
-      throw new ValidationError('Falha ao criar assinatura com cartão. Verifique os dados do cartão.');
+      throw new ValidationError('Falha ao criar assinatura. Tente novamente.');
     }
-
     const asaasSubscription = await subResp.json();
+
+    // Fetch the first payment of this subscription to get its hosted invoiceUrl
+    const paymentsResp = await fetch(
+      `${ASAAS_BASE_URL}/subscriptions/${asaasSubscription.id}/payments`,
+      { headers: { 'access_token': asaasApiKey } }
+    );
+    if (!paymentsResp.ok) {
+      console.error('ASAAS subscription payments fetch failed', { status: paymentsResp.status });
+      throw new Error('Falha ao obter link de pagamento');
+    }
+    const paymentsData = await paymentsResp.json();
+    const firstPayment = paymentsData.data?.[0];
+    const invoiceUrl: string | undefined = firstPayment?.invoiceUrl;
+    if (!invoiceUrl) {
+      console.error('ASAAS subscription has no invoiceUrl', { subId: asaasSubscription.id });
+      throw new Error('Link de pagamento indisponível');
+    }
 
     const now = new Date();
     const periodEnd = new Date();
     periodEnd.setDate(periodEnd.getDate() + 30);
 
+    // Create/update local subscription as PENDING — webhook will mark active on payment
     const { data: existingSub } = await supabase
       .from('user_subscriptions')
       .select('id')
       .eq('user_id', user.id)
-      .eq('status', 'active')
+      .in('status', ['active', 'pending'])
       .maybeSingle();
 
     if (existingSub) {
       await supabase.from('user_subscriptions').update({
         plan_id: planId,
+        status: 'pending',
         current_period_start: now.toISOString(),
         current_period_end: periodEnd.toISOString(),
-        requests_used_this_month: 0,
-        messages_used_this_month: 0,
         stripe_subscription_id: asaasSubscription.id,
         updated_at: now.toISOString(),
       }).eq('id', existingSub.id);
@@ -194,7 +189,7 @@ serve(async (req) => {
       await supabase.from('user_subscriptions').insert({
         user_id: user.id,
         plan_id: planId,
-        status: 'active',
+        status: 'pending',
         current_period_start: now.toISOString(),
         current_period_end: periodEnd.toISOString(),
         requests_used_this_month: 0,
@@ -203,48 +198,18 @@ serve(async (req) => {
       });
     }
 
-    await supabase.from('user_subscriptions_flow').insert({
-      user_id: user.id,
-      plan_name: plan.name,
-      plan_price: plan.price_monthly,
-      start_date: now.toISOString(),
-      end_date: periodEnd.toISOString(),
-      payment_method: 'credit_card',
-      payment_reference: asaasSubscription.id,
-      status: 'active',
-    });
-
-    const cardLast4 = cardData.number.replace(/\s/g, '').slice(-4);
-    await supabase.from('payment_methods').insert({
-      user_id: user.id,
-      method_type: 'credit_card',
-      card_last_four: cardLast4,
-      card_brand: detectCardBrand(cardData.number),
-      is_default: true,
-      is_active: true,
-    });
-
-    await supabase.from('notifications').insert({
-      user_id: user.id,
-      title: 'Assinatura ativada!',
-      message: `Seu plano ${plan.name} foi ativado com cobrança automática no cartão final ${cardLast4}.`,
-      type: 'success',
-      metadata: { plan_id: planId, subscription_id: asaasSubscription.id },
-    });
-
     return new Response(
       JSON.stringify({
         success: true,
         subscriptionId: asaasSubscription.id,
-        message: 'Assinatura criada com sucesso! Cobrança mensal automática ativada.',
+        checkoutUrl: invoiceUrl,
+        message: 'Redirecionando para o pagamento seguro...',
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    // Log only the message/name — never the request body (contains PAN/CVV)
     const safeMsg = error instanceof Error ? error.message : 'unknown';
     console.error('Create card subscription error:', safeMsg);
-
     const isValidationError = error instanceof ValidationError;
     return new Response(
       JSON.stringify({ error: isValidationError ? error.message : 'Card subscription creation failed. Please try again.' }),
@@ -252,13 +217,3 @@ serve(async (req) => {
     );
   }
 });
-
-function detectCardBrand(number: string): string {
-  const n = number.replace(/\s/g, '');
-  if (/^4/.test(n)) return 'visa';
-  if (/^5[1-5]/.test(n)) return 'mastercard';
-  if (/^3[47]/.test(n)) return 'amex';
-  if (/^6(?:011|5)/.test(n)) return 'discover';
-  if (/^(636368|438935|504175|451416|636297)/.test(n) || /^50[0-9]{2,}/.test(n)) return 'elo';
-  return 'other';
-}
