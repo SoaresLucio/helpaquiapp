@@ -91,6 +91,59 @@ serve(async (req) => {
         console.error('Error updating pix_payment:', pixError)
       }
 
+      // Subscription lifecycle: when a payment tied to an Asaas subscription is
+      // confirmed, activate the local user_subscriptions row keyed by that subscription id.
+      if (payment.subscription) {
+        if (newStatus === 'completed') {
+          const now = new Date()
+          const periodEnd = new Date()
+          periodEnd.setDate(periodEnd.getDate() + 30)
+          const { error: subErr } = await supabase
+            .from('user_subscriptions')
+            .update({
+              status: 'active',
+              current_period_start: now.toISOString(),
+              current_period_end: periodEnd.toISOString(),
+              requests_used_this_month: 0,
+              messages_used_this_month: 0,
+              updated_at: now.toISOString(),
+            })
+            .eq('stripe_subscription_id', payment.subscription)
+          if (subErr) console.error('Error activating subscription:', subErr)
+
+          // Record in subscriptions flow ledger
+          const { data: subRow } = await supabase
+            .from('user_subscriptions')
+            .select('user_id, plan_id')
+            .eq('stripe_subscription_id', payment.subscription)
+            .maybeSingle()
+          if (subRow) {
+            const { data: planRow } = await supabase
+              .from('subscription_plans')
+              .select('name, price_monthly')
+              .eq('id', subRow.plan_id)
+              .maybeSingle()
+            if (planRow) {
+              await supabase.from('user_subscriptions_flow').insert({
+                user_id: subRow.user_id,
+                plan_name: planRow.name,
+                plan_price: planRow.price_monthly,
+                start_date: now.toISOString(),
+                end_date: periodEnd.toISOString(),
+                payment_method: 'credit_card',
+                payment_reference: payment.subscription,
+                status: 'active',
+              })
+            }
+          }
+        } else if (newStatus === 'failed' || newStatus === 'cancelled') {
+          await supabase
+            .from('user_subscriptions')
+            .update({ status: newStatus === 'failed' ? 'past_due' : 'cancelled', updated_at: new Date().toISOString() })
+            .eq('stripe_subscription_id', payment.subscription)
+        }
+      }
+
       // Log the webhook event
       await supabase.from('payment_logs').insert({
         payment_id: null,
