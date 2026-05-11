@@ -276,6 +276,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                       <QrCode className="h-24 w-24 mx-auto text-primary" />
                     )}
 
+                    <div className="bg-primary/10 rounded-lg py-2 px-4 inline-block">
+                      <div className="text-xs text-muted-foreground">Valor a pagar</div>
+                      <div className="text-2xl font-bold text-primary">R$ {plan.price_monthly.toFixed(2).replace('.', ',')}</div>
+                    </div>
+
                     <div>
                       <h3 className="font-semibold text-foreground mb-2">Escaneie o QR Code ou copie o código PIX</h3>
                       <p className="text-sm text-muted-foreground">Use o app do seu banco para pagar</p>

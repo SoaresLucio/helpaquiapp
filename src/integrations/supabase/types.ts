@@ -2004,6 +2004,32 @@ export type Database = {
         }[]
       }
       get_current_user_role: { Args: never; Returns: string }
+      get_public_profile: {
+        Args: { p_user_id: string }
+        Returns: {
+          avatar_url: string
+          average_rating: number
+          first_name: string
+          id: string
+          last_name: string
+          member_since: string
+          reviews_count: number
+          services_completed: number
+          user_type: string
+          verified: boolean
+        }[]
+      }
+      get_public_reviews: {
+        Args: { p_freelancer_id: string; p_limit?: number }
+        Returns: {
+          comment: string
+          created_at: string
+          id: string
+          rating: number
+          reviewer_avatar_url: string
+          reviewer_first_name: string
+        }[]
+      }
       get_service_request_precise_location: {
         Args: { p_request_id: string }
         Returns: {

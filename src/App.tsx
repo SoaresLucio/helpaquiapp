@@ -12,6 +12,7 @@ const Auth = lazy(() => import("./pages/Auth"));
 const Register = lazy(() => import("./pages/Register"));
 const Login = lazy(() => import("./pages/Login"));
 const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
+const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const FreelancerProfile = lazy(() => import("./pages/FreelancerProfile"));
 const Jobs = lazy(() => import("./pages/Jobs"));
 const Chat = lazy(() => import("./pages/Chat"));
@@ -93,6 +94,7 @@ function App() {
           <Route path="/profile" element={<PageWrapper><ProtectedRoute><UserProfilePage /></ProtectedRoute></PageWrapper>} />
           <Route path="/freelancer-profile" element={<PageWrapper><ProtectedRoute><FreelancerProfile /></ProtectedRoute></PageWrapper>} />
           <Route path="/freelancer/:id" element={<PageWrapper><ProtectedRoute><FreelancerProfile /></ProtectedRoute></PageWrapper>} />
+          <Route path="/u/:userId" element={<PageWrapper><ProtectedRoute><PublicProfile /></ProtectedRoute></PageWrapper>} />
           <Route path="/jobs" element={<PageWrapper><ProtectedRoute><Jobs /></ProtectedRoute></PageWrapper>} />
           <Route path="/chat" element={<PageWrapper><ProtectedRoute><Chat /></ProtectedRoute></PageWrapper>} />
           <Route path="/notes" element={<PageWrapper><ProtectedRoute><Notes /></ProtectedRoute></PageWrapper>} />
