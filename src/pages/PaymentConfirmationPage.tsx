@@ -365,6 +365,11 @@ const PaymentConfirmationPage: React.FC = () => {
                         )}
                       </div>
 
+                      <div className="bg-primary/10 rounded-lg py-3 px-4 text-center">
+                        <div className="text-xs text-muted-foreground">Valor a pagar</div>
+                        <div className="text-2xl font-bold text-primary">{formatPrice(planData.price_monthly)}</div>
+                      </div>
+
                       {pixExpiry && (
                         <div className="flex items-center justify-center gap-2 text-sm text-amber-600">
                           <Clock className="h-4 w-4" />
