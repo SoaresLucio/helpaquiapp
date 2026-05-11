@@ -1,23 +1,26 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  User, 
-  MapPin, 
-  Phone, 
-  Video, 
+import {
+  User,
+  MapPin,
   MoreVertical,
   CheckCircle,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  Briefcase,
 } from 'lucide-react';
+import HireServiceDialog from './HireServiceDialog';
 
 interface ChatHeaderProps {
   conversation: {
+    id: string;
+    participantId: string;
     participantName: string;
     participantAvatar: string;
     participantType: 'freelancer' | 'client';
@@ -39,6 +42,10 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   userType,
   onViewLocation
 }) => {
+  const navigate = useNavigate();
+  const [hireOpen, setHireOpen] = useState(false);
+  const canHire = (userType === 'solicitante' || userType === 'empresa' || userType === 'ambos')
+    && conversation.participantType === 'freelancer';
   const getJobStatusBadge = (status: string) => {
     const statusConfig = {
       'aguardando_inicio': { 
@@ -109,16 +116,16 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
         </div>
         
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => navigate(`/u/${conversation.participantId}`)}>
             <User className="h-4 w-4" />
             <span className="hidden sm:inline ml-1">Ver Perfil</span>
           </Button>
-          <Button variant="outline" size="sm">
-            <Phone className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="sm">
-            <Video className="h-4 w-4" />
-          </Button>
+          {canHire && (
+            <Button size="sm" onClick={() => setHireOpen(true)} className="bg-primary hover:bg-primary/90">
+              <Briefcase className="h-4 w-4" />
+              <span className="hidden sm:inline ml-1">Contratar</span>
+            </Button>
+          )}
           <Button variant="outline" size="sm">
             <MoreVertical className="h-4 w-4" />
           </Button>
@@ -158,6 +165,17 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
       </div>
       
       <Separator />
+
+      {canHire && (
+        <HireServiceDialog
+          open={hireOpen}
+          onOpenChange={setHireOpen}
+          conversationId={conversation.id}
+          freelancerId={conversation.participantId}
+          freelancerName={conversation.participantName}
+          defaultTitle={conversation.jobTitle && conversation.jobTitle !== 'Conversa' && conversation.jobTitle !== 'Conversa direta' ? conversation.jobTitle : ''}
+        />
+      )}
     </CardHeader>
   );
 };
