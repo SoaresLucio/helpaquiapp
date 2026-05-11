@@ -1,81 +1,56 @@
-# Refator de Performance + Auditoria End-to-End
+# Auditoria & Plano de Produção — helpaquiapp
 
-## Objetivo
-Tornar o app mais leve e fluido, eliminar bugs de carregamento, e entregar uma lista clara do que ainda falta para produção sem riscos.
+Esta é uma demanda muito ampla (≈ 15 frentes, dezenas de arquivos, mudanças em backend, RLS, edge functions, UI e UX). Vou entregar em **fases priorizadas**, cada uma como uma entrega revisável. Assim você pode aprovar/ajustar fase a fase em vez de receber tudo num único PR gigante (que seria impossível de revisar e arriscado para produção).
 
----
+## Fase 1 — Correções críticas de fluxo (prioridade máxima)
+Os 3 itens que você destacou explicitamente:
 
-## Parte 1 — Refator de Performance (vou aplicar agora)
+1. **Contratar serviço pelo Chat (solicitante/empresa → freelancer)**
+   - Adicionar ação "Contratar este serviço" dentro de `ChatWindow` (header + botão de ação rápida).
+   - Cria automaticamente um `service_request` vinculado à conversa + `service_proposal` aceita, ou abre um diálogo de confirmação de valor/escopo antes de gerar o pagamento.
+   - Mensagem de sistema no chat registrando a contratação.
 
-### 1.1 `main.tsx` — ordem dos providers
-Hoje: `AuthProvider` está FORA do `BrowserRouter`, mas usa `useLocation` internamente (`RequireAuth`). Isso só não quebra porque `RequireAuth` não é montado, mas é frágil. Mover `BrowserRouter` para envolver `AuthProvider`.
+2. **Perfil público com informações limitadas**
+   - Nova rota `/u/:userId` (ou refatorar `UserProfilePage` existente).
+   - Mostra apenas: avatar, nome, tipo de usuário, nº de serviços prestados, média de avaliações, lista de reviews. Esconde: telefone, e-mail, endereço, CPF/CNPJ, dados bancários.
+   - Criar/usar uma `view` `public_profiles` no Supabase com RLS apropriada (sem PII).
 
-### 1.2 `App.tsx` — reduzir re-render por rota
-- O `motion.div` de `PageWrapper` é recriado a cada render (objeto `pageTransition` ok, mas `style={{width:'100%'}}` inline cria novo objeto). Extrair para constante.
-- `AnimatePresence mode="wait"` + `Suspense` global causa "flash" de LoadingScreen a cada navegação. Mover `Suspense` para dentro de cada `PageWrapper` com fallback `null`, ou usar um fallback mínimo (skeleton) — evita reflow grande.
-- Pré-carregar (`prefetch`) rotas críticas (`/dashboard`, `/login`, `/chat`) em `idle callback`.
+3. **PIX QR Code com valor correto**
+   - Auditar `generate-pix-payment` edge function + `pix_payments`/`pix_transactions`.
+   - Garantir que o `value` enviado ao Asaas == valor do plano/serviço (em centavos vs reais — provável fonte do bug).
+   - Validar o QR retornado no frontend e exibir o valor formatado ao lado do QR.
 
-### 1.3 `ProtectedRoute.tsx` — duplo loading
-Hoje espera `loading` (auth) **E** `adminLoading`. `useAdminAccess` re-busca a cada mount. Resultado: telas piscam "Carregando..." duas vezes.
-- Renderizar filhos assim que `auth.loading=false` e tratar `isAdmin` como "default false até carregar" — não bloquear render.
-- Remover `useUserLocation()` do ProtectedRoute (executa em TODA rota protegida, dispara geolocation+IP toda navegação). Mover para um único `<UserLocationTracker />` montado uma vez no `AuthProvider`.
+## Fase 2 — UX core (jornada do usuário)
+- **Onboarding Wizard** diferenciado por tipo (freelancer / solicitante / empresa) — 3-4 steps, salva flag `onboarding_completed` em `profiles`.
+- **Empty states** padronizados (componente `<EmptyState icon cta />`) aplicado em: chat sem conversas, lista de serviços vazia, busca sem resultados, ofertas vazias.
+- **Skeletons** consistentes nas listas principais (jobs, offers, freelancers, chat).
+- **Toasts** (sonner) em todas as mutações (já parcialmente feito — passar e padronizar).
 
-### 1.4 `useAuth.tsx` — fetch de profile redundante
-- Memoizar `securityScore` em `useMemo` em vez de `useState`+`useEffect` separado.
-- Cachear profile via React Query (`useQuery(['profile', userId])`) em vez de state local — evita refetch a cada mudança de `authState.userType`.
+## Fase 3 — Infra & performance
+- **Realtime**: confirmar replicação habilitada para `chat_messages`, `notifications`, `conversations`; garantir cleanup de canais (já existe parcialmente em `useRealTimeChat`).
+- **ErrorBoundary global** com botão "Tentar novamente" + reset do query cache da rota.
+- **TanStack Query**: definir `staleTime` por domínio (categorias 1h, perfis públicos 5min, listas dinâmicas 30s, chat 0).
+- **Notification center** (sino no Header) com badge de não lidas, dropdown e marcar como lido (hooks já existem).
 
-### 1.5 QueryClient
-Aumentar `staleTime` para listas estáticas (categorias, planos) e habilitar `refetchOnReconnect: false` para evitar tempestade de requests.
+## Fase 4 — UI & componentes
+- **Dark mode**: validar tokens HSL em `index.css` para `.dark`, adicionar toggle no Header (já existe `useTheme`).
+- **Responsividade**: revisar tabelas admin, mapas e chat em 320–375px e ≥1440px.
+- **react-hook-form + Zod** com máscaras (CPF, CNPJ, telefone, CEP) — adicionar `react-imask` (leve, ~15kb) ou regex no Zod.
+- **Micro-interações** Framer Motion: fade-in em cards de listagem (já usado em algumas páginas — padronizar via wrapper `<MotionList>`).
 
-### 1.6 Bundle
-- Remover imports não usados em `Index.tsx` (já enxuto, ok).
-- `framer-motion` é pesado: trocar `AnimatePresence` global por animações CSS em rotas onde não há valor visual.
+## Fase 5 — Busca avançada
+- Filtros de freelancers/serviços por: raio (km, usando lat/lng do usuário), avaliação mínima, faixa de preço, categoria, disponibilidade.
+- Pré-cálculo no banco via função `nearby_freelancers(lat,lng,radius)` (PostGIS já presente? validar; senão fórmula Haversine em SQL).
 
-### 1.7 Bugs identificados
-- **`AuthProvider` fora do Router**: `RequireAuth` quebraria se usado.
-- **`localStorage.removeItem('userType')` no logout** mas `userType` é lido apenas de `user_metadata` (correto após fix anterior). Restos de localStorage são lixo — limpar todas as chaves de auth/cache no logout.
-- **`SecurityProvider` dentro de `AuthProvider`**: ok, mas `Toaster` está fora do `BrowserRouter` — toasts com `<Link>` quebrariam. Mover para dentro.
-- **`useJobNotifications` em `Index.tsx`** abre canal realtime mesmo para `solicitante`/`empresa` (só faz sentido para freelancer). Condicionar.
+## Fora de escopo desta proposta
+- Reescrita arquitetural, mudança de stack, ou mover arquivos (você pediu para preservar a estrutura).
+- Otimizações que dependam de novas dependências pesadas.
 
----
+## Como prosseguir
+Recomendo aprovarmos fase a fase. Sugestão: **começar pela Fase 1** (3 itens críticos que você nomeou explicitamente) e seguir.
 
-## Parte 2 — Lista de Pendências para Produção (entrego no final, não implemento sem aprovação)
-
-### 🔴 Crítico (bloqueia produção)
-1. **Configurações manuais Supabase** (não migrationáveis):
-   - Reduzir OTP expiry para ≤ 1h (Auth → Providers → Email)
-   - Habilitar Leaked Password Protection (Auth → Policies)
-   - Aplicar upgrade do Postgres (Settings → Infrastructure)
-2. **Service Role Key**: confirmar que NÃO está em nenhuma edge function exposta sem auth check (auditar 11 funções).
-3. **CSP / Security Headers**: `securityHeaders.ts` existe mas não vi sendo aplicado no `index.html` — verificar.
-4. **Rate limiting real**: `useRateLimit` é client-side (burlável). Mover para edge function com Redis/KV ou tabela `rate_limits` com TTL.
-
-### 🟠 Alto
-5. **Tokens em localStorage**: SDK Supabase usa por padrão. Para HttpOnly real, precisa proxy via edge function (~2 dias de trabalho).
-6. **Validação de CPF/CNPJ server-side** (hoje só client).
-7. **Sanitização de uploads**: validar magic bytes além de mimetype no Storage.
-8. **Auditoria PII**: `UserProfile`/`ProfessionalCard` ainda mostram dados antes de "match" — implementar `SecureDataDisplay` com re-auth.
-9. **Webhook ASAAS**: validar assinatura HMAC (verificar `asaas-webhook/index.ts`).
-
-### 🟡 Médio
-10. **Testes**: 0 testes automatizados. Adicionar Vitest + RTL para fluxos críticos (login, payment, RLS).
-11. **Error tracking**: integrar Sentry ou similar.
-12. **Painel Admin de Audit Log** (tabela já existe, falta UI).
-13. **i18n**: textos hardcoded em PT-BR.
-14. **Acessibilidade**: faltam aria-labels em botões com ícone.
-
-### 🟢 Baixo
-15. **Lighthouse**: rodar e otimizar imagens (WebP, lazy).
-16. **PWA**: manifest + service worker.
-17. **SEO**: meta tags por rota.
-
----
-
-## Arquivos que vou tocar nesta passada
-- `src/main.tsx` — reordenar providers
-- `src/App.tsx` — extrair constantes, prefetch rotas
-- `src/components/auth/ProtectedRoute.tsx` — remover double-loading e mover useUserLocation
-- `src/hooks/useAuth.tsx` — memoização do securityScore
-- `src/pages/Index.tsx` — condicionar useJobNotifications
-
-Sem mudanças de banco, sem mudanças de UI visual, sem mudanças de lógica de negócio.
+Responda com:
+- "começar fase 1" → executo os 3 fixes críticos agora.
+- "começar fase X" → pulo direto.
+- "fazer tudo" → executo sequencialmente, mas será um conjunto grande de commits e levará várias rodadas.
+- Ou ajuste o escopo antes de eu começar.
