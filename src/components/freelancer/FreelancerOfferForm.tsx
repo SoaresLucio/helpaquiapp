@@ -263,6 +263,7 @@ const FreelancerOfferForm: React.FC = () => {
           </Button>
         </form>
       </CardContent>
+      <FreelancerTermsDialog open={showTerms} onOpenChange={setShowTerms} onAccept={handleAfterTerms} />
     </Card>
   );
 };
