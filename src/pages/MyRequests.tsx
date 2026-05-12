@@ -195,8 +195,8 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onDelete }) => {
                   {application.estimated_time && <p className="text-xs text-muted-foreground">Tempo estimado: {application.estimated_time}</p>}
                   {application.status === 'pending' && (
                     <div className="flex gap-2 mt-2">
-                      <Button size="sm" className="gradient-primary text-white border-0 rounded-lg">Aceitar</Button>
-                      <Button size="sm" variant="outline" className="rounded-lg">Rejeitar</Button>
+                      <Button size="sm" className="gradient-primary text-white border-0 rounded-lg" onClick={() => handleAcceptStart(application)}>Aceitar Orçamento</Button>
+                      <Button size="sm" variant="outline" className="rounded-lg" onClick={() => handleReject(application.id)}>Rejeitar</Button>
                     </div>
                   )}
                 </div>
@@ -205,7 +205,40 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onDelete }) => {
             </div>
           </div>
         )}
+        {request.status === 'in_progress' && (
+          <div className="mt-4 pt-4 border-t border-border/50">
+            <Button onClick={handleMarkCompleted} disabled={completing} className="w-full gradient-primary text-white border-0 rounded-lg">
+              <CheckCircle2 className="h-4 w-4 mr-2" /> Marcar como concluído e liberar pagamento
+            </Button>
+          </div>
+        )}
       </CardContent>
+
+      <Dialog open={!!payingApp} onOpenChange={(v) => !v && setPayingApp(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmar pagamento do orçamento</DialogTitle>
+            <DialogDescription>
+              O pagamento será processado agora. O valor só é repassado ao freelancer após você marcar o serviço como concluído.
+            </DialogDescription>
+          </DialogHeader>
+          {payingApp && (
+            <div className="space-y-3">
+              <div className="rounded-lg bg-muted p-3 text-sm">
+                <p><strong>Valor:</strong> R$ {payingApp.proposed_price ?? '—'}</p>
+                {payingApp.message && <p className="text-muted-foreground mt-1">"{payingApp.message}"</p>}
+              </div>
+              <AsaasPaymentButton
+                amount={(payingApp.proposed_price ?? 0) * 100}
+                serviceId={request.id}
+                freelancerId={payingApp.freelancer_id}
+                description={`Orçamento aceito: ${request.title}`}
+                onPaymentComplete={handlePaymentComplete}
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
