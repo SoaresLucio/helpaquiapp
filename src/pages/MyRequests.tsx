@@ -7,10 +7,14 @@ import BackButton from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, MapPin, Clock, DollarSign, Users } from 'lucide-react';
+import { Edit, Trash2, MapPin, Clock, DollarSign, Users, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMyRequests } from '@/hooks/useMyRequests';
 import { useRequestApplications } from '@/hooks/useRequestApplications';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import AsaasPaymentButton from '@/components/payment/AsaasPaymentButton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const stagger = { visible: { transition: { staggerChildren: 0.08 } } };
 const fadeUp = { hidden: { opacity: 0, y: 15 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } } };
@@ -82,13 +86,47 @@ const MyRequests: React.FC = () => {
 interface RequestCardProps { request: any; onDelete: (requestId: string) => Promise<void>; }
 
 const RequestCard: React.FC<RequestCardProps> = ({ request, onDelete }) => {
-  const { applications, loading } = useRequestApplications(request.id);
+  const { applications, loading, reloadApplications } = useRequestApplications(request.id);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [payingApp, setPayingApp] = React.useState<any | null>(null);
+  const [completing, setCompleting] = React.useState(false);
 
   const handleDelete = async () => {
-    if (window.confirm('Tem certeza que deseja excluir este pedido?')) {
+    if (window.confirm('Tem certeza que deseja excluir este pedido? Cancelamentos consecutivos podem bloquear sua conta.')) {
       setIsDeleting(true);
       try { await onDelete(request.id); } catch {} finally { setIsDeleting(false); }
+    }
+  };
+
+  const handleReject = async (appId: string) => {
+    const { error } = await supabase.from('service_applications').update({ status: 'rejected' }).eq('id', appId);
+    if (error) toast.error('Erro ao rejeitar candidatura'); else { toast.success('Candidatura rejeitada'); reloadApplications(); }
+  };
+
+  const handleAcceptStart = (app: any) => setPayingApp(app);
+
+  const handlePaymentComplete = async () => {
+    if (!payingApp) return;
+    const { error } = await supabase.from('service_applications').update({ status: 'accepted' }).eq('id', payingApp.id);
+    if (!error) {
+      await supabase.from('service_requests').update({ status: 'in_progress' }).eq('id', request.id);
+      toast.success('Orçamento aceito e pagamento processado!');
+    }
+    setPayingApp(null);
+    reloadApplications();
+  };
+
+  const handleMarkCompleted = async () => {
+    if (!window.confirm('Marcar este serviço como concluído? O pagamento será liberado ao freelancer.')) return;
+    setCompleting(true);
+    try {
+      const { error } = await supabase.rpc('mark_service_completed', { p_request_id: request.id });
+      if (error) throw error;
+      toast.success('Serviço concluído. Pagamento liberado!');
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Erro ao concluir serviço');
+    } finally {
+      setCompleting(false);
     }
   };
 
@@ -157,8 +195,8 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onDelete }) => {
                   {application.estimated_time && <p className="text-xs text-muted-foreground">Tempo estimado: {application.estimated_time}</p>}
                   {application.status === 'pending' && (
                     <div className="flex gap-2 mt-2">
-                      <Button size="sm" className="gradient-primary text-white border-0 rounded-lg">Aceitar</Button>
-                      <Button size="sm" variant="outline" className="rounded-lg">Rejeitar</Button>
+                      <Button size="sm" className="gradient-primary text-white border-0 rounded-lg" onClick={() => handleAcceptStart(application)}>Aceitar Orçamento</Button>
+                      <Button size="sm" variant="outline" className="rounded-lg" onClick={() => handleReject(application.id)}>Rejeitar</Button>
                     </div>
                   )}
                 </div>
@@ -167,7 +205,40 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, onDelete }) => {
             </div>
           </div>
         )}
+        {request.status === 'in_progress' && (
+          <div className="mt-4 pt-4 border-t border-border/50">
+            <Button onClick={handleMarkCompleted} disabled={completing} className="w-full gradient-primary text-white border-0 rounded-lg">
+              <CheckCircle2 className="h-4 w-4 mr-2" /> Marcar como concluído e liberar pagamento
+            </Button>
+          </div>
+        )}
       </CardContent>
+
+      <Dialog open={!!payingApp} onOpenChange={(v) => !v && setPayingApp(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmar pagamento do orçamento</DialogTitle>
+            <DialogDescription>
+              O pagamento será processado agora. O valor só é repassado ao freelancer após você marcar o serviço como concluído.
+            </DialogDescription>
+          </DialogHeader>
+          {payingApp && (
+            <div className="space-y-3">
+              <div className="rounded-lg bg-muted p-3 text-sm">
+                <p><strong>Valor:</strong> R$ {payingApp.proposed_price ?? '—'}</p>
+                {payingApp.message && <p className="text-muted-foreground mt-1">"{payingApp.message}"</p>}
+              </div>
+              <AsaasPaymentButton
+                amount={(payingApp.proposed_price ?? 0) * 100}
+                serviceId={request.id}
+                freelancerId={payingApp.freelancer_id}
+                description={`Orçamento aceito: ${request.title}`}
+                onPaymentComplete={handlePaymentComplete}
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

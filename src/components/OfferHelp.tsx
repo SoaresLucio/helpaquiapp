@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useOfferForm } from '@/hooks/useOfferForm';
 import OfferFormFields from '@/components/offer/OfferFormFields';
 import CategorySelector from '@/components/offer/CategorySelector';
 import PhotoManager from '@/components/offer/PhotoManager';
+import FreelancerTermsDialog from '@/components/terms/FreelancerTermsDialog';
 
 const OfferHelp: React.FC = () => {
   const {
@@ -39,11 +40,23 @@ const OfferHelp: React.FC = () => {
     setPhotos(newPhotos);
   };
 
+  const [showTerms, setShowTerms] = useState(false);
+
+  const onFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowTerms(true);
+  };
+
+  const onAcceptTerms = () => {
+    setShowTerms(false);
+    handleSubmit({ preventDefault: () => {} } as unknown as React.FormEvent);
+  };
+
   return (
     <div className="helpaqui-card p-5">
       <h2 className="text-xl font-semibold mb-4 text-secondary">Oferecer um Help</h2>
       
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={onFormSubmit}>
         <div className="space-y-4">
           <OfferFormFields
             title={title}
@@ -81,6 +94,7 @@ const OfferHelp: React.FC = () => {
           </Button>
         </div>
       </form>
+      <FreelancerTermsDialog open={showTerms} onOpenChange={setShowTerms} onAccept={onAcceptTerms} />
     </div>
   );
 };
