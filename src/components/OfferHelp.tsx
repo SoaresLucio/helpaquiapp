@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useOfferForm } from '@/hooks/useOfferForm';
 import OfferFormFields from '@/components/offer/OfferFormFields';
 import CategorySelector from '@/components/offer/CategorySelector';
 import PhotoManager from '@/components/offer/PhotoManager';
+import FreelancerTermsDialog from '@/components/terms/FreelancerTermsDialog';
 
 const OfferHelp: React.FC = () => {
   const {
