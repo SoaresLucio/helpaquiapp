@@ -9,6 +9,7 @@ import { MapPin, DollarSign, Clock, Plus } from 'lucide-react';
 import { serviceCategories } from '@/data/mockData';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import FreelancerTermsDialog from '@/components/terms/FreelancerTermsDialog';
 
 const FreelancerOfferForm: React.FC = () => {
   const { toast } = useToast();
