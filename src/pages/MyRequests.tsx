@@ -7,10 +7,14 @@ import BackButton from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, MapPin, Clock, DollarSign, Users } from 'lucide-react';
+import { Edit, Trash2, MapPin, Clock, DollarSign, Users, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMyRequests } from '@/hooks/useMyRequests';
 import { useRequestApplications } from '@/hooks/useRequestApplications';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import AsaasPaymentButton from '@/components/payment/AsaasPaymentButton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const stagger = { visible: { transition: { staggerChildren: 0.08 } } };
 const fadeUp = { hidden: { opacity: 0, y: 15 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } } };
