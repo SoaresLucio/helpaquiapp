@@ -58,77 +58,16 @@ export const usePaymentMethods = () => {
     }
   };
 
-  const addPaymentMethod = async (newMethod: NewPaymentMethod) => {
-    if (!user?.id) return false;
-
-    if (newMethod.type === 'card') {
-      if (!newMethod.cardNumber || !newMethod.cardName || !newMethod.expiryDate || !newMethod.cvv) {
-        toast({
-          title: "Erro",
-          description: "Preencha todos os campos do cartão",
-          variant: "destructive"
-        });
-        return false;
-      }
-
-      try {
-        const { error } = await supabase
-          .from('payment_methods')
-          .insert({
-            user_id: user.id,
-            method_type: 'credit_card',
-            card_last_four: newMethod.cardNumber.slice(-4),
-            card_brand: 'visa',
-            is_default: paymentMethods.length === 0
-          });
-
-        if (error) throw error;
-        await loadPaymentMethods();
-        return true;
-      } catch (error) {
-        console.error('Error adding payment method:', error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível adicionar o método de pagamento.",
-          variant: "destructive"
-        });
-        return false;
-      }
-    } else {
-      if (!newMethod.pixKey) {
-        toast({
-          title: "Erro",
-          description: "Preencha a chave PIX",
-          variant: "destructive"
-        });
-        return false;
-      }
-
-      try {
-        const { error } = await supabase
-          .from('payment_methods')
-          .insert({
-            user_id: user.id,
-            method_type: 'pix',
-            card_last_four: newMethod.pixKey.slice(-4),
-            card_brand: 'pix',
-            is_default: paymentMethods.length === 0
-          });
-
-        if (error) throw error;
-        await loadPaymentMethods();
-        return true;
-      } catch (error) {
-        console.error('Error adding payment method:', error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível adicionar o método de pagamento.",
-          variant: "destructive"
-        });
-        return false;
-      }
-    }
+  // PCI: never collect card data in the app. Cards are saved by the Asaas webhook
+  // after a successful hosted checkout. This stub remains for backwards compatibility.
+  const addPaymentMethod = async (_newMethod?: NewPaymentMethod) => {
+    toast({
+      title: "Use o checkout seguro",
+      description: "Os métodos de pagamento são salvos automaticamente após o pagamento via Asaas.",
+    });
+    return false;
   };
+
 
   const removeMethod = async (id: string) => {
     try {

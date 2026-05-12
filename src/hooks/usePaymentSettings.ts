@@ -116,57 +116,14 @@ export const usePaymentSettings = () => {
     }
   };
 
-  // Add payment method
-  const addPaymentMethod = async (cardData: {
-    cardNumber: string;
-    cardName: string;
-    expiry: string;
-    cvv: string;
-  }) => {
-    if (!user?.id) return false;
-    
-    setIsProcessing(true);
-    
-    try {
-      const { error } = await supabase
-        .from('payment_methods')
-        .insert({
-          user_id: user.id,
-          method_type: 'credit_card',
-          card_last_four: cardData.cardNumber.slice(-4),
-          card_brand: 'visa',
-          is_default: paymentMethods.length === 0
-        });
-
-      if (error) throw error;
-
-      // Reload payment methods
-      const { data: updatedMethods } = await supabase
-        .from('payment_methods')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .order('is_default', { ascending: false });
-
-      setPaymentMethods(updatedMethods || []);
-      
-      toast({
-        title: "Cartão adicionado",
-        description: `O cartão terminado em ${cardData.cardNumber.slice(-4)} foi adicionado com sucesso.`,
-      });
-      
-      return true;
-    } catch (error) {
-      console.error('Error adding card:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível adicionar o cartão.",
-        variant: "destructive"
-      });
-      return false;
-    } finally {
-      setIsProcessing(false);
-    }
+  // Cards are added automatically by the Asaas webhook after a successful hosted checkout.
+  // We never collect raw card data in the app (PCI DSS).
+  const addPaymentMethod = async (_cardData?: unknown) => {
+    toast({
+      title: "Use o checkout seguro",
+      description: "Os cartões são salvos automaticamente após o pagamento via Asaas.",
+    });
+    return false;
   };
 
   // Set default payment method
