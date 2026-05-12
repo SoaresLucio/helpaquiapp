@@ -41,18 +41,15 @@ const OfferHelp: React.FC = () => {
   };
 
   const [showTerms, setShowTerms] = useState(false);
-  const [pendingEvent, setPendingEvent] = useState<React.FormEvent | null>(null);
 
   const onFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setPendingEvent({ ...e, preventDefault: () => {} } as any);
     setShowTerms(true);
   };
 
   const onAcceptTerms = () => {
     setShowTerms(false);
-    if (pendingEvent) handleSubmit(pendingEvent);
-    setPendingEvent(null);
+    handleSubmit({ preventDefault: () => {} } as unknown as React.FormEvent);
   };
 
   return (
