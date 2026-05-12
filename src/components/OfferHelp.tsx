@@ -40,11 +40,26 @@ const OfferHelp: React.FC = () => {
     setPhotos(newPhotos);
   };
 
+  const [showTerms, setShowTerms] = useState(false);
+  const [pendingEvent, setPendingEvent] = useState<React.FormEvent | null>(null);
+
+  const onFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPendingEvent({ ...e, preventDefault: () => {} } as any);
+    setShowTerms(true);
+  };
+
+  const onAcceptTerms = () => {
+    setShowTerms(false);
+    if (pendingEvent) handleSubmit(pendingEvent);
+    setPendingEvent(null);
+  };
+
   return (
     <div className="helpaqui-card p-5">
       <h2 className="text-xl font-semibold mb-4 text-secondary">Oferecer um Help</h2>
       
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={onFormSubmit}>
         <div className="space-y-4">
           <OfferFormFields
             title={title}
@@ -82,6 +97,7 @@ const OfferHelp: React.FC = () => {
           </Button>
         </div>
       </form>
+      <FreelancerTermsDialog open={showTerms} onOpenChange={setShowTerms} onAccept={onAcceptTerms} />
     </div>
   );
 };
