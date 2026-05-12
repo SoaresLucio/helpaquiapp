@@ -86,13 +86,47 @@ const MyRequests: React.FC = () => {
 interface RequestCardProps { request: any; onDelete: (requestId: string) => Promise<void>; }
 
 const RequestCard: React.FC<RequestCardProps> = ({ request, onDelete }) => {
-  const { applications, loading } = useRequestApplications(request.id);
+  const { applications, loading, reloadApplications } = useRequestApplications(request.id);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [payingApp, setPayingApp] = React.useState<any | null>(null);
+  const [completing, setCompleting] = React.useState(false);
 
   const handleDelete = async () => {
-    if (window.confirm('Tem certeza que deseja excluir este pedido?')) {
+    if (window.confirm('Tem certeza que deseja excluir este pedido? Cancelamentos consecutivos podem bloquear sua conta.')) {
       setIsDeleting(true);
       try { await onDelete(request.id); } catch {} finally { setIsDeleting(false); }
+    }
+  };
+
+  const handleReject = async (appId: string) => {
+    const { error } = await supabase.from('service_applications').update({ status: 'rejected' }).eq('id', appId);
+    if (error) toast.error('Erro ao rejeitar candidatura'); else { toast.success('Candidatura rejeitada'); reloadApplications(); }
+  };
+
+  const handleAcceptStart = (app: any) => setPayingApp(app);
+
+  const handlePaymentComplete = async () => {
+    if (!payingApp) return;
+    const { error } = await supabase.from('service_applications').update({ status: 'accepted' }).eq('id', payingApp.id);
+    if (!error) {
+      await supabase.from('service_requests').update({ status: 'in_progress' }).eq('id', request.id);
+      toast.success('Orçamento aceito e pagamento processado!');
+    }
+    setPayingApp(null);
+    reloadApplications();
+  };
+
+  const handleMarkCompleted = async () => {
+    if (!window.confirm('Marcar este serviço como concluído? O pagamento será liberado ao freelancer.')) return;
+    setCompleting(true);
+    try {
+      const { error } = await supabase.rpc('mark_service_completed', { p_request_id: request.id });
+      if (error) throw error;
+      toast.success('Serviço concluído. Pagamento liberado!');
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Erro ao concluir serviço');
+    } finally {
+      setCompleting(false);
     }
   };
 
