@@ -68,31 +68,6 @@ export const usePaymentMethods = () => {
     return false;
   };
 
-      try {
-        const { error } = await supabase
-          .from('payment_methods')
-          .insert({
-            user_id: user.id,
-            method_type: 'pix',
-            card_last_four: newMethod.pixKey.slice(-4),
-            card_brand: 'pix',
-            is_default: paymentMethods.length === 0
-          });
-
-        if (error) throw error;
-        await loadPaymentMethods();
-        return true;
-      } catch (error) {
-        console.error('Error adding payment method:', error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível adicionar o método de pagamento.",
-          variant: "destructive"
-        });
-        return false;
-      }
-    }
-  };
 
   const removeMethod = async (id: string) => {
     try {
