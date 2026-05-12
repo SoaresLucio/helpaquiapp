@@ -45,8 +45,6 @@ export const useMyRequests = () => {
 
   const deleteRequest = async (requestId: string) => {
     try {
-      // console.log('🗑️ Excluindo pedido:', requestId);
-      
       const { error } = await supabase
         .from('service_requests')
         .delete()
@@ -57,9 +55,20 @@ export const useMyRequests = () => {
         throw error;
       }
 
-      // Remove from local state
+      // Increment cancellation counter (best-effort)
+      if (user) {
+        const { data: count } = await supabase.rpc('increment_cancellation_count', { p_user_id: user.id });
+        if (typeof count === 'number' && count >= 3) {
+          toast({
+            title: 'Conta em análise ética',
+            description: 'Você atingiu 3 cancelamentos. Sua conta está temporariamente bloqueada para novos pedidos.',
+            variant: 'destructive',
+          });
+        }
+      }
+
       setRequests(prev => prev.filter(request => request.id !== requestId));
-      
+
       toast({
         title: "Sucesso",
         description: "Pedido excluído com sucesso.",
