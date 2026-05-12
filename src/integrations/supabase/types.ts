@@ -845,6 +845,8 @@ export type Database = {
           freelancer_id: string | null
           id: string
           platform_fee: number
+          released: boolean
+          released_at: string | null
           service_id: string
           service_title: string | null
           status: string
@@ -859,6 +861,8 @@ export type Database = {
           freelancer_id?: string | null
           id?: string
           platform_fee: number
+          released?: boolean
+          released_at?: string | null
           service_id: string
           service_title?: string | null
           status?: string
@@ -873,6 +877,8 @@ export type Database = {
           freelancer_id?: string | null
           id?: string
           platform_fee?: number
+          released?: boolean
+          released_at?: string | null
           service_id?: string
           service_title?: string | null
           status?: string
@@ -1019,8 +1025,10 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_blocked: boolean
           address: string | null
           avatar_url: string | null
+          cancellation_count: number
           cover_photo: string | null
           created_at: string
           email: string | null
@@ -1033,8 +1041,10 @@ export type Database = {
           verified: boolean | null
         }
         Insert: {
+          account_blocked?: boolean
           address?: string | null
           avatar_url?: string | null
+          cancellation_count?: number
           cover_photo?: string | null
           created_at?: string
           email?: string | null
@@ -1047,8 +1057,10 @@ export type Database = {
           verified?: boolean | null
         }
         Update: {
+          account_blocked?: boolean
           address?: string | null
           avatar_url?: string | null
+          cancellation_count?: number
           cover_photo?: string | null
           created_at?: string
           email?: string | null
@@ -1337,8 +1349,10 @@ export type Database = {
           budget_min: number | null
           category: string
           client_id: string
+          completed_at: string | null
           created_at: string
           description: string | null
+          feedback_submitted: boolean
           id: string
           location_address: string | null
           location_lat: number | null
@@ -1353,8 +1367,10 @@ export type Database = {
           budget_min?: number | null
           category: string
           client_id: string
+          completed_at?: string | null
           created_at?: string
           description?: string | null
+          feedback_submitted?: boolean
           id?: string
           location_address?: string | null
           location_lat?: number | null
@@ -1369,8 +1385,10 @@ export type Database = {
           budget_min?: number | null
           category?: string
           client_id?: string
+          completed_at?: string | null
           created_at?: string
           description?: string | null
+          feedback_submitted?: boolean
           id?: string
           location_address?: string | null
           location_lat?: number | null
@@ -1949,6 +1967,7 @@ export type Database = {
         Args: { p_new_user_type: string; p_user_id: string }
         Returns: boolean
       }
+      can_create_request: { Args: never; Returns: boolean }
       check_message_limit: {
         Args: { p_other_user_id: string; p_user_id: string }
         Returns: boolean
@@ -2048,6 +2067,10 @@ export type Database = {
             }
             Returns: boolean
           }
+      increment_cancellation_count: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
       insert_bank_details: {
         Args: {
           p_account_number: string
@@ -2099,6 +2122,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: undefined
+      }
+      mark_service_completed: {
+        Args: { p_request_id: string }
+        Returns: boolean
       }
       update_user_subscription: {
         Args: {
