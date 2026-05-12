@@ -24,18 +24,28 @@ const FreelancerOfferForm: React.FC = () => {
     experience: ''
   });
   const [photos, setPhotos] = useState<string[]>([]);
+  const [showTerms, setShowTerms] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const validateForm = () => {
     if (!formData.title || !formData.description || !formData.category || !formData.price) {
       toast({
         title: "Campos obrigatórios",
         description: "Preencha todos os campos obrigatórios",
         variant: "destructive",
       });
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    setShowTerms(true);
+  };
+
+  const handleAfterTerms = () => {
+    setShowTerms(false);
 
     // Create freelancer offer
     const offer = {
