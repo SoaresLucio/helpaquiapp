@@ -97,6 +97,7 @@ const Jobs = () => {
         )}
       </motion.div>
     </div>
+    </PageSEO>
   );
 };
 
