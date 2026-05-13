@@ -1959,6 +1959,11 @@ export type Database = {
       }
     }
     Functions: {
+      admin_has_role: { Args: { _roles: string[] }; Returns: boolean }
+      admin_release_payment: {
+        Args: { p_approve: boolean; p_payment_id: string; p_reason?: string }
+        Returns: boolean
+      }
       admin_update_payment_status: {
         Args: { p_new_status: string; p_payment_id: string }
         Returns: boolean
