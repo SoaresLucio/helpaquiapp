@@ -126,6 +126,11 @@ const FreelancerHome: React.FC = () => {
         </div>
       </motion.div>
 
+      {/* Pending hire proposals */}
+      <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2}>
+        <PendingHireProposals />
+      </motion.div>
+
       {/* Quick Actions */}
       <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2}>
         <Card className="rounded-2xl border-border/50 shadow-sm">
