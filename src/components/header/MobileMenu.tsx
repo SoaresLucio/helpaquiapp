@@ -51,7 +51,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ currentPath }) => {
         </SheetHeader>
         <div className="py-4">
           <nav className="flex flex-col gap-2">
-            {navLink('/', 'Início')}
+            {navLink('/dashboard', 'Início')}
             {navLink('/jobs', 'Vagas de Emprego')}
 
             {showSolicitante && (
