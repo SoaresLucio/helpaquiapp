@@ -294,9 +294,10 @@ const LandingPage: React.FC = () => {
               © {new Date().getFullYear()} HelpAqui. Todos os direitos reservados.
             </p>
           </div>
-        </div>
-      </footer>
+      </div>
+    </footer>
     </div>
+    </PageSEO>
   );
 };
 
