@@ -46,7 +46,7 @@ const stats = [
 const LandingPage: React.FC = () => {
   return (
     <PageSEO
-      title="Encontre profissionais qualificados perto de você"
+      title="HelpAqui — Profissionais qualificados perto de você"
       description="Conectamos você aos melhores freelancers e prestadores de serviço da sua região de forma rápida, segura e com garantia de qualidade."
       path="/"
     >
