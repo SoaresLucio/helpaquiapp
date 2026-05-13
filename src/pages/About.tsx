@@ -124,6 +124,7 @@ const About = () => {
         )}
       </motion.div>
     </div>
+    </PageSEO>
   );
 };
 
