@@ -54,6 +54,16 @@ const About = () => {
       description="Conheça a HelpAqui, a plataforma que conecta solicitantes a freelancers e prestadores de serviço qualificados."
       path="/about"
     >
+      <StructuredData schema={{
+        "@type": "LocalBusiness",
+        name: appInfo.company_name || "HelpAqui",
+        description: appInfo.description || "Conectando pessoas que precisam de ajuda com profissionais qualificados",
+        url: "https://helpaquiapp.lovable.app/about",
+        ...(appInfo.address ? { address: { "@type": "PostalAddress", streetAddress: appInfo.address } } : {}),
+        ...(appInfo.email ? { email: appInfo.email } : {}),
+        ...(appInfo.phone ? { telephone: appInfo.phone } : {}),
+        ...(appInfo.instagram ? { sameAs: [appInfo.instagram] } : {}),
+      }} />
     <div className="min-h-screen bg-background">
       <Header />
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="container mx-auto px-4 py-8 max-w-4xl">
