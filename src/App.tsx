@@ -105,8 +105,8 @@ function App() {
           <Route path="/auth" element={<PageWrapper><Auth /></PageWrapper>} />
           <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
           <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
-          <Route path="/reset-password" element={<SEOPage title="Recuperar Senha" description="Recupere o acesso à sua conta HelpAqui." path="/reset-password"><ResetPassword /></SEOPage>} />
-          <Route path="/new-password" element={<SEOPage title="Nova Senha" description="Defina uma nova senha para sua conta HelpAqui." path="/new-password" noIndex><NewPassword /></SEOPage>} />
+          <Route path="/reset-password" element={<SEOPage title="Recuperar Senha" description="Esqueceu sua senha? Recupere o acesso à sua conta HelpAqui de forma rápida e segura — receba um link de redefinição direto no seu e-mail." path="/reset-password"><ResetPassword /></SEOPage>} />
+          <Route path="/new-password" element={<SEOPage title="Nova Senha" description="Defina uma nova senha segura para sua conta HelpAqui e volte a acessar a plataforma de prestadores de serviço próximos de você." path="/new-password" noIndex><NewPassword /></SEOPage>} />
           <Route path="/user-type" element={<SEOPage title="Escolha seu Tipo de Conta" description="Selecione como você deseja usar a HelpAqui: solicitante, freelancer ou empresa." path="/user-type"><UserTypeSelection /></SEOPage>} />
 
           {/* Dashboard */}
@@ -116,8 +116,8 @@ function App() {
           <Route path="/subscription" element={<SEOPage title="Assinatura" description="Gerencie seu plano de assinatura na HelpAqui." path="/subscription" noIndex><ProtectedRoute><Subscription /></ProtectedRoute></SEOPage>} />
           <Route path="/profile" element={<SEOPage title="Meu Perfil" description="Gerencie seu perfil HelpAqui." path="/profile" noIndex><ProtectedRoute><UserProfilePage /></ProtectedRoute></SEOPage>} />
           <Route path="/freelancer-profile" element={<SEOPage title="Perfil de Freelancer" description="Gerencie seu perfil profissional de freelancer." path="/freelancer-profile" noIndex><ProtectedRoute><FreelancerProfile /></ProtectedRoute></SEOPage>} />
-          <Route path="/freelancer/:id" element={<SEOPage title="Perfil de Freelancer" description="Veja o perfil profissional, avaliações e serviços do freelancer." path="/freelancer" noIndex><ProtectedRoute><FreelancerProfile /></ProtectedRoute></SEOPage>} />
-          <Route path="/u/:userId" element={<SEOPage title="Perfil de Usuário" description="Veja o perfil público deste usuário HelpAqui." path="/u" noIndex><ProtectedRoute><PublicProfile /></ProtectedRoute></SEOPage>} />
+          <Route path="/freelancer/:id" element={<PageWrapper><ProtectedRoute><FreelancerProfile /></ProtectedRoute></PageWrapper>} />
+          <Route path="/u/:userId" element={<PageWrapper><ProtectedRoute><PublicProfile /></ProtectedRoute></PageWrapper>} />
           <Route path="/jobs" element={<PageWrapper><ProtectedRoute><Jobs /></ProtectedRoute></PageWrapper>} />
           <Route path="/chat" element={<SEOPage title="Mensagens" description="Converse com profissionais e clientes na HelpAqui." path="/chat" noIndex><ProtectedRoute><Chat /></ProtectedRoute></SEOPage>} />
           <Route path="/notes" element={<SEOPage title="Anotações" description="Suas anotações pessoais na HelpAqui." path="/notes" noIndex><ProtectedRoute><Notes /></ProtectedRoute></SEOPage>} />
@@ -128,7 +128,7 @@ function App() {
           <Route path="/offers" element={<SEOPage title="Ofertas" description="Veja ofertas de serviços disponíveis." path="/offers" noIndex><ProtectedRoute><OffersPage /></ProtectedRoute></SEOPage>} />
           <Route path="/payment-confirmation/:planId" element={<SEOPage title="Confirmação de Pagamento" description="Confirme seu pagamento de assinatura." path="/payment-confirmation" noIndex><ProtectedRoute><PaymentConfirmationPage /></ProtectedRoute></SEOPage>} />
           <Route path="/about" element={<PageWrapper><ProtectedRoute><About /></ProtectedRoute></PageWrapper>} />
-          <Route path="/banner/:id" element={<SEOPage title="Detalhes da Promoção" description="Detalhes desta promoção HelpAqui." path="/banner" noIndex><ProtectedRoute><BannerDetail /></ProtectedRoute></SEOPage>} />
+          <Route path="/banner/:id" element={<PageWrapper><ProtectedRoute><BannerDetail /></ProtectedRoute></PageWrapper>} />
 
           {/* Solicitante routes */}
           <Route path="/solicitante-plans" element={<SEOPage title="Planos para Solicitantes" description="Conheça os planos de assinatura para solicitantes na HelpAqui." path="/solicitante-plans" noIndex><ProtectedRoute requiredUserType="solicitante"><SolicitantePlans /></ProtectedRoute></SEOPage>} />
@@ -151,7 +151,7 @@ function App() {
           <Route path="/admin/*" element={<SEOPage title="Painel Admin" description="Painel administrativo HelpAqui." path="/admin" noIndex><ProtectedRoute><AdminDashboard /></ProtectedRoute></SEOPage>} />
 
           {/* 404 */}
-          <Route path="*" element={<SEOPage title="Página não encontrada" description="A página que você procura não foi encontrada." path="/404" noIndex><NotFound /></SEOPage>} />
+          <Route path="*" element={<SEOPage title="Página não encontrada" description="A página que você procura não foi encontrada ou foi movida. Volte ao início da HelpAqui e continue encontrando profissionais qualificados perto de você." path="/404" noIndex><NotFound /></SEOPage>} />
         </Routes>
       </AnimatePresence>
     </Suspense>
