@@ -252,6 +252,7 @@ const Auth = () => {
         <div className="flex items-center gap-1"><Zap className="h-3 w-3" /><span>Dados criptografados</span></div>
       </motion.div>
     </div>
+    </PageSEO>
   );
 };
 
