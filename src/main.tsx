@@ -29,18 +29,20 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <SecurityProvider>
-              <TooltipProvider>
-                <Toaster />
-                <ErrorBoundary>
-                  <App />
-                </ErrorBoundary>
-              </TooltipProvider>
-            </SecurityProvider>
-          </AuthProvider>
-        </BrowserRouter>
+        <HelmetProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <SecurityProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <ErrorBoundary>
+                    <App />
+                  </ErrorBoundary>
+                </TooltipProvider>
+              </SecurityProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </HelmetProvider>
       </ThemeProvider>
     </QueryClientProvider>
   </React.StrictMode>
