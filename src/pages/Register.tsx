@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { signUp } from '@/services/authService';
 import { supabase } from "@/integrations/supabase/client";
 import EmpresaRegisterForm from '@/components/empresa/EmpresaRegisterForm';
+import PageSEO from '@/components/common/PageSEO';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },

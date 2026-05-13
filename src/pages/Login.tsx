@@ -9,6 +9,7 @@ import FreelancerLoginForm from '@/components/auth/FreelancerLoginForm';
 import EmpresaLoginForm from '@/components/auth/EmpresaLoginForm';
 import PrivacyPolicyDialog from '@/components/PrivacyPolicyDialog';
 import TermsOfUseDialog from '@/components/TermsOfUseDialog';
+import PageSEO from '@/components/common/PageSEO';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },

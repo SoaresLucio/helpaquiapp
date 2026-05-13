@@ -11,6 +11,7 @@ import JobsHeader from '@/components/jobs/JobsHeader';
 import JobsLoading from '@/components/jobs/JobsLoading';
 import JobsEmpty from '@/components/jobs/JobsEmpty';
 import JobsList from '@/components/jobs/JobsList';
+import PageSEO from '@/components/common/PageSEO';
 
 interface JobListing {
   id: string;
