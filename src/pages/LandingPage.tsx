@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Search, Shield, Star, MapPin, ArrowRight, Users, Briefcase, Zap, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import PageSEO from '@/components/common/PageSEO';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
