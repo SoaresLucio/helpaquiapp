@@ -41,6 +41,7 @@ const BannerDetail = lazy(() => import("./pages/BannerDetail"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const NewRequest = lazy(() => import("./pages/NewRequest"));
 const HireConfirmation = lazy(() => import("./pages/HireConfirmation"));
+const HireResponse = lazy(() => import("./pages/HireResponse"));
 
 const pageTransition = {
   initial: { opacity: 0, y: 8 },
@@ -134,6 +135,7 @@ function App() {
           <Route path="/my-requests" element={<SEOPage title="Minhas Solicitações" description="Acompanhe suas solicitações de serviços na HelpAqui." path="/my-requests" noIndex><ProtectedRoute requiredUserType="solicitante"><MyRequests /></ProtectedRoute></SEOPage>} />
           <Route path="/new-request" element={<SEOPage title="Publicar Help" description="Publique uma nova solicitação de serviço na HelpAqui." path="/new-request" noIndex><ProtectedRoute><NewRequest /></ProtectedRoute></SEOPage>} />
           <Route path="/hire/confirm" element={<SEOPage title="Confirmar Contratação" description="Confirme os detalhes e pague de forma segura." path="/hire/confirm" noIndex><ProtectedRoute><HireConfirmation /></ProtectedRoute></SEOPage>} />
+          <Route path="/hire/respond/:proposalId" element={<SEOPage title="Responder Contratação" description="Aceite ou recuse a contratação do Help." path="/hire/respond" noIndex><ProtectedRoute><HireResponse /></ProtectedRoute></SEOPage>} />
 
           {/* Freelancer routes */}
           <Route path="/freelancer-plans" element={<SEOPage title="Planos para Freelancers" description="Conheça os planos de assinatura para freelancers." path="/freelancer-plans" noIndex><ProtectedRoute requiredUserType="freelancer"><FreelancerPlans /></ProtectedRoute></SEOPage>} />
