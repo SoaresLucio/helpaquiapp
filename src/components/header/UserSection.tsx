@@ -83,7 +83,7 @@ const UserSection: React.FC<UserSectionProps> = ({
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild className="hover:bg-gray-50">
-            <Link to="/settings" className="text-gray-700">
+            <Link to="/profile-verification" className="text-gray-700">
               <Settings className="mr-2 h-4 w-4" />
               <span>Configurações</span>
               <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
