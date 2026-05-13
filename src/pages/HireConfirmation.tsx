@@ -84,19 +84,19 @@ const HireConfirmation: React.FC = () => {
     try {
       const scheduledAt = new Date(`${date}T${time}:00`).toISOString();
 
-      // 1) Create service_request (pending payment)
+      // 1) Create service_request (open, awaiting freelancer acceptance + payment)
       const { data: request, error: reqError } = await supabase
         .from('service_requests')
         .insert({
           client_id: user.id,
           title: title.trim(),
-          description: description.trim() || `Contratação direta via chat. Agendado para ${date} às ${time}.`,
+          description: `${description.trim() ? description.trim() + '\n\n' : ''}Contratação direta via chat. Agendado para ${date} às ${time}. Local: ${address.trim()}.`,
           category: 'Outros',
-          status: 'pending_payment',
+          status: 'open',
           location_address: address.trim(),
           budget_min: valueCents,
           budget_max: valueCents,
-          urgency: 'scheduled',
+          urgency: 'normal',
         })
         .select()
         .single();
@@ -108,7 +108,7 @@ const HireConfirmation: React.FC = () => {
         .insert({
           service_request_id: request.id,
           freelancer_id: state.freelancerId,
-          status: 'pending_freelancer_acceptance',
+          status: 'pending',
           proposed_price: valueCents,
           message: `Contratação direta via chat. Data: ${date} ${time}. Local: ${address.trim()}.`,
         });
