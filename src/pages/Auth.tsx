@@ -12,6 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { signIn, signUp } from '@/services/authService';
 import { supabase } from "@/integrations/supabase/client";
+import PageSEO from '@/components/common/PageSEO';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
