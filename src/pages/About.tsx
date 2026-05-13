@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Building2, Mail, Phone, MapPin, Instagram, MessageCircle, FileText, Shield, Users, Heart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import PageSEO from '@/components/common/PageSEO';
+import StructuredData from '@/components/common/StructuredData';
 
 interface AppInfo {
   company_name?: string; description?: string; cnpj?: string; address?: string; email?: string;
