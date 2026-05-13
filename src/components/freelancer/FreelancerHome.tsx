@@ -118,7 +118,7 @@ const FreelancerHome: React.FC = () => {
             <Button variant="secondary" onClick={() => navigate('/help-requests')} className="rounded-xl shadow-sm">
               <Briefcase className="h-4 w-4 mr-2" />Ver Solicitações
             </Button>
-            <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl">
+            <Button variant="outline" onClick={() => navigate('/my-offers')} className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl">
               Meus Trabalhos
             </Button>
           </div>
