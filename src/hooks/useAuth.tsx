@@ -37,9 +37,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const authState = useAuthSession();
   const [profile, setProfile] = useState<any>(null);
 
-  // Centralized location tracking — runs once per auth session, not per route
-  useUserLocation();
-
   useEffect(() => {
     if (!authState.user || !authState.isAuthenticated) {
       setProfile(null);
