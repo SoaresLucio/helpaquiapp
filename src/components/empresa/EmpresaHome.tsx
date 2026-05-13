@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, Briefcase, Megaphone, Users, Settings, Crown, FileText, Eye } from 'lucide-react';
+import { Building2, Briefcase, Megaphone, Users, Settings, Crown, FileText, Eye, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -85,6 +85,15 @@ const EmpresaHome: React.FC = () => {
           <p className="text-muted-foreground">Painel da Empresa</p>
         </div>
       </div>
+
+      {/* Publicar Help CTA */}
+      <Button
+        onClick={() => navigate('/new-request')}
+        className="w-full h-14 gradient-primary text-white border-0 rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl transition-all flex items-center justify-center gap-2 text-base"
+      >
+        <PlusCircle className="h-5 w-5" />
+        Publicar Help
+      </Button>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">

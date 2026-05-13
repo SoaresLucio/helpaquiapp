@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, MessageCircle, CreditCard, Users, Settings, FileText } from 'lucide-react';
+import { MapPin, MessageCircle, CreditCard, Settings, PlusCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const QuickActions: React.FC = () => {
@@ -19,16 +19,23 @@ const QuickActions: React.FC = () => {
           Acesse rapidamente as funcionalidades principais
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-3">
+        <Button
+          onClick={() => navigate('/new-request')}
+          className="w-full h-14 gradient-primary text-white border-0 rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl transition-all flex items-center justify-center gap-2 text-base"
+        >
+          <PlusCircle className="h-5 w-5" />
+          Publicar Help
+        </Button>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button 
+          <Button
             onClick={() => navigate('/chat')}
             className="bg-helpaqui-purple hover:bg-helpaqui-purple/90 h-16 flex flex-col gap-1"
           >
             <MessageCircle className="h-5 w-5" />
             Chat & Mensagens
           </Button>
-          <Button 
+          <Button
             variant="outline"
             onClick={() => navigate('/my-requests')}
             className="h-16 flex flex-col gap-1 bg-blue-50 hover:bg-blue-100 border-blue-200"
@@ -36,7 +43,7 @@ const QuickActions: React.FC = () => {
             <Settings className="h-5 w-5" />
             Meus Pedidos
           </Button>
-          <Button 
+          <Button
             variant="outline"
             onClick={() => navigate('/payment-settings')}
             className="h-16 flex flex-col gap-1"
