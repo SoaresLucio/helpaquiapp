@@ -75,6 +75,24 @@ const Jobs = () => {
       description="Encontre vagas de emprego para freelancers e profissionais qualificados na HelpAqui."
       path="/jobs"
     >
+      <StructuredData schema={jobs.map(job => ({
+        "@type": "JobPosting",
+        title: job.title,
+        description: job.description,
+        datePosted: job.created_at,
+        hiringOrganization: {
+          "@type": "Organization",
+          name: job.company_name,
+        },
+        jobLocation: {
+          "@type": "Place",
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: job.location,
+          },
+        },
+        employmentType: job.job_type === 'CLT' ? 'FULL_TIME' : 'TEMPORARY',
+      }))} />
     <div className="min-h-screen bg-background">
       <Header />
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="container mx-auto px-4 py-8">
