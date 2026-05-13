@@ -40,10 +40,19 @@ const About = () => {
   }, []);
 
   if (loading) {
-    return (<div className="min-h-screen bg-background"><Header /><div className="container mx-auto px-4 py-8 text-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div></div></div>);
+    return (
+      <PageSEO title="Sobre" description="Conheça a HelpAqui, a plataforma que conecta solicitantes a freelancers e prestadores de serviço qualificados." path="/about">
+      <div className="min-h-screen bg-background"><Header /><div className="container mx-auto px-4 py-8 text-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div></div></div>
+      </PageSEO>
+    );
   }
 
   return (
+    <PageSEO
+      title="Sobre a HelpAqui"
+      description="Conheça a HelpAqui, a plataforma que conecta solicitantes a freelancers e prestadores de serviço qualificados."
+      path="/about"
+    >
     <div className="min-h-screen bg-background">
       <Header />
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="container mx-auto px-4 py-8 max-w-4xl">

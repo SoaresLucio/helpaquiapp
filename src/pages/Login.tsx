@@ -26,6 +26,11 @@ const Login = () => {
   const [termsOpen, setTermsOpen] = useState(false);
 
   return (
+    <PageSEO
+      title="Login"
+      description="Acesse sua conta HelpAqui para gerenciar serviços, propostas e pagamentos."
+      path="/login"
+    >
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute inset-0 -z-10">
         <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl" />
