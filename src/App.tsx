@@ -1,9 +1,9 @@
-
 import { lazy, Suspense } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import LoadingScreen from "./components/index/LoadingScreen";
+import PageSEO from "./components/common/PageSEO";
 
 // Lazy-loaded pages
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -54,6 +54,26 @@ const PageWrapper = ({ children }: { children: React.ReactNode }) => (
   </motion.div>
 );
 
+// Helper: combine SEO + wrapper, defaults noIndex true for protected/auth-only pages
+const SEOPage = ({
+  title,
+  description,
+  path,
+  noIndex,
+  children,
+}: {
+  title: string;
+  description: string;
+  path: string;
+  noIndex?: boolean;
+  children: React.ReactNode;
+}) => (
+  <>
+    <PageSEO title={title} description={description} path={path} noIndex={noIndex} />
+    <PageWrapper>{children}</PageWrapper>
+  </>
+);
+
 // Prefetch critical routes during browser idle to reduce perceived navigation latency
 if (typeof window !== 'undefined') {
   const prefetch = () => {
@@ -75,57 +95,57 @@ function App() {
     <Suspense fallback={<LoadingScreen />}>
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          {/* Public landing page */}
+          {/* Public landing page (SEO handled inside LandingPage) */}
           <Route path="/" element={<PageWrapper><LandingPage /></PageWrapper>} />
 
-          {/* Public routes */}
+          {/* Public routes (SEO handled inside each page) */}
           <Route path="/auth" element={<PageWrapper><Auth /></PageWrapper>} />
           <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
           <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
-          <Route path="/reset-password" element={<PageWrapper><ResetPassword /></PageWrapper>} />
-          <Route path="/new-password" element={<PageWrapper><NewPassword /></PageWrapper>} />
-          <Route path="/user-type" element={<PageWrapper><UserTypeSelection /></PageWrapper>} />
+          <Route path="/reset-password" element={<SEOPage title="Recuperar Senha" description="Recupere o acesso à sua conta HelpAqui." path="/reset-password"><ResetPassword /></SEOPage>} />
+          <Route path="/new-password" element={<SEOPage title="Nova Senha" description="Defina uma nova senha para sua conta HelpAqui." path="/new-password" noIndex><NewPassword /></SEOPage>} />
+          <Route path="/user-type" element={<SEOPage title="Escolha seu Tipo de Conta" description="Selecione como você deseja usar a HelpAqui: solicitante, freelancer ou empresa." path="/user-type"><UserTypeSelection /></SEOPage>} />
 
           {/* Dashboard */}
-          <Route path="/dashboard" element={<PageWrapper><ProtectedRoute><Index /></ProtectedRoute></PageWrapper>} />
+          <Route path="/dashboard" element={<SEOPage title="Painel" description="Seu painel HelpAqui com serviços, propostas e atualizações em tempo real." path="/dashboard" noIndex><ProtectedRoute><Index /></ProtectedRoute></SEOPage>} />
 
           {/* General protected routes */}
-          <Route path="/subscription" element={<PageWrapper><ProtectedRoute><Subscription /></ProtectedRoute></PageWrapper>} />
-          <Route path="/profile" element={<PageWrapper><ProtectedRoute><UserProfilePage /></ProtectedRoute></PageWrapper>} />
-          <Route path="/freelancer-profile" element={<PageWrapper><ProtectedRoute><FreelancerProfile /></ProtectedRoute></PageWrapper>} />
-          <Route path="/freelancer/:id" element={<PageWrapper><ProtectedRoute><FreelancerProfile /></ProtectedRoute></PageWrapper>} />
-          <Route path="/u/:userId" element={<PageWrapper><ProtectedRoute><PublicProfile /></ProtectedRoute></PageWrapper>} />
+          <Route path="/subscription" element={<SEOPage title="Assinatura" description="Gerencie seu plano de assinatura na HelpAqui." path="/subscription" noIndex><ProtectedRoute><Subscription /></ProtectedRoute></SEOPage>} />
+          <Route path="/profile" element={<SEOPage title="Meu Perfil" description="Gerencie seu perfil HelpAqui." path="/profile" noIndex><ProtectedRoute><UserProfilePage /></ProtectedRoute></SEOPage>} />
+          <Route path="/freelancer-profile" element={<SEOPage title="Perfil de Freelancer" description="Gerencie seu perfil profissional de freelancer." path="/freelancer-profile" noIndex><ProtectedRoute><FreelancerProfile /></ProtectedRoute></SEOPage>} />
+          <Route path="/freelancer/:id" element={<SEOPage title="Perfil de Freelancer" description="Veja o perfil profissional, avaliações e serviços do freelancer." path="/freelancer" noIndex><ProtectedRoute><FreelancerProfile /></ProtectedRoute></SEOPage>} />
+          <Route path="/u/:userId" element={<SEOPage title="Perfil de Usuário" description="Veja o perfil público deste usuário HelpAqui." path="/u" noIndex><ProtectedRoute><PublicProfile /></ProtectedRoute></SEOPage>} />
           <Route path="/jobs" element={<PageWrapper><ProtectedRoute><Jobs /></ProtectedRoute></PageWrapper>} />
-          <Route path="/chat" element={<PageWrapper><ProtectedRoute><Chat /></ProtectedRoute></PageWrapper>} />
-          <Route path="/notes" element={<PageWrapper><ProtectedRoute><Notes /></ProtectedRoute></PageWrapper>} />
-          <Route path="/payment-settings" element={<PageWrapper><ProtectedRoute><PaymentSettings /></ProtectedRoute></PageWrapper>} />
-          <Route path="/profile-verification" element={<PageWrapper><ProtectedRoute><ProfileVerification /></ProtectedRoute></PageWrapper>} />
-          <Route path="/category-management" element={<PageWrapper><ProtectedRoute><CategoryManagement /></ProtectedRoute></PageWrapper>} />
-          <Route path="/ai-chat" element={<PageWrapper><ProtectedRoute><AIChat /></ProtectedRoute></PageWrapper>} />
-          <Route path="/offers" element={<PageWrapper><ProtectedRoute><OffersPage /></ProtectedRoute></PageWrapper>} />
-          <Route path="/payment-confirmation/:planId" element={<PageWrapper><ProtectedRoute><PaymentConfirmationPage /></ProtectedRoute></PageWrapper>} />
+          <Route path="/chat" element={<SEOPage title="Mensagens" description="Converse com profissionais e clientes na HelpAqui." path="/chat" noIndex><ProtectedRoute><Chat /></ProtectedRoute></SEOPage>} />
+          <Route path="/notes" element={<SEOPage title="Anotações" description="Suas anotações pessoais na HelpAqui." path="/notes" noIndex><ProtectedRoute><Notes /></ProtectedRoute></SEOPage>} />
+          <Route path="/payment-settings" element={<SEOPage title="Configurações de Pagamento" description="Gerencie seus métodos de pagamento na HelpAqui." path="/payment-settings" noIndex><ProtectedRoute><PaymentSettings /></ProtectedRoute></SEOPage>} />
+          <Route path="/profile-verification" element={<SEOPage title="Verificação de Perfil" description="Verifique sua identidade para conquistar mais confiança." path="/profile-verification" noIndex><ProtectedRoute><ProfileVerification /></ProtectedRoute></SEOPage>} />
+          <Route path="/category-management" element={<SEOPage title="Gerenciar Categorias" description="Gerencie as categorias de serviços." path="/category-management" noIndex><ProtectedRoute><CategoryManagement /></ProtectedRoute></SEOPage>} />
+          <Route path="/ai-chat" element={<SEOPage title="Assistente IA" description="Converse com o assistente inteligente da HelpAqui." path="/ai-chat" noIndex><ProtectedRoute><AIChat /></ProtectedRoute></SEOPage>} />
+          <Route path="/offers" element={<SEOPage title="Ofertas" description="Veja ofertas de serviços disponíveis." path="/offers" noIndex><ProtectedRoute><OffersPage /></ProtectedRoute></SEOPage>} />
+          <Route path="/payment-confirmation/:planId" element={<SEOPage title="Confirmação de Pagamento" description="Confirme seu pagamento de assinatura." path="/payment-confirmation" noIndex><ProtectedRoute><PaymentConfirmationPage /></ProtectedRoute></SEOPage>} />
           <Route path="/about" element={<PageWrapper><ProtectedRoute><About /></ProtectedRoute></PageWrapper>} />
-          <Route path="/banner/:id" element={<PageWrapper><ProtectedRoute><BannerDetail /></ProtectedRoute></PageWrapper>} />
+          <Route path="/banner/:id" element={<SEOPage title="Detalhes da Promoção" description="Detalhes desta promoção HelpAqui." path="/banner" noIndex><ProtectedRoute><BannerDetail /></ProtectedRoute></SEOPage>} />
 
           {/* Solicitante routes */}
-          <Route path="/solicitante-plans" element={<PageWrapper><ProtectedRoute requiredUserType="solicitante"><SolicitantePlans /></ProtectedRoute></PageWrapper>} />
-          <Route path="/my-requests" element={<PageWrapper><ProtectedRoute requiredUserType="solicitante"><MyRequests /></ProtectedRoute></PageWrapper>} />
+          <Route path="/solicitante-plans" element={<SEOPage title="Planos para Solicitantes" description="Conheça os planos de assinatura para solicitantes na HelpAqui." path="/solicitante-plans" noIndex><ProtectedRoute requiredUserType="solicitante"><SolicitantePlans /></ProtectedRoute></SEOPage>} />
+          <Route path="/my-requests" element={<SEOPage title="Minhas Solicitações" description="Acompanhe suas solicitações de serviços na HelpAqui." path="/my-requests" noIndex><ProtectedRoute requiredUserType="solicitante"><MyRequests /></ProtectedRoute></SEOPage>} />
 
           {/* Freelancer routes */}
-          <Route path="/freelancer-plans" element={<PageWrapper><ProtectedRoute requiredUserType="freelancer"><FreelancerPlans /></ProtectedRoute></PageWrapper>} />
-          <Route path="/payment-freelancer-settings" element={<PageWrapper><ProtectedRoute requiredUserType="freelancer"><PaymentFreelancerSettings /></ProtectedRoute></PageWrapper>} />
-          <Route path="/help-requests" element={<PageWrapper><ProtectedRoute requiredUserType="freelancer"><HelpRequests /></ProtectedRoute></PageWrapper>} />
-          <Route path="/my-offers" element={<PageWrapper><ProtectedRoute requiredUserType="freelancer"><MyOffers /></ProtectedRoute></PageWrapper>} />
+          <Route path="/freelancer-plans" element={<SEOPage title="Planos para Freelancers" description="Conheça os planos de assinatura para freelancers." path="/freelancer-plans" noIndex><ProtectedRoute requiredUserType="freelancer"><FreelancerPlans /></ProtectedRoute></SEOPage>} />
+          <Route path="/payment-freelancer-settings" element={<SEOPage title="Pagamentos do Freelancer" description="Configure como receber pagamentos." path="/payment-freelancer-settings" noIndex><ProtectedRoute requiredUserType="freelancer"><PaymentFreelancerSettings /></ProtectedRoute></SEOPage>} />
+          <Route path="/help-requests" element={<SEOPage title="Pedidos de Ajuda" description="Veja pedidos de ajuda disponíveis perto de você." path="/help-requests" noIndex><ProtectedRoute requiredUserType="freelancer"><HelpRequests /></ProtectedRoute></SEOPage>} />
+          <Route path="/my-offers" element={<SEOPage title="Minhas Ofertas" description="Gerencie suas ofertas de serviços." path="/my-offers" noIndex><ProtectedRoute requiredUserType="freelancer"><MyOffers /></ProtectedRoute></SEOPage>} />
 
           {/* Empresa routes */}
-          <Route path="/empresa/jobs" element={<PageWrapper><ProtectedRoute requiredUserType="empresa"><EmpresaJobManagement /></ProtectedRoute></PageWrapper>} />
-          <Route path="/empresa-plans" element={<PageWrapper><ProtectedRoute requiredUserType="empresa"><EmpresaPlans /></ProtectedRoute></PageWrapper>} />
+          <Route path="/empresa/jobs" element={<SEOPage title="Gerenciar Vagas" description="Crie e gerencie vagas de emprego para sua empresa." path="/empresa/jobs" noIndex><ProtectedRoute requiredUserType="empresa"><EmpresaJobManagement /></ProtectedRoute></SEOPage>} />
+          <Route path="/empresa-plans" element={<SEOPage title="Planos para Empresas" description="Conheça os planos de assinatura para empresas." path="/empresa-plans" noIndex><ProtectedRoute requiredUserType="empresa"><EmpresaPlans /></ProtectedRoute></SEOPage>} />
 
           {/* Admin */}
-          <Route path="/admin/*" element={<PageWrapper><ProtectedRoute><AdminDashboard /></ProtectedRoute></PageWrapper>} />
+          <Route path="/admin/*" element={<SEOPage title="Painel Admin" description="Painel administrativo HelpAqui." path="/admin" noIndex><ProtectedRoute><AdminDashboard /></ProtectedRoute></SEOPage>} />
 
           {/* 404 */}
-          <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
+          <Route path="*" element={<SEOPage title="Página não encontrada" description="A página que você procura não foi encontrada." path="/404" noIndex><NotFound /></SEOPage>} />
         </Routes>
       </AnimatePresence>
     </Suspense>
