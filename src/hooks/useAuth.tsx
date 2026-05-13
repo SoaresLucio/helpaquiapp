@@ -6,7 +6,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuthSession } from './auth/useAuthSession';
 import { supabase } from '@/integrations/supabase/client';
 import { validateUserSession, validateUserType } from '@/utils/securityValidation';
-import { useUserLocation } from './useUserLocation';
+// Location tracking removed for user privacy
 
 interface AuthContextType {
   session: Session | null;
@@ -36,9 +36,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const authState = useAuthSession();
   const [profile, setProfile] = useState<any>(null);
-
-  // Centralized location tracking — runs once per auth session, not per route
-  useUserLocation();
 
   useEffect(() => {
     if (!authState.user || !authState.isAuthenticated) {
