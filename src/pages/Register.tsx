@@ -205,6 +205,7 @@ const Register = () => {
         </Tabs>
       </motion.div>
     </div>
+    </PageSEO>
   );
 };
 
