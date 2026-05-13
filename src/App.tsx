@@ -41,6 +41,7 @@ const BannerDetail = lazy(() => import("./pages/BannerDetail"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const NewRequest = lazy(() => import("./pages/NewRequest"));
 const HireConfirmation = lazy(() => import("./pages/HireConfirmation"));
+const HireResponse = lazy(() => import("./pages/HireResponse"));
 
 const pageTransition = {
   initial: { opacity: 0, y: 8 },
