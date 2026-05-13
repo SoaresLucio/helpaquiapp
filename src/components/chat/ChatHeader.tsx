@@ -15,7 +15,7 @@ import {
   AlertTriangle,
   Briefcase,
 } from 'lucide-react';
-import HireServiceDialog from './HireServiceDialog';
+
 
 interface ChatHeaderProps {
   conversation: {
@@ -43,9 +43,19 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   onViewLocation
 }) => {
   const navigate = useNavigate();
-  const [hireOpen, setHireOpen] = useState(false);
   const canHire = (userType === 'solicitante' || userType === 'empresa' || userType === 'ambos')
     && conversation.participantType === 'freelancer';
+
+  const goToHireConfirmation = () => {
+    navigate('/hire/confirm', {
+      state: {
+        conversationId: conversation.id,
+        freelancerId: conversation.participantId,
+        freelancerName: conversation.participantName,
+        defaultTitle: conversation.jobTitle && conversation.jobTitle !== 'Conversa' && conversation.jobTitle !== 'Conversa direta' ? conversation.jobTitle : '',
+      },
+    });
+  };
   const getJobStatusBadge = (status: string) => {
     const statusConfig = {
       'aguardando_inicio': { 
@@ -121,7 +131,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
             <span className="hidden sm:inline ml-1">Ver Perfil</span>
           </Button>
           {canHire && (
-            <Button size="sm" onClick={() => setHireOpen(true)} className="bg-primary hover:bg-primary/90">
+            <Button size="sm" onClick={goToHireConfirmation} className="bg-primary hover:bg-primary/90">
               <Briefcase className="h-4 w-4" />
               <span className="hidden sm:inline ml-1">Contratar</span>
             </Button>
@@ -165,17 +175,6 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
       </div>
       
       <Separator />
-
-      {canHire && (
-        <HireServiceDialog
-          open={hireOpen}
-          onOpenChange={setHireOpen}
-          conversationId={conversation.id}
-          freelancerId={conversation.participantId}
-          freelancerName={conversation.participantName}
-          defaultTitle={conversation.jobTitle && conversation.jobTitle !== 'Conversa' && conversation.jobTitle !== 'Conversa direta' ? conversation.jobTitle : ''}
-        />
-      )}
     </CardHeader>
   );
 };
