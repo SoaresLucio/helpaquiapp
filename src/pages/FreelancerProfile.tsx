@@ -10,6 +10,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Header from '@/components/Header';
 import { useFreelancerProfile } from '@/hooks/useFreelancerProfile';
 import { Skeleton } from '@/components/ui/skeleton';
+import PageSEO from '@/components/common/PageSEO';
+import StructuredData from '@/components/common/StructuredData';
 
 const scaleIn = {
   hidden: { opacity: 0, scale: 0.95 },
@@ -52,6 +54,21 @@ const FreelancerProfile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageSEO
+        title={`${freelancerName} — Perfil de Freelancer`}
+        description={`Conheça ${freelancerName}, freelancer na HelpAqui. Veja portfólio, serviços oferecidos e contrate com segurança profissionais qualificados perto de você.`}
+        path={`/freelancer/${id}`}
+        ogType="profile"
+        ogImage={freelancer.avatar_url || undefined}
+        noIndex
+      />
+      <StructuredData schema={{
+        "@type": "Person",
+        name: freelancerName,
+        image: freelancer.avatar_url || undefined,
+        url: `https://helpaquiapp.lovable.app/freelancer/${id}`,
+        jobTitle: "Freelancer",
+      }} />
       <Header />
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="container mx-auto px-4 py-6">
         <Button variant="ghost" onClick={() => navigate(-1)} className="flex items-center mb-4 text-foreground rounded-xl">
