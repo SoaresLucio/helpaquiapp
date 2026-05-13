@@ -1,0 +1,16 @@
+# HelpAqui
+
+> Plataforma brasileira que conecta solicitantes e empresas a freelancers e prestadores de serviço qualificados perto de você, com pagamento seguro e avaliações reais.
+
+HelpAqui permite que usuários publiquem pedidos de serviço ("Helps"), recebam orçamentos de profissionais próximos, contratem com segurança e avaliem o atendimento. Suporta três tipos de usuários: solicitante, freelancer e empresa.
+
+## Pages
+
+- [Home](/): Landing page com busca de profissionais, categorias populares e como funciona.
+- [Cadastro](/register): Crie uma conta como solicitante, freelancer ou empresa.
+- [Login](/login): Acesse sua conta HelpAqui.
+- [Autenticação](/auth): Fluxo geral de autenticação.
+
+## Optional
+
+- [Recuperar senha](/reset-password): Fluxo de redefinição de senha.
