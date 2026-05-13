@@ -11,6 +11,8 @@ import JobsHeader from '@/components/jobs/JobsHeader';
 import JobsLoading from '@/components/jobs/JobsLoading';
 import JobsEmpty from '@/components/jobs/JobsEmpty';
 import JobsList from '@/components/jobs/JobsList';
+import PageSEO from '@/components/common/PageSEO';
+import StructuredData from '@/components/common/StructuredData';
 
 interface JobListing {
   id: string;
@@ -61,9 +63,36 @@ const Jobs = () => {
     toast({ title: "Candidatura enviada!", description: "A empresa entrará em contato em breve." });
   };
 
-  if (loading) return <JobsLoading />;
+  if (loading) return (
+    <PageSEO title="Vagas de Emprego" description="Encontre vagas de emprego para freelancers e profissionais qualificados na HelpAqui." path="/jobs">
+      <JobsLoading />
+    </PageSEO>
+  );
 
   return (
+    <PageSEO
+      title="Vagas de Emprego"
+      description="Encontre vagas de emprego para freelancers e profissionais qualificados na HelpAqui."
+      path="/jobs"
+    >
+      <StructuredData schema={jobs.map(job => ({
+        "@type": "JobPosting",
+        title: job.title,
+        description: job.description,
+        datePosted: job.created_at,
+        hiringOrganization: {
+          "@type": "Organization",
+          name: job.company_name,
+        },
+        jobLocation: {
+          "@type": "Place",
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: job.location,
+          },
+        },
+        employmentType: job.job_type === 'CLT' ? 'FULL_TIME' : 'TEMPORARY',
+      }))} />
     <div className="min-h-screen bg-background">
       <Header />
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="container mx-auto px-4 py-8">
@@ -87,6 +116,7 @@ const Jobs = () => {
         )}
       </motion.div>
     </div>
+    </PageSEO>
   );
 };
 

@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Building2, Mail, Phone, MapPin, Instagram, MessageCircle, FileText, Shield, Users, Heart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import PageSEO from '@/components/common/PageSEO';
+import StructuredData from '@/components/common/StructuredData';
 
 interface AppInfo {
   company_name?: string; description?: string; cnpj?: string; address?: string; email?: string;
@@ -39,10 +41,29 @@ const About = () => {
   }, []);
 
   if (loading) {
-    return (<div className="min-h-screen bg-background"><Header /><div className="container mx-auto px-4 py-8 text-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div></div></div>);
+    return (
+      <PageSEO title="Sobre" description="Conheça a HelpAqui, a plataforma que conecta solicitantes a freelancers e prestadores de serviço qualificados." path="/about">
+      <div className="min-h-screen bg-background"><Header /><div className="container mx-auto px-4 py-8 text-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div></div></div>
+      </PageSEO>
+    );
   }
 
   return (
+    <PageSEO
+      title="Sobre a HelpAqui"
+      description="Conheça a HelpAqui, a plataforma que conecta solicitantes a freelancers e prestadores de serviço qualificados."
+      path="/about"
+    >
+      <StructuredData schema={{
+        "@type": "LocalBusiness",
+        name: appInfo.company_name || "HelpAqui",
+        description: appInfo.description || "Conectando pessoas que precisam de ajuda com profissionais qualificados",
+        url: "https://helpaquiapp.lovable.app/about",
+        ...(appInfo.address ? { address: { "@type": "PostalAddress", streetAddress: appInfo.address } } : {}),
+        ...(appInfo.email ? { email: appInfo.email } : {}),
+        ...(appInfo.phone ? { telephone: appInfo.phone } : {}),
+        ...(appInfo.instagram ? { sameAs: [appInfo.instagram] } : {}),
+      }} />
     <div className="min-h-screen bg-background">
       <Header />
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="container mx-auto px-4 py-8 max-w-4xl">
@@ -114,6 +135,7 @@ const About = () => {
         )}
       </motion.div>
     </div>
+    </PageSEO>
   );
 };
 

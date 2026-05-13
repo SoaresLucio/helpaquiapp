@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { signUp } from '@/services/authService';
 import { supabase } from "@/integrations/supabase/client";
 import EmpresaRegisterForm from '@/components/empresa/EmpresaRegisterForm';
+import PageSEO from '@/components/common/PageSEO';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -143,6 +144,11 @@ const Register = () => {
   );
 
   return (
+    <PageSEO
+      title="Cadastro Grátis"
+      description="Cadastre-se como solicitante, freelancer ou empresa na HelpAqui e comece a usar a plataforma #1 de serviços do Brasil."
+      path="/register"
+    >
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute inset-0 -z-10">
         <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl" />
@@ -199,6 +205,7 @@ const Register = () => {
         </Tabs>
       </motion.div>
     </div>
+    </PageSEO>
   );
 };
 

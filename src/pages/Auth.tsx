@@ -12,6 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { signIn, signUp } from '@/services/authService';
 import { supabase } from "@/integrations/supabase/client";
+import PageSEO from '@/components/common/PageSEO';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -109,6 +110,11 @@ const Auth = () => {
   );
 
   return (
+    <PageSEO
+      title="Login e Cadastro"
+      description="Entre ou cadastre-se na HelpAqui para encontrar profissionais qualificados ou oferecer seus serviços."
+      path="/auth"
+    >
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute inset-0 -z-10">
         <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl" />
@@ -246,6 +252,7 @@ const Auth = () => {
         <div className="flex items-center gap-1"><Zap className="h-3 w-3" /><span>Dados criptografados</span></div>
       </motion.div>
     </div>
+    </PageSEO>
   );
 };
 

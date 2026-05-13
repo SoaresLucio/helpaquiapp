@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Search, Shield, Star, MapPin, ArrowRight, Users, Briefcase, Zap, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import PageSEO from '@/components/common/PageSEO';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -44,6 +45,11 @@ const stats = [
 
 const LandingPage: React.FC = () => {
   return (
+    <PageSEO
+      title="Encontre profissionais qualificados perto de você"
+      description="Conectamos você aos melhores freelancers e prestadores de serviço da sua região de forma rápida, segura e com garantia de qualidade."
+      path="/"
+    >
     <div className="min-h-screen bg-background overflow-hidden">
       {/* Navbar */}
       <motion.nav
@@ -288,9 +294,10 @@ const LandingPage: React.FC = () => {
               © {new Date().getFullYear()} HelpAqui. Todos os direitos reservados.
             </p>
           </div>
-        </div>
-      </footer>
+      </div>
+    </footer>
     </div>
+    </PageSEO>
   );
 };
 
