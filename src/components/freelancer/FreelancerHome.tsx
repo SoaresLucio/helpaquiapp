@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { usePromotionalBanners } from '@/hooks/usePromotionalBanners';
 import { supabase } from '@/integrations/supabase/client';
+import PendingHireProposals from '@/components/freelancer/PendingHireProposals';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
