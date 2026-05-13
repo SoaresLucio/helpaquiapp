@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import PageSEO from '@/components/common/PageSEO';
+import StructuredData from '@/components/common/StructuredData';
 
 interface PublicProfile {
   id: string;
@@ -65,8 +67,44 @@ const PublicProfile: React.FC = () => {
   const fullName = profile ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim() || 'Usuário' : '';
   const initials = fullName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() || 'U';
 
+  const reviewSchemas = profile ? reviews.slice(0, 5).map((r) => ({
+    "@type": "Review",
+    reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5 },
+    author: { "@type": "Person", name: r.reviewer_first_name ?? "Anônimo" },
+    reviewBody: r.comment ?? undefined,
+    datePublished: r.created_at,
+    itemReviewed: { "@type": "Person", name: fullName },
+  })) : [];
+
   return (
     <div className="min-h-screen bg-background">
+      {profile && (
+        <>
+          <PageSEO
+            title={`${fullName} — Perfil`}
+            description={`Veja o perfil público de ${fullName} na HelpAqui: avaliações, serviços prestados e reputação. Encontre profissionais qualificados e contrate com segurança.`}
+            path={`/u/${userId}`}
+            ogType="profile"
+            ogImage={profile.avatar_url || undefined}
+            noIndex
+          />
+          <StructuredData schema={[
+            {
+              "@type": "Person",
+              name: fullName,
+              image: profile.avatar_url || undefined,
+              url: `https://helpaquiapp.lovable.app/u/${userId}`,
+              aggregateRating: profile.reviews_count > 0 ? {
+                "@type": "AggregateRating",
+                ratingValue: Number(profile.average_rating).toFixed(1),
+                reviewCount: profile.reviews_count,
+                bestRating: 5,
+              } : undefined,
+            },
+            ...reviewSchemas,
+          ]} />
+        </>
+      )}
       <Header />
       <motion.main initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="container mx-auto px-4 py-6 max-w-3xl">
         <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">

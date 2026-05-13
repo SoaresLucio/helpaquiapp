@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ExternalLink, Calendar, Users } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import PageSEO from '@/components/common/PageSEO';
 
 interface BannerData {
   id: string;
@@ -68,6 +69,13 @@ const BannerDetail: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background py-8">
+      <PageSEO
+        title={banner.title}
+        description={`${banner.title} — Confira esta promoção exclusiva da HelpAqui e aproveite oportunidades especiais para ${audienceLabel[banner.target_audience] || 'usuários da plataforma'}.`}
+        path={`/banner/${id}`}
+        ogImage={banner.image_url}
+        noIndex
+      />
       <div className="max-w-4xl mx-auto px-4">
         <div className="mb-6">
           <BackButton to="/dashboard" label="Voltar" />
