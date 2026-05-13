@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.protect_payment_methods_sensitive_fields() FROM PUBLIC, anon;
