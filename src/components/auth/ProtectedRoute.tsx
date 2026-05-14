@@ -10,17 +10,18 @@ import { AlertTriangle } from 'lucide-react';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredUserType?: 'solicitante' | 'freelancer' | 'empresa';
+  adminOnly?: boolean;
   redirectTo?: string;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredUserType,
+  adminOnly = false,
   redirectTo = "/login"
 }) => {
   const { isAuthenticated, loading, userType, securityScore } = useAuth();
-  // Don't block render on admin check — defaults to false until resolved
-  const { isAdmin } = useAdminAccess();
+  const { isAdmin, loading: adminLoading } = useAdminAccess();
   const location = useLocation();
 
   if (loading) {
