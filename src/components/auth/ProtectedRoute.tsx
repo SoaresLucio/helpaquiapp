@@ -10,17 +10,18 @@ import { AlertTriangle } from 'lucide-react';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredUserType?: 'solicitante' | 'freelancer' | 'empresa';
+  adminOnly?: boolean;
   redirectTo?: string;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredUserType,
+  adminOnly = false,
   redirectTo = "/login"
 }) => {
   const { isAuthenticated, loading, userType, securityScore } = useAuth();
-  // Don't block render on admin check — defaults to false until resolved
-  const { isAdmin } = useAdminAccess();
+  const { isAdmin, loading: adminLoading } = useAdminAccess();
   const location = useLocation();
 
   if (loading) {
@@ -36,6 +37,28 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (!isAuthenticated) {
     return <Navigate to={redirectTo} state={{ from: location.pathname }} replace />;
+  }
+
+  // Admin-only routes: wait for admin check to resolve, then enforce
+  if (adminOnly) {
+    if (adminLoading) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+        </div>
+      );
+    }
+    if (!isAdmin) return <Navigate to="/dashboard" replace />;
+  }
+
+  // If a userType is required but the profile hasn't resolved yet, wait —
+  // never let a freelancer/empresa-only route render under unknown identity.
+  if (requiredUserType && !isAdmin && !userType) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+      </div>
+    );
   }
 
   // Admin users can access ALL pages regardless of requiredUserType

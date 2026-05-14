@@ -26,11 +26,11 @@ const Notes = () => {
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) navigate('/auth');
+      if (!session) navigate('/login');
       else { setUser(session.user); loadNotes(); }
     };
     checkAuth();
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => { if (!session) navigate('/auth'); });
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => { if (!session) navigate('/login'); });
     return () => { authListener.subscription.unsubscribe(); };
   }, [navigate]);
 

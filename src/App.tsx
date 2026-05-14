@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import LoadingScreen from "./components/index/LoadingScreen";
@@ -102,7 +102,7 @@ function App() {
           <Route path="/" element={<PageWrapper><LandingPage /></PageWrapper>} />
 
           {/* Public routes (SEO handled inside each page) */}
-          <Route path="/auth" element={<PageWrapper><Auth /></PageWrapper>} />
+          <Route path="/auth" element={<Navigate to="/login" replace />} />
           <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
           <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
           <Route path="/reset-password" element={<SEOPage title="Recuperar Senha" description="Esqueceu sua senha? Recupere o acesso à sua conta HelpAqui de forma rápida e segura — receba um link de redefinição direto no seu e-mail." path="/reset-password"><ResetPassword /></SEOPage>} />
@@ -135,7 +135,7 @@ function App() {
           <Route path="/my-requests" element={<SEOPage title="Minhas Solicitações" description="Acompanhe suas solicitações de serviços na HelpAqui." path="/my-requests" noIndex><ProtectedRoute requiredUserType="solicitante"><MyRequests /></ProtectedRoute></SEOPage>} />
           <Route path="/new-request" element={<SEOPage title="Publicar Help" description="Publique uma nova solicitação de serviço na HelpAqui." path="/new-request" noIndex><ProtectedRoute><NewRequest /></ProtectedRoute></SEOPage>} />
           <Route path="/hire/confirm" element={<SEOPage title="Confirmar Contratação" description="Confirme os detalhes e pague de forma segura." path="/hire/confirm" noIndex><ProtectedRoute><HireConfirmation /></ProtectedRoute></SEOPage>} />
-          <Route path="/hire/respond/:proposalId" element={<SEOPage title="Responder Contratação" description="Aceite ou recuse a contratação do Help." path="/hire/respond" noIndex><ProtectedRoute><HireResponse /></ProtectedRoute></SEOPage>} />
+          <Route path="/hire/respond/:proposalId" element={<SEOPage title="Responder Contratação" description="Aceite ou recuse a contratação do Help." path="/hire/respond" noIndex><ProtectedRoute requiredUserType="freelancer"><HireResponse /></ProtectedRoute></SEOPage>} />
 
           {/* Freelancer routes */}
           <Route path="/freelancer-plans" element={<SEOPage title="Planos para Freelancers" description="Conheça os planos de assinatura para freelancers." path="/freelancer-plans" noIndex><ProtectedRoute requiredUserType="freelancer"><FreelancerPlans /></ProtectedRoute></SEOPage>} />
@@ -148,7 +148,7 @@ function App() {
           <Route path="/empresa-plans" element={<SEOPage title="Planos para Empresas" description="Conheça os planos de assinatura para empresas." path="/empresa-plans" noIndex><ProtectedRoute requiredUserType="empresa"><EmpresaPlans /></ProtectedRoute></SEOPage>} />
 
           {/* Admin */}
-          <Route path="/admin/*" element={<SEOPage title="Painel Admin" description="Painel administrativo HelpAqui." path="/admin" noIndex><ProtectedRoute><AdminDashboard /></ProtectedRoute></SEOPage>} />
+          <Route path="/admin/*" element={<SEOPage title="Painel Admin" description="Painel administrativo HelpAqui." path="/admin" noIndex><ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute></SEOPage>} />
 
           {/* 404 */}
           <Route path="*" element={<SEOPage title="Página não encontrada" description="A página que você procura não foi encontrada ou foi movida. Volte ao início da HelpAqui e continue encontrando profissionais qualificados perto de você." path="/404" noIndex><NotFound /></SEOPage>} />
