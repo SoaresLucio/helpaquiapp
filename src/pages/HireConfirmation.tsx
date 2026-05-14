@@ -142,9 +142,11 @@ const HireConfirmation: React.FC = () => {
       });
 
       if (payment.success && payment.url) {
-        toast.success('Solicitação criada! Redirecionando para pagamento.');
-        window.open(payment.url, '_blank', 'noopener,noreferrer');
-        navigate('/my-requests');
+        toast.success('Solicitação criada! Redirecionando para pagamento…');
+        // Redirect in the same tab to avoid popup-blocker issues that
+        // would silently leave the user without a checkout window.
+        window.location.href = payment.url;
+        return;
       } else {
         toast.error(payment.error || 'Não foi possível iniciar o pagamento. Você pode pagar depois em Minhas Solicitações.');
         navigate('/my-requests');
