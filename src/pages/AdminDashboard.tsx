@@ -48,6 +48,9 @@ const AdminDashboard: React.FC = () => {
             <TabsContent value="plans" className="mt-0">
               <AdminPlansTab />
             </TabsContent>
+            <TabsContent value="banners" className="mt-0">
+              <AdminBannersTab />
+            </TabsContent>
           </Tabs>
         </div>
       </main>
