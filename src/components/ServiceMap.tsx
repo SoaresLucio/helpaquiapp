@@ -105,7 +105,18 @@ const ServiceMap: React.FC<ServiceMapProps> = ({ selectedCategory }) => {
       }
     };
     load();
-    return () => { mounted = false; };
+
+    // Realtime: novos helps / ofertas aparecem automaticamente
+    const table = userType === 'solicitante' ? 'freelancer_service_offers' : 'service_requests';
+    const channel = supabase
+      .channel(`service-map-${table}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table }, () => load())
+      .subscribe();
+
+    return () => {
+      mounted = false;
+      supabase.removeChannel(channel);
+    };
   }, [userType, userLocation]);
 
   const handleLocate = () => {
