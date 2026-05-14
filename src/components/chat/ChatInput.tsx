@@ -12,7 +12,8 @@ import {
   Clock,
   Image,
   FileText,
-  ShieldAlert
+  ShieldAlert,
+  DollarSign
 } from 'lucide-react';
 import { filterChatMessage } from '@/utils/chatContentFilter';
 import { useToast } from '@/components/ui/use-toast';
@@ -24,12 +25,14 @@ import {
 
 interface ChatInputProps {
   onSendMessage: (content: string, type?: 'text' | 'file' | 'schedule_suggestion', additionalData?: any) => boolean;
+  onOpenBudgetProposal?: () => void;
   userType: string | null;
   conversation: any;
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
+  onOpenBudgetProposal,
   userType,
   conversation
 }) => {
@@ -242,14 +245,26 @@ const ChatInput: React.FC<ChatInputProps> = ({
               <Calendar className="h-4 w-4" />
             </Button>
 
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               size="sm"
               onClick={() => setShowQuickMessages(!showQuickMessages)}
             >
               <Smile className="h-4 w-4" />
             </Button>
+
+            {onOpenBudgetProposal && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                title="Enviar proposta de orçamento"
+                onClick={onOpenBudgetProposal}
+              >
+                <DollarSign className="h-4 w-4" />
+              </Button>
+            )}
           </div>
 
           {/* Botão de enviar */}

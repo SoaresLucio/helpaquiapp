@@ -2,17 +2,8 @@ import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Calendar, 
-  Clock, 
-  CheckCircle, 
-  FileImage,
-  Download,
-  MapPin,
-  DollarSign
-} from 'lucide-react';
+import { Calendar, Clock, CheckCircle, FileImage, Download, DollarSign, Loader2, AlertCircle, X } from 'lucide-react';
 
-// Define proper message types
 interface BaseMessage {
   id: string;
   senderId: string;
@@ -20,141 +11,139 @@ interface BaseMessage {
   content: string;
   timestamp: string;
   read: boolean;
+  pending?: boolean;
+  failed?: boolean;
 }
 
-interface TextMessage extends BaseMessage {
-  type: 'text';
-}
-
+interface TextMessage extends BaseMessage { type: 'text'; }
 interface ScheduleMessage extends BaseMessage {
   type: 'schedule_suggestion';
-  scheduleData: {
-    date: string;
-    time: string;
-    message: string;
-    confirmed?: boolean;
-  };
+  scheduleData: { date: string; time: string; message: string; confirmed?: boolean };
 }
-
 interface FileMessage extends BaseMessage {
   type: 'file';
-  fileData: {
-    name: string;
-    size: string;
-    type: 'image' | 'document';
-    url: string;
+  fileData: { name: string; size: string; type: 'image' | 'document'; url: string };
+}
+interface BudgetProposalMessage extends BaseMessage {
+  type: 'budget_proposal';
+  proposalData: {
+    title: string; description?: string; valueCents: number;
+    deliveryDays?: number; proposedBy?: string; status?: 'pending' | 'accepted' | 'rejected';
   };
 }
 
-type Message = TextMessage | ScheduleMessage | FileMessage;
+type Message = TextMessage | ScheduleMessage | FileMessage | BudgetProposalMessage;
 
 interface ChatMessagesProps {
   messages: Message[];
   conversation: any;
   userType: string | null;
+  currentUserId?: string | null;
   onConfirmSchedule: (messageId: string) => void;
+  onAcceptProposal?: (msg: BudgetProposalMessage) => void;
+  onRejectProposal?: (msg: BudgetProposalMessage) => void;
   messagesEndRef: React.RefObject<HTMLDivElement>;
 }
 
+const formatBRL = (cents: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((cents || 0) / 100);
+
 const ChatMessages: React.FC<ChatMessagesProps> = ({
-  messages,
-  conversation,
-  userType,
-  onConfirmSchedule,
-  messagesEndRef
+  messages, conversation, userType, currentUserId,
+  onConfirmSchedule, onAcceptProposal, onRejectProposal, messagesEndRef,
 }) => {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value / 100);
-  };
+  const canHire = userType === 'solicitante' || userType === 'empresa' || userType === 'ambos';
 
   const renderMessage = (message: Message) => {
-    const isOwnMessage = message.senderId === 'me';
+    const isOwnMessage = currentUserId ? message.senderId === currentUserId : false;
 
     return (
-      <div key={message.id} className={`mb-4 flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-        <div className={`max-w-xs lg:max-w-md ${isOwnMessage ? 'order-2' : 'order-1'}`}>
+      <div key={message.id} className={`mb-3 flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+        <div className={`max-w-[85%] lg:max-w-md`}>
           <div
-            className={`rounded-lg px-4 py-3 ${
+            className={`rounded-2xl px-4 py-2.5 shadow-sm ${
               isOwnMessage
-                ? 'bg-helpaqui-purple text-white rounded-tr-none'
-                : 'bg-white border border-gray-200 rounded-tl-none shadow-sm'
-            }`}
+                ? 'bg-primary text-primary-foreground rounded-br-sm'
+                : 'bg-muted text-foreground rounded-bl-sm'
+            } ${message.failed ? 'ring-1 ring-destructive' : ''}`}
           >
             {message.type === 'text' && (
-              <p className="text-sm leading-relaxed">{message.content}</p>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{message.content}</p>
             )}
 
             {message.type === 'schedule_suggestion' && (
-              <div className="space-y-3">
-                <div className={`flex items-center gap-2 ${isOwnMessage ? 'text-blue-100' : 'text-gray-600'}`}>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 opacity-90">
                   <Calendar className="h-4 w-4" />
                   <span className="font-medium text-sm">Sugestão de Horário</span>
                 </div>
                 <p className="text-sm">{message.scheduleData.message}</p>
-                <div className={`flex items-center gap-2 text-sm ${isOwnMessage ? 'text-blue-100' : 'text-gray-600'}`}>
+                <div className="flex items-center gap-2 text-sm opacity-90">
                   <Clock className="h-3 w-3" />
                   <span>
-                    {new Date(message.scheduleData.date).toLocaleDateString('pt-BR')} às {message.scheduleData.time}
+                    {message.scheduleData.date && new Date(message.scheduleData.date).toLocaleDateString('pt-BR')} às {message.scheduleData.time}
                   </span>
                 </div>
-                
                 {!isOwnMessage && !message.scheduleData.confirmed && (
-                  <Button 
-                    size="sm" 
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
-                    onClick={() => onConfirmSchedule(message.id)}
-                  >
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Confirmar Horário
+                  <Button size="sm" className="w-full" onClick={() => onConfirmSchedule(message.id)}>
+                    <CheckCircle className="h-3 w-3 mr-1" /> Confirmar Horário
                   </Button>
                 )}
-                
-                {message.scheduleData.confirmed && (
-                  <Badge className="bg-green-100 text-green-800 w-full justify-center">
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Horário Confirmado
-                  </Badge>
+              </div>
+            )}
+
+            {message.type === 'budget_proposal' && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 opacity-90">
+                  <DollarSign className="h-4 w-4" />
+                  <span className="font-medium text-sm">Proposta de Orçamento</span>
+                </div>
+                <p className="text-sm font-semibold">{message.proposalData.title}</p>
+                {message.proposalData.description && (
+                  <p className="text-xs opacity-90 whitespace-pre-wrap">{message.proposalData.description}</p>
+                )}
+                <div className="text-sm font-bold">{formatBRL(message.proposalData.valueCents)}</div>
+                {message.proposalData.deliveryDays != null && (
+                  <div className="text-xs opacity-90">Prazo: {message.proposalData.deliveryDays} dia(s)</div>
+                )}
+                {!isOwnMessage && canHire && message.proposalData.status !== 'accepted' && (
+                  <div className="flex gap-2 pt-1">
+                    <Button size="sm" variant="secondary" className="flex-1" onClick={() => onAcceptProposal?.(message)}>
+                      <CheckCircle className="h-3 w-3 mr-1" /> Aceitar e pagar
+                    </Button>
+                    <Button size="sm" variant="outline" className="flex-1" onClick={() => onRejectProposal?.(message)}>
+                      <X className="h-3 w-3 mr-1" /> Recusar
+                    </Button>
+                  </div>
+                )}
+                {isOwnMessage && (
+                  <Badge variant="secondary" className="text-[10px]">Aguardando resposta</Badge>
                 )}
               </div>
             )}
 
             {message.type === 'file' && (
               <div className="space-y-2">
-                <div className={`flex items-center gap-2 ${isOwnMessage ? 'text-blue-100' : 'text-gray-600'}`}>
+                <div className="flex items-center gap-2 opacity-90">
                   <FileImage className="h-4 w-4" />
                   <span className="font-medium text-sm">Arquivo enviado</span>
                 </div>
-                <div className={`p-2 rounded border ${isOwnMessage ? 'border-blue-300 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}>
+                <div className="p-2 rounded border border-border/50 bg-background/40">
                   <p className="text-sm font-medium">{message.fileData.name}</p>
                   <p className="text-xs opacity-75">{message.fileData.size}</p>
                   <Button size="sm" variant="outline" className="mt-2 w-full">
-                    <Download className="h-3 w-3 mr-1" />
-                    Baixar
+                    <Download className="h-3 w-3 mr-1" /> Baixar
                   </Button>
                 </div>
               </div>
             )}
 
-            <div className="flex items-center justify-between mt-2">
-              <span className={`text-xs ${isOwnMessage ? 'text-blue-100' : 'text-gray-500'}`}>
-                {message.timestamp}
-              </span>
-              
-              {isOwnMessage && (
-                <span className="ml-2">
-                  {message.read ? (
-                    <svg className="w-4 h-4 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                  )}
-                </span>
+            <div className="flex items-center justify-end gap-1 mt-1">
+              <span className="text-[10px] opacity-70">{message.timestamp}</span>
+              {isOwnMessage && message.pending && <Loader2 className="w-3 h-3 animate-spin opacity-70" />}
+              {isOwnMessage && message.failed && <AlertCircle className="w-3 h-3 text-destructive" />}
+              {isOwnMessage && !message.pending && !message.failed && (
+                <CheckCircle className="w-3 h-3 opacity-70" />
               )}
             </div>
           </div>
@@ -163,53 +152,31 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     );
   };
 
-  // Agrupar mensagens por data
-  const groupMessagesByDate = () => {
-    const groups: Record<string, Message[]> = {};
-    
-    messages.forEach(message => {
-      const date = new Date().toLocaleDateString(); // Simplificado para demo
-      if (!groups[date]) {
-        groups[date] = [];
-      }
-      groups[date].push(message);
-    });
-    
-    return groups;
-  };
-
-  const messageGroups = groupMessagesByDate();
-
   return (
     <ScrollArea className="flex-1 h-full">
-      <div className="p-4 space-y-4">
-        {/* Resumo do serviço - sempre visível */}
-        <div className="bg-white rounded-lg p-4 border-l-4 border-helpaqui-purple shadow-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="h-4 w-4 text-helpaqui-purple" />
-            <span className="font-medium text-sm">Resumo do Serviço</span>
-          </div>
-          <div className="space-y-1 text-sm text-gray-600">
-            <p><strong>Serviço:</strong> {conversation.jobTitle}</p>
-            <p><strong>Categoria:</strong> {conversation.jobCategory}</p>
-            <p><strong>Valor Acordado:</strong> {formatCurrency(conversation.agreedValue)}</p>
-            <p><strong>Local:</strong> {conversation.location.address}</p>
-          </div>
-        </div>
-
-        {/* Mensagens agrupadas por data */}
-        {Object.entries(messageGroups).map(([date, msgs]) => (
-          <div key={date}>
-            <div className="flex justify-center mb-4">
-              <span className="text-xs bg-gray-200 text-gray-600 px-3 py-1 rounded-full">
-                {date === new Date().toLocaleDateString() ? 'Hoje' : date}
-              </span>
+      <div className="p-4 space-y-2">
+        {conversation.agreedValue > 0 && (
+          <div className="bg-card rounded-lg p-3 border-l-4 border-primary shadow-sm mb-2">
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign className="h-4 w-4 text-primary" />
+              <span className="font-medium text-sm">Resumo do Serviço</span>
             </div>
-            
-            {msgs.map(renderMessage)}
+            <div className="space-y-0.5 text-xs text-muted-foreground">
+              <p><strong>Serviço:</strong> {conversation.jobTitle}</p>
+              <p><strong>Valor:</strong> {formatBRL(conversation.agreedValue)}</p>
+              {conversation.location?.address && conversation.location.address !== 'Local não especificado' && (
+                <p><strong>Local:</strong> {conversation.location.address}</p>
+              )}
+            </div>
           </div>
-        ))}
-        
+        )}
+
+        {messages.length === 0 && (
+          <div className="text-center text-muted-foreground py-8 text-sm">
+            Inicie a conversa enviando uma mensagem ou uma proposta de orçamento.
+          </div>
+        )}
+        {messages.map(renderMessage)}
         <div ref={messagesEndRef} />
       </div>
     </ScrollArea>
