@@ -74,40 +74,8 @@ export const validateCPF = (cpf: string): ValidationResult => {
   return { isValid: true, errors: [], sanitizedValue: cleanCPF };
 };
 
-export const validatePassword = (password: string): ValidationResult => {
-  const errors: string[] = [];
-  
-  if (!password || typeof password !== 'string') {
-    errors.push('Senha é obrigatória');
-    return { isValid: false, errors };
-  }
-
-  if (password.length < 8) {
-    errors.push('Senha deve ter pelo menos 8 caracteres');
-  }
-
-  if (password.length > 128) {
-    errors.push('Senha muito longa (máximo 128 caracteres)');
-  }
-
-  if (!/[a-z]/.test(password)) {
-    errors.push('Senha deve conter pelo menos uma letra minúscula');
-  }
-
-  if (!/[A-Z]/.test(password)) {
-    errors.push('Senha deve conter pelo menos uma letra maiúscula');
-  }
-
-  if (!/\d/.test(password)) {
-    errors.push('Senha deve conter pelo menos um número');
-  }
-
-  return { 
-    isValid: errors.length === 0, 
-    errors, 
-    sanitizedValue: errors.length === 0 ? password : undefined 
-  };
-};
+// validatePassword moved to @/utils/authValidation (single source of truth).
+export { validatePassword } from './authValidation';
 
 export const sanitizeText = (text: string, maxLength: number = 1000): string => {
   if (typeof text !== 'string') return '';
