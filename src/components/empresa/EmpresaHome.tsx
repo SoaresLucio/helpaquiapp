@@ -89,6 +89,11 @@ const EmpresaHome: React.FC = () => {
         </div>
       </div>
 
+      {/* Banners promocionais */}
+      {!bannersLoading && banners.length > 0 && (
+        <BannerCarousel banners={banners} className="rounded-2xl shadow-lg" />
+      )}
+
       {/* Publicar Help CTA */}
       <Button
         onClick={() => navigate('/new-request')}
