@@ -25,7 +25,6 @@ export const usePromotionalBanners = (targetAudience: 'solicitante' | 'freelance
         setError(null);
 
         if (process.env.NODE_ENV === 'development') {
-          console.log('🔍 Fetching banners for target audience:', targetAudience);
         }
 
         // Fetch filtered banners

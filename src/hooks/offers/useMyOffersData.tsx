@@ -15,7 +15,6 @@ export const useMyOffersData = () => {
     
     setLoading(true);
     try {
-      console.log('🔄 Carregando ofertas do freelancer:', user.id);
       
       const { data, error } = await supabase
         .from('freelancer_service_offers')
@@ -28,7 +27,6 @@ export const useMyOffersData = () => {
         throw error;
       }
 
-      console.log('✅ Ofertas carregadas:', data);
       setOffers(data || []);
       
     } catch (error) {
@@ -45,7 +43,6 @@ export const useMyOffersData = () => {
 
   const deleteOffer = useCallback(async (offerId: string) => {
     try {
-      console.log('🗑️ Excluindo oferta:', offerId);
       
       const { error } = await supabase
         .from('freelancer_service_offers')
