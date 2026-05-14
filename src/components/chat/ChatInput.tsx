@@ -245,14 +245,26 @@ const ChatInput: React.FC<ChatInputProps> = ({
               <Calendar className="h-4 w-4" />
             </Button>
 
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               size="sm"
               onClick={() => setShowQuickMessages(!showQuickMessages)}
             >
               <Smile className="h-4 w-4" />
             </Button>
+
+            {onOpenBudgetProposal && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                title="Enviar proposta de orçamento"
+                onClick={onOpenBudgetProposal}
+              >
+                <DollarSign className="h-4 w-4" />
+              </Button>
+            )}
           </div>
 
           {/* Botão de enviar */}
