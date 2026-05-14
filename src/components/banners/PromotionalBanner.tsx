@@ -20,16 +20,20 @@ const PromotionalBanner: React.FC<PromotionalBannerProps> = ({
 }) => {
   return (
     <div
-      className={`relative rounded-xl overflow-hidden shadow-lg cursor-pointer group ${className}`}
+      className={`relative rounded-xl overflow-hidden shadow-lg cursor-pointer group ${className || 'aspect-[16/9]'}`}
       onClick={onClick}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(); }}
       aria-label={title}
     >
-      <div
-        className="w-full h-full bg-cover bg-center bg-no-repeat transition-transform duration-700 group-hover:scale-105"
-        style={{ backgroundImage: `url(${imageUrl})`, minHeight: '300px' }}
+      {/* Use <img> with explicit dimensions and lazy loading to avoid layout shift */}
+      <img
+        src={imageUrl}
+        alt={title}
+        loading="lazy"
+        decoding="async"
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
       />
 
       {/* Gradient overlay */}

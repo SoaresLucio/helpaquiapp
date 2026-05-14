@@ -9,7 +9,7 @@ interface MobileNavigationProps {
 
 const MobileNavigation: React.FC<MobileNavigationProps> = ({ userType, onNavigate }) => {
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex items-center justify-around p-2 z-10">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex items-center justify-around p-2 z-30 max-w-full">
       <button 
         className="flex flex-col items-center p-2"
         onClick={() => onNavigate('actions')}

@@ -3,6 +3,7 @@ import React from 'react';
 import { MapPin, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ProfessionalCard from '@/components/ProfessionalCard';
+import { ListLoadingSkeleton } from '@/components/LoadingStates';
 import { Professional } from '@/data/mockData';
 
 interface OffersSectionProps {
@@ -36,12 +37,7 @@ const OffersSection: React.FC<OffersSectionProps> = ({
       </div>
       
       {loading ? (
-        <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
-            <Search className="h-12 w-12 mx-auto animate-spin" />
-          </div>
-          <p className="text-gray-500">Carregando ofertas de freelancers...</p>
-        </div>
+        <ListLoadingSkeleton count={3} />
       ) : professionals.length > 0 ? (
         <div className="space-y-4">
           {professionals.map(professional => (

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Briefcase, DollarSign, AlertCircle } from 'lucide-react';
+import { Briefcase, DollarSign, AlertCircle, Loader2 } from 'lucide-react';
 import { calculatePlatformFee } from '@/services/asaasService';
 
 interface BudgetProposalDialogProps {
@@ -31,6 +31,7 @@ const BudgetProposalDialog: React.FC<BudgetProposalDialogProps> = ({
   const [value, setValue] = useState(defaultValue ?? '');
   const [deliveryDays, setDeliveryDays] = useState(defaultDeliveryDays ?? '');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
 
   // Reset/prefill when dialog opens with new defaults (e.g. counter-proposal)
   useEffect(() => {
@@ -40,6 +41,7 @@ const BudgetProposalDialog: React.FC<BudgetProposalDialogProps> = ({
       setValue(defaultValue ?? '');
       setDeliveryDays(defaultDeliveryDays ?? '');
       setErrors({});
+      setSubmitting(false);
     }
   }, [open, defaultTitle, defaultDescription, defaultValue, defaultDeliveryDays]);
 
@@ -58,14 +60,20 @@ const BudgetProposalDialog: React.FC<BudgetProposalDialogProps> = ({
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (submitting) return;
     if (!validate()) return;
-    onSubmit({
-      title: title.trim(),
-      description: description.trim(),
-      valueCents,
-      deliveryDays: deliveryDays ? Number(deliveryDays) : undefined,
-    });
+    setSubmitting(true);
+    try {
+      await onSubmit({
+        title: title.trim(),
+        description: description.trim(),
+        valueCents,
+        deliveryDays: deliveryDays ? Number(deliveryDays) : undefined,
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -172,10 +180,11 @@ const BudgetProposalDialog: React.FC<BudgetProposalDialogProps> = ({
         </div>
 
         <DialogFooter className="gap-2">
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSubmit}>
-            <Briefcase className="h-4 w-4 mr-2" />
-            {mode === 'counter' ? 'Enviar contraproposta' : 'Enviar proposta'}
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting}>Cancelar</Button>
+          <Button onClick={handleSubmit} disabled={submitting} aria-busy={submitting}>
+            {submitting
+              ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Enviando...</>
+              : <><Briefcase className="h-4 w-4 mr-2" />{mode === 'counter' ? 'Enviar contraproposta' : 'Enviar proposta'}</>}
           </Button>
         </DialogFooter>
       </DialogContent>
