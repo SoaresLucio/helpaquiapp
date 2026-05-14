@@ -6,6 +6,7 @@ import AdminDashboardTab from '@/components/admin/AdminDashboardTab';
 import AdminUsersTab from '@/components/admin/AdminUsersTab';
 import AdminCategoriesTab from '@/components/admin/AdminCategoriesTab';
 import AdminPlansTab from '@/components/admin/AdminPlansTab';
+import AdminBannersTab from '@/components/admin/AdminBannersTab';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useState } from 'react';
 
@@ -46,6 +47,9 @@ const AdminDashboard: React.FC = () => {
             </TabsContent>
             <TabsContent value="plans" className="mt-0">
               <AdminPlansTab />
+            </TabsContent>
+            <TabsContent value="banners" className="mt-0">
+              <AdminBannersTab />
             </TabsContent>
           </Tabs>
         </div>
