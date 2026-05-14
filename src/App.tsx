@@ -8,7 +8,7 @@ import PageSEO from "./components/common/PageSEO";
 // Lazy-loaded pages
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const Index = lazy(() => import("./pages/Index"));
-const Auth = lazy(() => import("./pages/Auth"));
+
 const Register = lazy(() => import("./pages/Register"));
 const Login = lazy(() => import("./pages/Login"));
 const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
