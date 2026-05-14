@@ -29,7 +29,7 @@ const SocialMediaLinks: React.FC<SocialMediaLinksProps> = ({
         };
       case 'floating':
         return {
-          container: 'flex flex-col gap-2 fixed right-4 bottom-24 z-10',
+          container: 'flex flex-col gap-2 fixed right-4 bottom-24 z-20',
           button: 'bg-white shadow-md hover:bg-gray-50',
         };
       default:

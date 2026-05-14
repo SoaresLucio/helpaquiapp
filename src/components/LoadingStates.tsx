@@ -29,6 +29,43 @@ export const FormLoadingSkeleton: React.FC = () => (
   </div>
 );
 
+export const ProfessionalCardSkeleton: React.FC = () => (
+  // Fixed min-height matches ProfessionalCard footprint to prevent CLS
+  <div className="bg-card border border-border/50 rounded-2xl p-6 min-h-[320px] space-y-4">
+    <div className="flex items-start gap-4">
+      <Skeleton className="h-16 w-16 rounded-full shrink-0" />
+      <div className="flex-1 space-y-2">
+        <Skeleton className="h-5 w-2/3" />
+        <Skeleton className="h-3 w-1/3" />
+        <Skeleton className="h-3 w-1/2" />
+      </div>
+    </div>
+    <Skeleton className="h-4 w-full" />
+    <Skeleton className="h-4 w-5/6" />
+    <Skeleton className="h-16 w-full rounded-xl" />
+    <div className="flex justify-between pt-4 border-t border-border/50">
+      <Skeleton className="h-6 w-24" />
+      <div className="flex gap-2">
+        <Skeleton className="h-9 w-20 rounded-xl" />
+        <Skeleton className="h-9 w-24 rounded-xl" />
+      </div>
+    </div>
+  </div>
+);
+
+export const BannerSkeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
+  // Fixed aspect-ratio prevents layout shift while banner image loads
+  <div className={`w-full rounded-xl overflow-hidden bg-muted animate-pulse aspect-[16/9] md:aspect-[21/9] ${className}`} />
+);
+
+export const ListLoadingSkeleton: React.FC<{ count?: number }> = ({ count = 3 }) => (
+  <div className="space-y-4">
+    {Array.from({ length: count }).map((_, i) => (
+      <ProfessionalCardSkeleton key={i} />
+    ))}
+  </div>
+);
+
 export const CardLoadingSkeleton: React.FC = () => (
   <div className="helpaqui-card p-4">
     <div className="space-y-4">
