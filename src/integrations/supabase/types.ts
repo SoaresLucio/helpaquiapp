@@ -2132,6 +2132,10 @@ export type Database = {
         Args: { p_request_id: string }
         Returns: boolean
       }
+      notify_freelancer_of_hire: {
+        Args: { p_proposal_id: string }
+        Returns: boolean
+      }
       respond_to_hire_proposal: {
         Args: { p_accept: boolean; p_proposal_id: string; p_reason?: string }
         Returns: Json
