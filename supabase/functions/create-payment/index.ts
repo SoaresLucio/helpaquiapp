@@ -140,7 +140,7 @@ serve(async (req) => {
       cancel_url: `${req.headers.get("origin")}/payment-cancel`,
       metadata: {
         serviceId,
-        freelancerId,
+        freelancerId: resolvedFreelancerId ?? "",
         clientId: userData.user.id,
         platformFee: platformFee.toString(),
         freelancerAmount: freelancerAmount.toString(),
