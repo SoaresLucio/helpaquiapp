@@ -34,15 +34,61 @@ serve(async (req) => {
       throw new Error("User not authenticated");
     }
 
-    // Only accept amount, serviceId, freelancerId, description from client
-    const { amount, serviceId, freelancerId, description } = await req.json();
+    // Accept only identifiers from client. Amount is derived server-side.
+    const { serviceId, proposalId, freelancerId, description } = await req.json();
 
-    // Validate amount
-    if (!amount || typeof amount !== 'number' || amount <= 0) {
-      throw new Error("Invalid amount");
+    if (!serviceId || typeof serviceId !== "string") {
+      throw new Error("Invalid serviceId");
     }
 
-    // Calculate split server-side — never trust client values
+    // Server-side rate limit (10 payment attempts / hour per user)
+    try {
+      const { data: rlOk } = await supabaseClient.rpc("check_rate_limit", {
+        p_user_id: userData.user.id,
+        p_action_type: "create_payment",
+        p_max_requests: 10,
+        p_window_minutes: 60,
+      });
+      if (rlOk === false) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Too many requests. Try again later." }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 429 }
+        );
+      }
+    } catch (_) { /* fail-open on RPC error */ }
+
+    // Resolve canonical price from DB — never trust client
+    let amount = 0;
+    let resolvedFreelancerId: string | null = freelancerId ?? null;
+
+    if (proposalId && typeof proposalId === "string") {
+      const { data: prop } = await supabaseClient
+        .from("service_proposals")
+        .select("proposed_price, freelancer_id, service_request_id")
+        .eq("id", proposalId)
+        .maybeSingle();
+      if (!prop || prop.service_request_id !== serviceId) {
+        throw new Error("Proposal not found for this service");
+      }
+      amount = Number(prop.proposed_price ?? 0);
+      resolvedFreelancerId = prop.freelancer_id;
+    }
+
+    if (!amount || amount <= 0) {
+      const { data: req_, error: reqErr } = await supabaseClient
+        .from("service_requests")
+        .select("budget_max, client_id")
+        .eq("id", serviceId)
+        .maybeSingle();
+      if (reqErr || !req_) throw new Error("Service request not found");
+      if (req_.client_id !== userData.user.id) throw new Error("Not authorized for this request");
+      amount = Number(req_.budget_max ?? 0);
+    }
+
+    if (!amount || amount <= 0 || amount > 10_000_000) {
+      throw new Error("Could not determine a valid payment amount");
+    }
+
     const platformFee = Math.round(amount * PLATFORM_FEE_PCT);
     const freelancerAmount = amount - platformFee;
 
