@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import ChatHeader from './ChatHeader';
-import ChatMessages from './ChatMessages';
+import ChatMessages, { BudgetProposalMessage } from './ChatMessages';
 import ChatInput from './ChatInput';
 import ChatSecurity from './ChatSecurity';
 import BudgetProposalDialog from './BudgetProposalDialog';
 import { useRealTimeChat } from '@/hooks/useRealTimeChat';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ChatWindowProps {
   conversation: {
@@ -27,10 +28,15 @@ interface ChatWindowProps {
   onUpdateUnreadCount: (conversationId: string, count: number) => void;
 }
 
+type ProposalDefaults = {
+  title?: string; description?: string; value?: string; deliveryDays?: string; mode?: 'new' | 'counter';
+};
+
 const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, userType, onUpdateUnreadCount }) => {
   const { messages, loading, sendMessage, markAsRead, userId } = useRealTimeChat(conversation.id);
   const [blockedContent, setBlockedContent] = useState<string[]>([]);
   const [proposalOpen, setProposalOpen] = useState(false);
+  const [proposalDefaults, setProposalDefaults] = useState<ProposalDefaults>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -47,41 +53,42 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, userType, onUpdat
       metadata: msg.metadata,
     };
     if (msg.message_type === 'schedule_suggestion') {
-      // Could be either a real schedule or our budget_proposal (kind in metadata)
       if (msg.metadata?.kind === 'budget_proposal') {
-        return { ...base, type: 'budget_proposal' as const, proposalData: msg.metadata };
+        return { ...base, type: 'budget_proposal' as const, proposalData: msg.metadata as any };
       }
       return {
         ...base, type: 'schedule_suggestion' as const,
-        scheduleData: msg.metadata as any || { date: '', time: '', message: msg.content, confirmed: false },
+        scheduleData: (msg.metadata as any) || { date: '', time: '', message: msg.content, confirmed: false },
       };
     }
     if (msg.message_type === 'file') {
       return {
         ...base, type: 'file' as const,
-        fileData: msg.metadata as any || { name: 'arquivo', size: '0kb', type: 'document' as const, url: '' },
+        fileData: (msg.metadata as any) || { name: 'arquivo', size: '', type: 'document' as const, url: '' },
       };
     }
     return { ...base, type: 'text' as const };
   });
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = useCallback((smooth = true) => {
+    messagesEndRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'end' });
   }, []);
 
   useEffect(() => {
     markAsRead(conversation.id);
     onUpdateUnreadCount(conversation.id, 0);
-    scrollToBottom();
+    scrollToBottom(false);
   }, [conversation.id, onUpdateUnreadCount, markAsRead, scrollToBottom]);
 
   useEffect(() => { scrollToBottom(); }, [messages.length, scrollToBottom]);
 
   const handleSendMessage = (content: string, type: 'text' | 'file' | 'schedule_suggestion' = 'text', additionalData?: any): boolean => {
-    const securityCheck = ChatSecurity.checkMessage(content);
-    if (!securityCheck.isValid) {
-      setBlockedContent(prev => [...prev, content]);
-      return false;
+    if (type === 'text') {
+      const securityCheck = ChatSecurity.checkMessage(content);
+      if (!securityCheck.isValid) {
+        setBlockedContent(prev => [...prev, content]);
+        return false;
+      }
     }
     let metadata: Record<string, any> = {};
     if (type === 'schedule_suggestion' && additionalData?.scheduleData) metadata = additionalData.scheduleData;
@@ -103,15 +110,22 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, userType, onUpdat
       status: 'pending',
     }).catch(() => toast.error('Não foi possível enviar a proposta'));
     setProposalOpen(false);
+    setProposalDefaults({});
   };
 
-  const handleAcceptProposal = (msg: any) => {
+  const handleAcceptProposal = async (msg: BudgetProposalMessage) => {
     const data = msg.proposalData;
     if (!data) return;
-    // Solicitante/empresa accepts → go to payment confirmation flow
+    // Mark proposal as accepted (realtime UPDATE will reach both sides)
+    try {
+      await supabase.rpc('update_chat_proposal_status', { p_message_id: msg.id, p_status: 'accepted' });
+    } catch (e) {
+      console.warn('update_chat_proposal_status accept failed', e);
+    }
     navigate('/hire/confirm', {
       state: {
         conversationId: conversation.id,
+        proposalMessageId: msg.id,
         freelancerId: conversation.participantType === 'freelancer'
           ? conversation.participantId
           : (data.proposedBy ?? conversation.participantId),
@@ -123,8 +137,25 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, userType, onUpdat
     });
   };
 
-  const handleRejectProposal = (msg: any) => {
-    sendMessage(conversation.id, '❌ Proposta recusada. Vamos negociar outro valor?', 'text').catch(() => {});
+  const handleRejectProposal = async (msg: BudgetProposalMessage) => {
+    try {
+      await supabase.rpc('update_chat_proposal_status', { p_message_id: msg.id, p_status: 'rejected' });
+    } catch (e) {
+      console.warn('update_chat_proposal_status reject failed', e);
+    }
+    sendMessage(conversation.id, '❌ Proposta recusada. Sinta-se à vontade para enviar uma contraproposta.', 'text').catch(() => {});
+  };
+
+  const handleCounterProposal = (msg: BudgetProposalMessage) => {
+    const data = msg.proposalData;
+    setProposalDefaults({
+      mode: 'counter',
+      title: data.title,
+      description: data.description,
+      value: (data.valueCents / 100).toFixed(2).replace('.', ','),
+      deliveryDays: data.deliveryDays != null ? String(data.deliveryDays) : '',
+    });
+    setProposalOpen(true);
   };
 
   const handleViewLocation = () => {
@@ -152,11 +183,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, userType, onUpdat
           onConfirmSchedule={() => {}}
           onAcceptProposal={handleAcceptProposal}
           onRejectProposal={handleRejectProposal}
+          onCounterProposal={handleCounterProposal}
           messagesEndRef={messagesEndRef}
         />
         <ChatInput
           onSendMessage={handleSendMessage}
-          onOpenBudgetProposal={() => setProposalOpen(true)}
+          onOpenBudgetProposal={() => { setProposalDefaults({ mode: 'new' }); setProposalOpen(true); }}
           userType={userType}
           conversation={conversation}
         />
@@ -168,9 +200,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, userType, onUpdat
       )}
       <BudgetProposalDialog
         open={proposalOpen}
-        onOpenChange={setProposalOpen}
+        onOpenChange={(o) => { setProposalOpen(o); if (!o) setProposalDefaults({}); }}
         onSubmit={handleSendBudgetProposal}
-        defaultTitle={conversation.jobTitle && !['Conversa', 'Conversa direta'].includes(conversation.jobTitle) ? conversation.jobTitle : ''}
+        defaultTitle={proposalDefaults.title ?? (conversation.jobTitle && !['Conversa', 'Conversa direta'].includes(conversation.jobTitle) ? conversation.jobTitle : '')}
+        defaultDescription={proposalDefaults.description}
+        defaultValue={proposalDefaults.value}
+        defaultDeliveryDays={proposalDefaults.deliveryDays}
+        mode={proposalDefaults.mode}
       />
     </Card>
   );
