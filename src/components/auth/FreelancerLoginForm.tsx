@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { signIn, signInWithGoogle } from '@/services/authService';
-import { validateEmail } from '@/utils/inputValidation';
+import { validateEmail } from '@/utils/authValidation';
 import { useRateLimit } from '@/hooks/useRateLimit';
 import GoogleIcon from './GoogleIcon';
 
@@ -34,7 +34,7 @@ const FreelancerLoginForm: React.FC<FreelancerLoginFormProps> = ({
     
     const emailValidation = validateEmail(email);
     if (!emailValidation.isValid) {
-      toast({ title: "Erro de validação", description: emailValidation.errors[0], variant: "destructive" });
+      toast({ title: "Erro de validação", description: emailValidation.error, variant: "destructive" });
       return;
     }
 

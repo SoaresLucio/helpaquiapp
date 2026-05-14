@@ -34,7 +34,7 @@ const SolicitanteLoginForm: React.FC<SolicitanteLoginFormProps> = ({
     
     const emailValidation = validateEmail(email);
     if (!emailValidation.isValid) {
-      toast({ title: "Erro de validação", description: emailValidation.errors[0], variant: "destructive" });
+      toast({ title: "Erro de validação", description: emailValidation.error, variant: "destructive" });
       return;
     }
 
