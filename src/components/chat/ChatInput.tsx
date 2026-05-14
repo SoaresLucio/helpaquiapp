@@ -114,14 +114,18 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onOpenBudgetPropos
         contentType: file.type, upsert: false,
       });
       if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from('chat-attachments').getPublicUrl(path);
+      // Bucket is private — generate a long-lived signed URL (1 year).
+      const { data: signed, error: signErr } = await supabase
+        .storage.from('chat-attachments')
+        .createSignedUrl(path, 60 * 60 * 24 * 365);
+      if (signErr) throw signErr;
       onSendMessage('', 'file', {
         fileData: {
           name: file.name,
           size: formatBytes(file.size),
           type: kind,
           mime: file.type,
-          url: pub.publicUrl,
+          url: signed.signedUrl,
           path,
         },
       });
