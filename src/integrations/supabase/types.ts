@@ -2145,6 +2145,10 @@ export type Database = {
         Args: { p_accept: boolean; p_proposal_id: string; p_reason?: string }
         Returns: Json
       }
+      update_chat_proposal_status: {
+        Args: { p_message_id: string; p_status: string }
+        Returns: boolean
+      }
       update_user_subscription: {
         Args: {
           p_current_period_end: string
