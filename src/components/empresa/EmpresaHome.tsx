@@ -7,11 +7,14 @@ import { Building2, Briefcase, Megaphone, Users, Settings, Crown, FileText, Eye,
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import BannerCarousel from '@/components/banners/BannerCarousel';
+import { usePromotionalBanners } from '@/hooks/usePromotionalBanners';
 
 const EmpresaHome: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [stats, setStats] = useState({ jobs: 0, activeJobs: 0, applications: 0, companyName: '' });
+  const { banners, loading: bannersLoading } = usePromotionalBanners('empresa');
 
   useEffect(() => {
     if (!user) return;
