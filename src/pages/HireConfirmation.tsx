@@ -20,6 +20,8 @@ interface HireState {
   freelancerId: string;
   freelancerName: string;
   defaultTitle?: string;
+  defaultDescription?: string;
+  defaultValue?: string;
 }
 
 const HireConfirmation: React.FC = () => {
@@ -32,11 +34,11 @@ const HireConfirmation: React.FC = () => {
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   const [title, setTitle] = useState(state?.defaultTitle || '');
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState(state?.defaultDescription || '');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [address, setAddress] = useState('');
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState(state?.defaultValue || '');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
