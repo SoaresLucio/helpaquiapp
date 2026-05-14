@@ -83,6 +83,10 @@ if (typeof window !== 'undefined') {
     import("./pages/Index");
     import("./pages/Login");
     import("./pages/Chat");
+    import("./pages/MyRequests");
+    import("./pages/MyOffers");
+    import("./pages/HelpRequests");
+    import("./pages/OffersPage");
   };
   if ('requestIdleCallback' in window) {
     (window as any).requestIdleCallback(prefetch, { timeout: 2000 });
