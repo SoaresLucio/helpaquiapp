@@ -52,13 +52,17 @@ const SolicitanteLoginForm: React.FC<SolicitanteLoginFormProps> = ({
       localStorage.setItem('userType', 'solicitante');
       toast({ title: "Login bem-sucedido", description: "Bem-vindo de volta ao HelpAqui!" });
       navigate('/dashboard');
-    } catch {
-      setLoginAttempts(prev => prev + 1);
+    } catch (error) {
+      const nextAttempts = loginAttempts + 1;
+      setLoginAttempts(nextAttempts);
+      const baseMsg = error instanceof Error && error.message
+        ? error.message
+        : "Email ou senha incorretos. Verifique suas credenciais ou cadastre-se.";
       toast({
         title: "Erro no login",
-        description: loginAttempts >= 3
-          ? "Múltiplas tentativas falhadas. Sua conta pode ser temporariamente bloqueada."
-          : "Credenciais inválidas. Verifique seu email e senha.",
+        description: nextAttempts >= 4
+          ? `${baseMsg} Múltiplas tentativas falhadas — sua conta pode ser temporariamente bloqueada.`
+          : baseMsg,
         variant: "destructive"
       });
     } finally {
