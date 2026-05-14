@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -11,6 +11,8 @@ export interface ChatMessage {
   metadata: any;
   is_read: boolean;
   created_at: string;
+  _optimistic?: boolean;
+  _failed?: boolean;
 }
 
 export interface Conversation {
@@ -29,18 +31,16 @@ export const useRealTimeChat = (conversationId?: string) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const optimisticMap = useRef<Map<string, string>>(new Map()); // tempId -> not used yet
 
-  // Load conversations for the current user
   const loadConversations = useCallback(async () => {
     if (!user) return;
-
     try {
       const { data, error } = await supabase
         .from('conversations')
         .select('*')
         .or(`client_id.eq.${user.id},freelancer_id.eq.${user.id}`)
         .order('updated_at', { ascending: false });
-
       if (error) throw error;
       setConversations((data || []) as Conversation[]);
     } catch (error) {
@@ -48,10 +48,8 @@ export const useRealTimeChat = (conversationId?: string) => {
     }
   }, [user]);
 
-  // Load messages for a specific conversation
   const loadMessages = useCallback(async (convId: string) => {
     if (!user) return;
-
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -59,7 +57,6 @@ export const useRealTimeChat = (conversationId?: string) => {
         .select('*')
         .eq('conversation_id', convId)
         .order('created_at', { ascending: true });
-
       if (error) throw error;
       setMessages((data || []) as ChatMessage[]);
     } catch (error) {
@@ -69,50 +66,54 @@ export const useRealTimeChat = (conversationId?: string) => {
     }
   }, [user]);
 
-  // Send a message
+  // Optimistic send: insert temp message immediately, then call edge function.
   const sendMessage = useCallback(async (
     convId: string,
     content: string,
     messageType: 'text' | 'image' | 'file' | 'schedule_suggestion' = 'text',
-    metadata = {}
+    metadata: Record<string, any> = {}
   ) => {
-    if (!user || !content.trim()) return;
+    if (!user || (!content.trim() && messageType === 'text')) return;
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const optimistic: ChatMessage = {
+      id: tempId,
+      conversation_id: convId,
+      sender_id: user.id,
+      message_type: messageType,
+      content: content.trim(),
+      metadata,
+      is_read: false,
+      created_at: new Date().toISOString(),
+      _optimistic: true,
+    };
+    setMessages(prev => [...prev, optimistic]);
 
     try {
       setSending(true);
       const { error } = await supabase.functions.invoke('send-chat-message', {
-        body: {
-          conversationId: convId,
-          content: content.trim(),
-          messageType,
-          metadata
-        }
+        body: { conversationId: convId, content: content.trim(), messageType, metadata },
       });
-
       if (error) throw error;
+      // Real message will arrive via realtime INSERT; remove optimistic placeholder there.
+      // As fallback if realtime is delayed, mark as delivered after 4s.
+      setTimeout(() => {
+        setMessages(prev => prev.map(m => m.id === tempId ? { ...m, _optimistic: false } : m));
+      }, 4000);
     } catch (error) {
       console.error('Error sending message:', error);
+      setMessages(prev => prev.map(m => m.id === tempId ? { ...m, _failed: true, _optimistic: false } : m));
       throw error;
     } finally {
       setSending(false);
     }
   }, [user]);
 
-  // Create a new conversation
-  const createConversation = useCallback(async (
-    freelancerId: string,
-    serviceRequestId?: string
-  ) => {
+  const createConversation = useCallback(async (freelancerId: string, serviceRequestId?: string) => {
     if (!user) return null;
-
     try {
       const { data, error } = await supabase.functions.invoke('create-conversation', {
-        body: {
-          freelancerId,
-          serviceRequestId
-        }
+        body: { freelancerId, serviceRequestId },
       });
-
       if (error) throw error;
       return data.conversation;
     } catch (error) {
@@ -121,10 +122,8 @@ export const useRealTimeChat = (conversationId?: string) => {
     }
   }, [user]);
 
-  // Mark messages as read
   const markAsRead = useCallback(async (convId: string) => {
     if (!user) return;
-
     try {
       await supabase
         .from('chat_messages')
@@ -136,62 +135,63 @@ export const useRealTimeChat = (conversationId?: string) => {
     }
   }, [user]);
 
-  // Set up real-time subscriptions
+  // Realtime: append/update on changes instead of full reload.
   useEffect(() => {
-    if (!user) return;
+    if (!user || !conversationId) return;
 
-    // Subscribe to conversations
-    const conversationsChannel = supabase
-      .channel('conversations')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'conversations',
-          filter: `or(client_id.eq.${user.id},freelancer_id.eq.${user.id})`
-        },
-        () => {
-          loadConversations();
+    const channel = supabase
+      .channel(`messages-${conversationId}`)
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `conversation_id=eq.${conversationId}` },
+        (payload) => {
+          const newMsg = payload.new as ChatMessage;
+          setMessages(prev => {
+            // Replace any optimistic message from same sender with same content
+            const idx = prev.findIndex(m =>
+              m._optimistic &&
+              m.sender_id === newMsg.sender_id &&
+              m.content === newMsg.content &&
+              m.message_type === newMsg.message_type
+            );
+            if (idx >= 0) {
+              const next = [...prev];
+              next[idx] = newMsg;
+              return next;
+            }
+            if (prev.some(m => m.id === newMsg.id)) return prev;
+            return [...prev, newMsg];
+          });
+        }
+      )
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'chat_messages', filter: `conversation_id=eq.${conversationId}` },
+        (payload) => {
+          const upd = payload.new as ChatMessage;
+          setMessages(prev => prev.map(m => m.id === upd.id ? { ...m, ...upd } : m));
         }
       )
       .subscribe();
 
-    // Subscribe to messages if we have a conversation
-    let messagesChannel: any;
-    if (conversationId) {
-      messagesChannel = supabase
-        .channel(`messages-${conversationId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'chat_messages',
-            filter: `conversation_id=eq.${conversationId}`
-          },
-          () => {
-            loadMessages(conversationId);
-          }
-        )
-        .subscribe();
-    }
+    return () => { supabase.removeChannel(channel); };
+  }, [user, conversationId]);
 
-    return () => {
-      supabase.removeChannel(conversationsChannel);
-      if (messagesChannel) {
-        supabase.removeChannel(messagesChannel);
-      }
-    };
-  }, [user, conversationId, loadConversations, loadMessages]);
+  // Conversation list channel
+  useEffect(() => {
+    if (!user) return;
+    const ch = supabase
+      .channel('user-conversations')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'conversations' },
+        () => loadConversations()
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user, loadConversations]);
 
-  // Load initial data
   useEffect(() => {
     if (user) {
       loadConversations();
-      if (conversationId) {
-        loadMessages(conversationId);
-      }
+      if (conversationId) loadMessages(conversationId);
     }
   }, [user, conversationId, loadConversations, loadMessages]);
 
@@ -200,10 +200,11 @@ export const useRealTimeChat = (conversationId?: string) => {
     conversations,
     loading,
     sending,
+    userId: user?.id ?? null,
     sendMessage,
     createConversation,
     markAsRead,
     loadMessages,
-    loadConversations
+    loadConversations,
   };
 };
