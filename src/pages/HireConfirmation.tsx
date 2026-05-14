@@ -103,7 +103,7 @@ const HireConfirmation: React.FC = () => {
       if (reqError) throw reqError;
 
       // 2) Create accepted proposal linking the freelancer (pending freelancer acceptance)
-      const { error: propError } = await supabase
+      const { data: proposalRow, error: propError } = await supabase
         .from('service_proposals')
         .insert({
           service_request_id: request.id,
@@ -111,8 +111,18 @@ const HireConfirmation: React.FC = () => {
           status: 'pending',
           proposed_price: valueCents,
           message: `Contratação direta via chat. Data: ${date} ${time}. Local: ${address.trim()}.`,
-        });
+        })
+        .select()
+        .single();
       if (propError) throw propError;
+
+      // 2b) Notify freelancer (server-side via SECURITY DEFINER RPC since users
+      // cannot insert into notifications directly).
+      try {
+        await supabase.rpc('notify_freelancer_of_hire', { p_proposal_id: proposalRow.id });
+      } catch (notifyErr) {
+        console.warn('notify_freelancer_of_hire failed', notifyErr);
+      }
 
       // 3) Link conversation to the request
       await supabase.from('conversations').update({ service_request_id: request.id }).eq('id', state.conversationId);
