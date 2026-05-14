@@ -12,7 +12,8 @@ import {
   Clock,
   Image,
   FileText,
-  ShieldAlert
+  ShieldAlert,
+  DollarSign
 } from 'lucide-react';
 import { filterChatMessage } from '@/utils/chatContentFilter';
 import { useToast } from '@/components/ui/use-toast';
