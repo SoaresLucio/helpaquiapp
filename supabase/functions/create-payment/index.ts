@@ -150,7 +150,7 @@ serve(async (req) => {
     const { error: insertError } = await supabaseClient.from("payments").insert({
       stripe_session_id: session.id,
       service_id: serviceId,
-      freelancer_id: freelancerId,
+      freelancer_id: resolvedFreelancerId,
       client_id: userData.user.id,
       amount: amount,
       platform_fee: platformFee,
