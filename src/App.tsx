@@ -148,7 +148,7 @@ function App() {
           <Route path="/empresa-plans" element={<SEOPage title="Planos para Empresas" description="Conheça os planos de assinatura para empresas." path="/empresa-plans" noIndex><ProtectedRoute requiredUserType="empresa"><EmpresaPlans /></ProtectedRoute></SEOPage>} />
 
           {/* Admin */}
-          <Route path="/admin/*" element={<SEOPage title="Painel Admin" description="Painel administrativo HelpAqui." path="/admin" noIndex><ProtectedRoute><AdminDashboard /></ProtectedRoute></SEOPage>} />
+          <Route path="/admin/*" element={<SEOPage title="Painel Admin" description="Painel administrativo HelpAqui." path="/admin" noIndex><ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute></SEOPage>} />
 
           {/* 404 */}
           <Route path="*" element={<SEOPage title="Página não encontrada" description="A página que você procura não foi encontrada ou foi movida. Volte ao início da HelpAqui e continue encontrando profissionais qualificados perto de você." path="/404" noIndex><NotFound /></SEOPage>} />
