@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutDashboard, Users, FolderOpen, CreditCard, ArrowLeft, Shield } from 'lucide-react';
+import { LayoutDashboard, Users, FolderOpen, CreditCard, ArrowLeft, Shield, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
