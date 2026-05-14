@@ -6,6 +6,7 @@ import AdminDashboardTab from '@/components/admin/AdminDashboardTab';
 import AdminUsersTab from '@/components/admin/AdminUsersTab';
 import AdminCategoriesTab from '@/components/admin/AdminCategoriesTab';
 import AdminPlansTab from '@/components/admin/AdminPlansTab';
+import AdminBannersTab from '@/components/admin/AdminBannersTab';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useState } from 'react';
 
