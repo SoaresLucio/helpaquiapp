@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -13,27 +12,31 @@ interface Banner {
   is_active: boolean;
 }
 
-export const usePromotionalBanners = (targetAudience: 'solicitante' | 'freelancer' | 'empresa') => {
+// Audiences considered "broadcast to everyone" — admins may use any of these.
+const BROADCAST_AUDIENCES = ['both', 'all', 'todos', 'todas', 'ambos'];
+
+export const usePromotionalBanners = (
+  targetAudience: 'solicitante' | 'freelancer' | 'empresa'
+) => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchBanners = async () => {
       try {
-        setLoading(true);
         setError(null);
 
-        if (process.env.NODE_ENV === 'development') {
-        }
-
-        // Fetch filtered banners
         const { data, error } = await supabase
           .from('promotional_banners')
           .select('*')
           .eq('is_active', true)
-          .in('target_audience', [targetAudience, 'both'])
+          .in('target_audience', [targetAudience, ...BROADCAST_AUDIENCES])
           .order('display_order', { ascending: true });
+
+        if (cancelled) return;
 
         if (error) {
           console.error('Error fetching banners:', error);
@@ -43,14 +46,30 @@ export const usePromotionalBanners = (targetAudience: 'solicitante' | 'freelance
 
         setBanners(data || []);
       } catch (err) {
+        if (cancelled) return;
         console.error('Unexpected error fetching banners:', err);
         setError('Erro inesperado ao carregar banners');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchBanners();
+
+    // Realtime: refetch when admin adds/edits/removes a banner
+    const channel = supabase
+      .channel(`promotional_banners_${targetAudience}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'promotional_banners' },
+        () => fetchBanners()
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
   }, [targetAudience]);
 
   return { banners, loading, error };

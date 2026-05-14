@@ -7,11 +7,14 @@ import { Building2, Briefcase, Megaphone, Users, Settings, Crown, FileText, Eye,
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import BannerCarousel from '@/components/banners/BannerCarousel';
+import { usePromotionalBanners } from '@/hooks/usePromotionalBanners';
 
 const EmpresaHome: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [stats, setStats] = useState({ jobs: 0, activeJobs: 0, applications: 0, companyName: '' });
+  const { banners, loading: bannersLoading } = usePromotionalBanners('empresa');
 
   useEffect(() => {
     if (!user) return;
@@ -85,6 +88,11 @@ const EmpresaHome: React.FC = () => {
           <p className="text-muted-foreground">Painel da Empresa</p>
         </div>
       </div>
+
+      {/* Banners promocionais */}
+      {!bannersLoading && banners.length > 0 && (
+        <BannerCarousel banners={banners} className="rounded-2xl shadow-lg" />
+      )}
 
       {/* Publicar Help CTA */}
       <Button
