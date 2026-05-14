@@ -5,35 +5,9 @@ export interface ValidationResult {
   sanitizedValue?: string;
 }
 
-export const validateEmail = (email: string): ValidationResult => {
-  const errors: string[] = [];
-  
-  if (!email || typeof email !== 'string') {
-    errors.push('Email é obrigatório');
-    return { isValid: false, errors };
-  }
-
-  const trimmedEmail = email.trim();
-  
-  if (trimmedEmail.length === 0) {
-    errors.push('Email não pode estar vazio');
-    return { isValid: false, errors };
-  }
-
-  if (trimmedEmail.length > 254) {
-    errors.push('Email muito longo (máximo 254 caracteres)');
-    return { isValid: false, errors };
-  }
-
-  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-  
-  if (!emailRegex.test(trimmedEmail)) {
-    errors.push('Formato de email inválido');
-    return { isValid: false, errors };
-  }
-
-  return { isValid: true, errors: [], sanitizedValue: trimmedEmail };
-};
+// validateEmail moved to @/utils/authValidation (single source of truth).
+// Re-export for backwards compatibility — prefer importing from authValidation.
+export { validateEmail } from './authValidation';
 
 export const validatePhone = (phone: string): ValidationResult => {
   const errors: string[] = [];
@@ -100,40 +74,8 @@ export const validateCPF = (cpf: string): ValidationResult => {
   return { isValid: true, errors: [], sanitizedValue: cleanCPF };
 };
 
-export const validatePassword = (password: string): ValidationResult => {
-  const errors: string[] = [];
-  
-  if (!password || typeof password !== 'string') {
-    errors.push('Senha é obrigatória');
-    return { isValid: false, errors };
-  }
-
-  if (password.length < 8) {
-    errors.push('Senha deve ter pelo menos 8 caracteres');
-  }
-
-  if (password.length > 128) {
-    errors.push('Senha muito longa (máximo 128 caracteres)');
-  }
-
-  if (!/[a-z]/.test(password)) {
-    errors.push('Senha deve conter pelo menos uma letra minúscula');
-  }
-
-  if (!/[A-Z]/.test(password)) {
-    errors.push('Senha deve conter pelo menos uma letra maiúscula');
-  }
-
-  if (!/\d/.test(password)) {
-    errors.push('Senha deve conter pelo menos um número');
-  }
-
-  return { 
-    isValid: errors.length === 0, 
-    errors, 
-    sanitizedValue: errors.length === 0 ? password : undefined 
-  };
-};
+// validatePassword moved to @/utils/authValidation (single source of truth).
+export { validatePassword } from './authValidation';
 
 export const sanitizeText = (text: string, maxLength: number = 1000): string => {
   if (typeof text !== 'string') return '';

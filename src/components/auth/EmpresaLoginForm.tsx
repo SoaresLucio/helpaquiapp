@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Building2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { signIn, signInWithGoogle } from '@/services/authService';
-import { validateEmail } from '@/utils/inputValidation';
+import { validateEmail } from '@/utils/authValidation';
 import { useRateLimit } from '@/hooks/useRateLimit';
 import GoogleIcon from './GoogleIcon';
 
@@ -35,7 +35,7 @@ const EmpresaLoginForm: React.FC<EmpresaLoginFormProps> = ({
     
     const emailValidation = validateEmail(email);
     if (!emailValidation.isValid) {
-      toast({ title: "Erro de validação", description: emailValidation.errors[0], variant: "destructive" });
+      toast({ title: "Erro de validação", description: emailValidation.error, variant: "destructive" });
       return;
     }
 

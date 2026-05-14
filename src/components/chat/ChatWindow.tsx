@@ -162,7 +162,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     const handleConfirmSchedule = (messageId: string) => {
     // This would be handled by the backend in a real implementation
     if (process.env.NODE_ENV === 'development') {
-      console.log('Schedule confirmed for message:', messageId);
     }
   };
 
