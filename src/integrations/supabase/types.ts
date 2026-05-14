@@ -2098,6 +2098,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_accepted_freelancer_for_request: {
+        Args: { _request_id: string }
+        Returns: boolean
+      }
+      is_request_owner: { Args: { _request_id: string }; Returns: boolean }
       log_security_event:
         | { Args: never; Returns: undefined }
         | {
