@@ -102,7 +102,7 @@ function App() {
           <Route path="/" element={<PageWrapper><LandingPage /></PageWrapper>} />
 
           {/* Public routes (SEO handled inside each page) */}
-          <Route path="/auth" element={<PageWrapper><Auth /></PageWrapper>} />
+          <Route path="/auth" element={<Navigate to="/login" replace />} />
           <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
           <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
           <Route path="/reset-password" element={<SEOPage title="Recuperar Senha" description="Esqueceu sua senha? Recupere o acesso à sua conta HelpAqui de forma rápida e segura — receba um link de redefinição direto no seu e-mail." path="/reset-password"><ResetPassword /></SEOPage>} />
