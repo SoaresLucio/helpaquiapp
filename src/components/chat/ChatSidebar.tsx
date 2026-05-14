@@ -31,7 +31,7 @@ interface Conversation {
 
 interface ChatSidebarProps {
   conversations: Conversation[];
-  selectedConversation: Conversation;
+  selectedConversation: Conversation | null;
   onSelectConversation: (conversation: Conversation) => void;
 }
 
@@ -96,8 +96,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
             <div
               key={conversation.id}
               className={`p-4 cursor-pointer hover:bg-gray-50 border-l-4 transition-all duration-200 ${
-                selectedConversation.id === conversation.id 
-                  ? 'bg-blue-50 border-l-blue-500 shadow-sm' 
+                selectedConversation?.id === conversation.id
+                  ? 'bg-blue-50 border-l-blue-500 shadow-sm'
                   : 'border-l-transparent'
               }`}
               onClick={() => onSelectConversation(conversation)}
