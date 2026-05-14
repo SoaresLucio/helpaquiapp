@@ -37,8 +37,8 @@ serve(async (req) => {
       )
     }
 
-    const { amount, description, freelancerId, serviceId, clientId } = await req.json()
-    
+    const { description, freelancerId, serviceId, clientId, proposalId } = await req.json()
+
     // Verificar se o usuário autenticado é o cliente
     if (user.id !== clientId) {
       return new Response(
@@ -46,31 +46,87 @@ serve(async (req) => {
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-    
-    if (!amount || !description || !freelancerId || !serviceId || !clientId) {
+
+    if (!description || !freelancerId || !serviceId || !clientId) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Service-role client for trusted lookups + writes
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    // Server-side rate limit
+    try {
+      const { data: rlOk } = await supabase.rpc('check_rate_limit', {
+        p_user_id: user.id,
+        p_action_type: 'process_asaas_payment',
+        p_max_requests: 10,
+        p_window_minutes: 60,
+      })
+      if (rlOk === false) {
+        return new Response(
+          JSON.stringify({ error: 'Too many requests. Try again later.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    } catch (_) { /* fail-open */ }
+
+    // Resolve canonical amount from DB — never trust client
+    let amount = 0
+    let resolvedFreelancerId: string = freelancerId
+
+    if (proposalId && typeof proposalId === 'string') {
+      const { data: prop } = await supabase
+        .from('service_proposals')
+        .select('proposed_price, freelancer_id, service_request_id')
+        .eq('id', proposalId)
+        .maybeSingle()
+      if (!prop || prop.service_request_id !== serviceId) {
+        return new Response(
+          JSON.stringify({ error: 'Proposal not found for this service' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      amount = Number(prop.proposed_price ?? 0)
+      resolvedFreelancerId = prop.freelancer_id
+    }
+
+    if (!amount || amount <= 0) {
+      const { data: sr } = await supabase
+        .from('service_requests')
+        .select('budget_max, client_id')
+        .eq('id', serviceId)
+        .maybeSingle()
+      if (!sr || sr.client_id !== clientId) {
+        return new Response(
+          JSON.stringify({ error: 'Service request not found' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      amount = Number(sr.budget_max ?? 0)
+    }
+
+    if (!amount || amount <= 0 || amount > 10_000_000) {
+      return new Response(
+        JSON.stringify({ error: 'Could not determine a valid payment amount' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     // Get ASAAS API key from environment
     const asaasApiKey = Deno.env.get('ASAAS_API_KEY')
-    
+
     if (!asaasApiKey) {
       return new Response(
         JSON.stringify({ error: 'ASAAS API key not configured' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Calculate platform fee (10%)
+    // Calculate platform fee (10%) server-side
     const platformFee = Math.round(amount * 0.1)
     const freelancerAmount = amount - platformFee
 
@@ -105,15 +161,11 @@ serve(async (req) => {
 
     const asaasPayment = await asaasResponse.json()
 
-    // Store payment in database
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseKey)
-
     const { error: paymentError } = await supabase
       .from('payments')
       .insert({
         client_id: clientId,
-        freelancer_id: freelancerId,
+        freelancer_id: resolvedFreelancerId,
         service_id: serviceId,
         amount: amount,
         platform_fee: platformFee,
