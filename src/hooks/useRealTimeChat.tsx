@@ -94,11 +94,9 @@ export const useRealTimeChat = (conversationId?: string) => {
         body: { conversationId: convId, content: content.trim(), messageType, metadata },
       });
       if (error) throw error;
-      // Real message will arrive via realtime INSERT; remove optimistic placeholder there.
-      // As fallback if realtime is delayed, mark as delivered after 4s.
-      setTimeout(() => {
-        setMessages(prev => prev.map(m => m.id === tempId ? { ...m, _optimistic: false } : m));
-      }, 4000);
+      // Mark as delivered immediately; the realtime INSERT will replace with the
+      // real row when it arrives.
+      setMessages(prev => prev.map(m => m.id === tempId ? { ...m, _optimistic: false } : m));
     } catch (error) {
       console.error('Error sending message:', error);
       setMessages(prev => prev.map(m => m.id === tempId ? { ...m, _failed: true, _optimistic: false } : m));

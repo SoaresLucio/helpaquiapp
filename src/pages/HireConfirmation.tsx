@@ -22,6 +22,7 @@ interface HireState {
   defaultTitle?: string;
   defaultDescription?: string;
   defaultValue?: string;
+  proposalMessageId?: string;
 }
 
 const HireConfirmation: React.FC = () => {
@@ -155,8 +156,15 @@ const HireConfirmation: React.FC = () => {
 
       if (payment.success && payment.url) {
         toast.success('Solicitação criada! Redirecionando para pagamento…');
-        // Redirect in the same tab to avoid popup-blocker issues that
-        // would silently leave the user without a checkout window.
+        // Best-effort: mark the chat budget proposal as paid so both sides see it in realtime.
+        if (state.proposalMessageId) {
+          try {
+            await supabase.rpc('update_chat_proposal_status', {
+              p_message_id: state.proposalMessageId, p_status: 'paid',
+            });
+          } catch (e) { console.warn('mark proposal paid failed', e); }
+        }
+        // Redirect in the same tab to avoid popup-blocker issues.
         window.location.href = payment.url;
         return;
       } else {
