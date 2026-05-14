@@ -25,12 +25,14 @@ import {
 
 interface ChatInputProps {
   onSendMessage: (content: string, type?: 'text' | 'file' | 'schedule_suggestion', additionalData?: any) => boolean;
+  onOpenBudgetProposal?: () => void;
   userType: string | null;
   conversation: any;
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
+  onOpenBudgetProposal,
   userType,
   conversation
 }) => {
