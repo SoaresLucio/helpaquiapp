@@ -14,6 +14,7 @@ const menuItems = [
   { id: 'users', label: 'Usuários', icon: Users },
   { id: 'categories', label: 'Categorias', icon: FolderOpen },
   { id: 'plans', label: 'Planos', icon: CreditCard },
+  { id: 'banners', label: 'Banners', icon: ImageIcon },
 ];
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, onTabChange }) => {
