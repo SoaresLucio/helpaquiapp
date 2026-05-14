@@ -40,7 +40,13 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional, index
   };
 
   const handleHire = () => {
-    navigate('/chat', { state: { freelancerId, offerType: 'hire', serviceTitle: professional.description } });
+    navigate('/hire/confirm', {
+      state: {
+        freelancerId,
+        freelancerName: professional.name,
+        defaultTitle: professional.description,
+      },
+    });
   };
 
   const categoryNames = professional.categories?.join(', ') || '';
