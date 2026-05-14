@@ -161,15 +161,11 @@ serve(async (req) => {
 
     const asaasPayment = await asaasResponse.json()
 
-    // Store payment in database
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseKey)
-
     const { error: paymentError } = await supabase
       .from('payments')
       .insert({
         client_id: clientId,
-        freelancer_id: freelancerId,
+        freelancer_id: resolvedFreelancerId,
         service_id: serviceId,
         amount: amount,
         platform_fee: platformFee,
