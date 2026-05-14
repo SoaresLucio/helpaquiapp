@@ -165,8 +165,10 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                   {isOwnMessage && status === 'pending' && (
                     <p className="text-[10px] opacity-80">Aguardando resposta da outra parte…</p>
                   )}
-                  {!isClosed === false && status !== 'rejected' && (
-                    <p className="text-[10px] opacity-80">{status === 'paid' ? 'Pagamento recebido. Boa parceria!' : status === 'accepted' ? 'Proposta aceita. Aguardando pagamento.' : ''}</p>
+                  {(status === 'accepted' || status === 'paid') && (
+                    <p className="text-[10px] opacity-80">
+                      {status === 'paid' ? 'Pagamento recebido. Boa parceria!' : 'Proposta aceita. Aguardando pagamento.'}
+                    </p>
                   )}
                 </div>
               );
