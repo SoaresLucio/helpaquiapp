@@ -71,7 +71,14 @@ serve(async (req) => {
       );
     }
 
-    if (payment.status !== "processing" && payment.status !== "completed") {
+    if (payment.released === true) {
+      return new Response(
+        JSON.stringify({ error: "Funds already released for this payment" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (payment.status !== "processing" && payment.status !== "paid") {
       return new Response(
         JSON.stringify({ error: "Payment not eligible for fund release" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -139,11 +146,19 @@ serve(async (req) => {
       );
     }
 
-    // Update payment status to completed
-    await supabase
+    // Update payment: mark as completed AND released atomically (idempotency)
+    const { error: updateErr } = await supabase
       .from("payments")
-      .update({ status: "completed", updated_at: new Date().toISOString() })
-      .eq("id", paymentId);
+      .update({ status: "completed", released: true, released_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .eq("id", paymentId)
+      .eq("released", false);
+
+    if (updateErr) {
+      return new Response(
+        JSON.stringify({ error: "Failed to finalize payment release" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Log the transaction
     await supabase.from("payment_logs").insert({
