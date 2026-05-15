@@ -27,8 +27,8 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) throw new Error('Invalid authentication');
 
-    const { pixPaymentId, planId } = await req.json();
-    if (!pixPaymentId || !planId) throw new Error('pixPaymentId and planId are required');
+    const { pixPaymentId } = await req.json();
+    if (!pixPaymentId) throw new Error('pixPaymentId is required');
 
     const { data: pixPayment, error: pixError } = await supabase
       .from('pix_payments')
@@ -38,6 +38,10 @@ serve(async (req) => {
       .single();
 
     if (pixError || !pixPayment) throw new Error('PIX payment not found or access denied');
+
+    // SECURITY: Use stored plan_id, never trust client-supplied value (prevents plan substitution)
+    const planId = (pixPayment as any).plan_id;
+    if (!planId) throw new Error('Payment record missing plan reference. Please generate a new PIX code.');
 
     if (pixPayment.status === 'paid') {
       return new Response(
