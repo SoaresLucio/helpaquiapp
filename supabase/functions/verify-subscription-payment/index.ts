@@ -98,6 +98,11 @@ serve(async (req) => {
 
       if (!plan) throw new Error('Plan not found');
 
+      // SECURITY: Verify amount paid covers plan price (prevents under-payment)
+      if (Number(pixPayment.amount) + 0.01 < Number(plan.price_monthly)) {
+        throw new Error('Paid amount does not match plan price');
+      }
+
       const { data: existingSub } = await supabase
         .from('user_subscriptions')
         .select('id')
