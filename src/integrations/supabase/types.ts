@@ -895,6 +895,7 @@ export type Database = {
           expires_at: string
           id: string
           pix_code: string
+          plan_id: string | null
           qr_code_url: string | null
           status: string
           subscription_id: string | null
@@ -907,6 +908,7 @@ export type Database = {
           expires_at: string
           id?: string
           pix_code: string
+          plan_id?: string | null
           qr_code_url?: string | null
           status?: string
           subscription_id?: string | null
@@ -919,12 +921,20 @@ export type Database = {
           expires_at?: string
           id?: string
           pix_code?: string
+          plan_id?: string | null
           qr_code_url?: string | null
           status?: string
           subscription_id?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "pix_payments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pix_payments_subscription_id_fkey"
             columns: ["subscription_id"]
