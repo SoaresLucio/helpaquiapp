@@ -204,6 +204,7 @@ serve(async (req) => {
         expires_at: expiresAt.toISOString(),
         status: 'pending',
         asaas_payment_id: asaasPayment.id,
+        plan_id: planId,
       })
       .select()
       .single();
