@@ -71,7 +71,14 @@ serve(async (req) => {
       );
     }
 
-    if (payment.status !== "processing" && payment.status !== "completed") {
+    if (payment.released === true) {
+      return new Response(
+        JSON.stringify({ error: "Funds already released for this payment" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (payment.status !== "processing" && payment.status !== "paid") {
       return new Response(
         JSON.stringify({ error: "Payment not eligible for fund release" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
