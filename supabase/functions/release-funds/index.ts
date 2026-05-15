@@ -146,11 +146,19 @@ serve(async (req) => {
       );
     }
 
-    // Update payment status to completed
-    await supabase
+    // Update payment: mark as completed AND released atomically (idempotency)
+    const { error: updateErr } = await supabase
       .from("payments")
-      .update({ status: "completed", updated_at: new Date().toISOString() })
-      .eq("id", paymentId);
+      .update({ status: "completed", released: true, released_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .eq("id", paymentId)
+      .eq("released", false);
+
+    if (updateErr) {
+      return new Response(
+        JSON.stringify({ error: "Failed to finalize payment release" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Log the transaction
     await supabase.from("payment_logs").insert({
