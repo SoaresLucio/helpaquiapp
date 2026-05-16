@@ -99,7 +99,12 @@ const Register = () => {
     </div>
   );
 
-  const RegisterForm = ({ userType }: { userType: 'solicitante' | 'freelancer' }) => (
+  const RegisterForm = ({ userType }: { userType: 'solicitante' | 'freelancer' }) => {
+    const fnId = `firstName-${userType}`;
+    const lnId = `lastName-${userType}`;
+    const emId = `email-${userType}`;
+    const pwId = `password-${userType}`;
+    return (
     <Card className="border-border/50 shadow-xl shadow-primary/5 rounded-2xl">
       <CardHeader>
         <CardTitle className="text-xl">Cadastro de {userType === 'solicitante' ? 'Solicitante' : 'Freelancer'}</CardTitle>
@@ -111,22 +116,22 @@ const Register = () => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Nome</Label>
-              <Input placeholder="Seu nome" value={firstName} onChange={e => setFirstName(e.target.value)} className="rounded-xl h-11" required />
+              <Label htmlFor={fnId}>Nome</Label>
+              <Input id={fnId} placeholder="Seu nome" value={firstName} onChange={e => setFirstName(e.target.value)} className="rounded-xl h-11" required />
             </div>
             <div className="space-y-2">
-              <Label>Sobrenome</Label>
-              <Input placeholder="Sobrenome" value={lastName} onChange={e => setLastName(e.target.value)} className="rounded-xl h-11" required />
+              <Label htmlFor={lnId}>Sobrenome</Label>
+              <Input id={lnId} placeholder="Sobrenome" value={lastName} onChange={e => setLastName(e.target.value)} className="rounded-xl h-11" required />
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Email</Label>
-            <Input type="email" placeholder="seu@email.com" value={email} onChange={e => { setEmail(e.target.value); if (e.target.value) validateEmailField(e.target.value); }} className={`rounded-xl h-11 ${emailError ? "border-destructive" : ""}`} required />
+            <Label htmlFor={emId}>Email</Label>
+            <Input id={emId} type="email" placeholder="seu@email.com" value={email} onChange={e => { setEmail(e.target.value); if (e.target.value) validateEmailField(e.target.value); }} className={`rounded-xl h-11 ${emailError ? "border-destructive" : ""}`} required />
             {emailError && <p className="text-xs text-destructive">{emailError}</p>}
           </div>
           <div className="space-y-2">
-            <Label>Senha</Label>
-            <Input type="password" placeholder="Crie uma senha segura" value={password} onChange={e => setPassword(e.target.value)} className={`rounded-xl h-11 ${password && !isPasswordValid ? "border-destructive/50" : ""}`} required />
+            <Label htmlFor={pwId}>Senha</Label>
+            <Input id={pwId} type="password" placeholder="Crie uma senha segura" value={password} onChange={e => setPassword(e.target.value)} className={`rounded-xl h-11 ${password && !isPasswordValid ? "border-destructive/50" : ""}`} required />
             <PasswordChecklist />
           </div>
         </CardContent>
@@ -141,7 +146,8 @@ const Register = () => {
         </div>
       </form>
     </Card>
-  );
+    );
+  };
 
   return (
     <PageSEO
@@ -162,7 +168,8 @@ const Register = () => {
           </div>
           <span className="font-extrabold text-2xl text-gradient-primary">HelpAqui</span>
         </div>
-        <p className="text-muted-foreground">Crie sua conta no HelpAqui</p>
+        <h1 className="text-2xl md:text-3xl font-extrabold text-foreground mt-2">Crie sua conta gratuita no HelpAqui</h1>
+        <p className="text-muted-foreground mt-2">Escolha o tipo de conta e comece em menos de 1 minuto</p>
       </motion.div>
 
       <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1} className="w-full max-w-md">
