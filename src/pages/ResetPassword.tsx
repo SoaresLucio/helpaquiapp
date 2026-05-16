@@ -55,7 +55,7 @@ const ResetPassword = () => {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-helpaqui-purple">
-          Help<span className="text-secondary">Aqui</span>
+          Redefinir senha da sua conta HelpAqui
         </h1>
         <p className="text-gray-600 mt-2">Redefinir senha</p>
       </div>

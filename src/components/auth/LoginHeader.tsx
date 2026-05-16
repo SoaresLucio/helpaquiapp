@@ -10,7 +10,7 @@ const LoginHeader = () => {
         </div>
       </div>
       <h1 className="text-3xl font-extrabold text-gradient-primary">
-        HelpAqui
+        Acesse sua conta HelpAqui
       </h1>
       <p className="text-muted-foreground mt-2">Freelancers profissionais perto de você, solução rápida onde estiver!</p>
     </div>

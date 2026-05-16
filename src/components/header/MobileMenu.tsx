@@ -45,7 +45,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ currentPath }) => {
           <SheetTitle className="flex items-center justify-between">
             <span className="font-bold text-xl text-primary">HelpAqui</span>
             <SheetClose asChild>
-              <Button variant="ghost" size="icon"><X className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" aria-label="Fechar menu"><X className="h-4 w-4" /></Button>
             </SheetClose>
           </SheetTitle>
         </SheetHeader>
