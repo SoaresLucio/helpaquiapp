@@ -67,6 +67,7 @@ const About = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="container mx-auto px-4 py-8 max-w-4xl">
+        <h1 className="sr-only">Sobre a {appInfo.company_name || 'HelpAqui'} — quem somos e nossa missão</h1>
         <div className="mb-6"><BackButton to="/dashboard" label="Voltar ao Início" /></div>
 
         <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0}>
