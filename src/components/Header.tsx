@@ -46,6 +46,7 @@ const Header = () => {
             <Input
               type="search"
               placeholder="Buscar..."
+              aria-label="Buscar no HelpAqui"
               className="w-[200px] lg:w-[280px] pl-8"
             />
           </div>

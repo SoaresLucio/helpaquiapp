@@ -101,6 +101,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://helpaquiapp.lovable.app/my-requests</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://helpaquiapp.lovable.app/solicitante-plans</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>

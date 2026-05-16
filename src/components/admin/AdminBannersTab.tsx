@@ -166,7 +166,7 @@ const AdminBannersTab: React.FC = () => {
               </label>
             </div>
             {imageUrl && (
-              <img src={imageUrl} alt="preview" className="mt-2 h-24 rounded object-cover" />
+              <img src={imageUrl} alt={title ? `Pré-visualização do banner: ${title}` : 'Pré-visualização do banner promocional'} className="mt-2 h-24 rounded object-cover" />
             )}
           </div>
 
